@@ -64,4 +64,4 @@ def init_db():
         conn.commit()
         print("[Pasalify] DB ready.")
     finally:
-        conn.close()mmmm
+        conn.close()
