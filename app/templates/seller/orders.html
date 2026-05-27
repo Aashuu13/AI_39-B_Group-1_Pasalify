@@ -1,0 +1,45 @@
+{% extends "seller/base_seller.html" %}
+{% block title %}Orders{% endblock %}
+{% block seller_content %}
+<div class="page-title">Order Management</div>
+<div class="page-subtitle">Manage and fulfill customer orders</div>
+{% if orders %}
+<div class="card">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table mb-0">
+        <thead><tr><th>Order #</th><th>Date</th><th>Customer</th><th>Items</th><th>Store Total</th><th>Status</th><th>Update</th></tr></thead>
+        <tbody>
+        {% for o in orders %}
+        <tr>
+          <td style="color:var(--purple2);font-weight:600">{{ o.order_number }}</td>
+          <td style="color:var(--muted);font-size:.82rem">{{ o.created_at.strftime('%b %d, %Y') if o.created_at else '' }}</td>
+          <td style="font-size:.85rem">{{ o.full_name }}</td>
+          <td style="font-size:.78rem;color:var(--muted);max-width:150px">{{ (o['items'] or '')[:50] }}{% if (o['items'] or '')|length > 50 %}...{% endif %}}</td>
+          <td style="font-weight:600">Rs. {{ "%.0f"|format(o.store_total) }}</td>
+          <td><span class="status-badge s-{{ o.status }}">{{ o.status|title }}</span></td>
+          <td>
+            <form method="post" action="{{ url_for('seller.order_update', oid=o.id) }}" class="d-flex gap-1">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <select class="form-select form-select-sm" name="status" style="width:130px">
+                {% for st in ['confirmed','processing','shipped','delivered','cancelled'] %}
+                <option value="{{ st }}" {% if o.status==st %}selected{% endif %}>{{ st|title }}</option>
+                {% endfor %}
+              </select>
+              <button type="submit" class="btn btn-sm btn-outline-purple">Save</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% else %}
+<div class="text-center py-5" style="color:var(--muted)">
+  <i class="bi bi-box-seam" style="font-size:3rem;opacity:.3"></i>
+  <h4 class="mt-3">No orders yet</h4>
+</div>
+{% endif %}
+{% endblock %}

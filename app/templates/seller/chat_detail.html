@@ -1,0 +1,32 @@
+{% extends "seller/base_seller.html" %}
+{% block title %}Chat{% endblock %}
+{% block seller_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div class="page-title">Chat</div>
+  <a href="{{ url_for('seller.chats') }}" class="btn btn-outline-purple btn-sm"><i class="bi bi-arrow-left me-1"></i> Back</a>
+</div>
+<div class="card" style="max-width:700px">
+  <div class="card-body" style="max-height:400px;overflow-y:auto;padding:1.25rem">
+    {% for msg in messages %}
+    <div class="d-flex {% if msg.sender_id == session.user_id %}justify-content-end{% endif %} mb-3">
+      <div style="max-width:70%;background:{% if msg.sender_id == session.user_id %}var(--purple2){% else %}var(--navy3){% endif %};padding:.6rem 1rem;border-radius:12px;font-size:.88rem">
+        <div style="font-weight:600;font-size:.75rem;color:rgba(255,255,255,.7);margin-bottom:.25rem">{{ msg.name }}</div>
+        {{ msg.message }}
+        <div style="font-size:.7rem;color:rgba(255,255,255,.5);margin-top:.25rem">{{ msg.created_at.strftime('%H:%M') if msg.created_at else '' }}</div>
+      </div>
+    </div>
+    {% else %}
+    <div class="text-center" style="color:var(--muted)">No messages yet.</div>
+    {% endfor %}
+  </div>
+  <div class="card-footer" style="padding:1rem">
+    <form method="post" action="#">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="input-group">
+        <input type="text" class="form-control" name="message" placeholder="Type a message...">
+        <button class="btn btn-purple" type="submit"><i class="bi bi-send"></i></button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

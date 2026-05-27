@@ -1,0 +1,112 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}System Monitoring{% endblock %}
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-start mb-4">
+  <div>
+    <div class="page-title">System Monitoring & Backup</div>
+    <div class="page-subtitle">Activity logs, database health and backup controls</div>
+  </div>
+  <a href="{{ url_for('admin.backup') }}" class="btn btn-outline-purple btn-sm">
+    <i class="bi bi-cloud-arrow-up me-1"></i> Trigger Backup
+  </a>
+</div>
+
+<!-- DB health -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(16,185,129,.15)"><i class="bi bi-database" style="color:#10B981"></i></div>
+      <div class="stat-value">{{ db_size.size if db_size else '—' }} MB</div>
+      <div class="stat-label">Database Size</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(108,63,200,.15)"><i class="bi bi-table" style="color:var(--purple2)"></i></div>
+      <div class="stat-value">{{ table_counts|length }}</div>
+      <div class="stat-label">Tables</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(245,158,11,.15)"><i class="bi bi-activity" style="color:#F59E0B"></i></div>
+      <div class="stat-value">{{ logs|length }}</div>
+      <div class="stat-label">Recent Log Entries</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Table stats -->
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-header">Table Row Counts</div>
+      <div class="card-body p-0">
+        {% for t in table_counts %}
+        <div class="d-flex justify-content-between px-3 py-2 {% if not loop.last %}border-bottom{% endif %}" style="border-color:var(--border)">
+          <span style="font-size:.82rem;font-family:monospace;color:var(--text)">{{ t.table_name }}</span>
+          <span class="badge-purple" style="font-size:.72rem">{{ t.table_rows or 0 }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Activity logs -->
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header"><i class="bi bi-list-ul me-1"></i> Activity Logs (Last 100)</div>
+      <div class="card-body p-0">
+        <div style="max-height:500px;overflow-y:auto">
+          <table class="table table-sm mb-0">
+            <thead style="position:sticky;top:0;background:var(--navy3)">
+              <tr><th>Time</th><th>User</th><th>Action</th><th>Entity</th><th>IP</th></tr>
+            </thead>
+            <tbody>
+            {% for l in logs %}
+            <tr>
+              <td style="color:var(--muted);font-size:.75rem;white-space:nowrap">{{ l.created_at.strftime('%m/%d %H:%M') if l.created_at else '' }}</td>
+              <td style="font-size:.82rem">{{ l.name or 'System' }}</td>
+              <td>
+                <span style="font-family:monospace;font-size:.78rem;
+                  color:{% if 'delete' in l.action or 'reject' in l.action %}#F87171
+                       {% elif 'approve' in l.action or 'login' in l.action %}#34D399
+                       {% elif 'create' in l.action or 'add' in l.action %}#60A5FA
+                       {% else %}var(--text){% endif %}">
+                  {{ l.action }}
+                </span>
+              </td>
+              <td style="color:var(--muted);font-size:.78rem">
+                {% if l.entity_type %}{{ l.entity_type }}:{{ l.entity_id }}{% else %}—{% endif %}
+              </td>
+              <td style="color:var(--muted);font-size:.75rem">{{ l.ip_address or '—' }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="text-center py-3" style="color:var(--muted)">No activity logs yet.</td></tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Security info -->
+<div class="card mt-3">
+  <div class="card-header"><i class="bi bi-shield-check me-1" style="color:#34D399"></i> Security Framework Status</div>
+  <div class="card-body">
+    <div class="row g-2">
+      {% for label, ok in [('CSRF Protection','True'),('Password Hashing (PBKDF2-SHA256)','True'),('Input Validation','True'),('Session Management','True'),('Rate Limiting (implement with Flask-Limiter)','Recommended'),('2FA / OTP','Configurable')] %}
+      <div class="col-md-4">
+        <div style="background:var(--navy3);border:1px solid var(--border);border-radius:8px;padding:.6rem .9rem;font-size:.82rem;display:flex;align-items:center;gap:.5rem">
+          <i class="bi bi-{% if ok == 'True' %}check-circle-fill{% elif ok == 'Recommended' %}exclamation-circle{% else %}gear{% endif %}"
+             style="color:{% if ok == 'True' %}#34D399{% elif ok == 'Recommended' %}#FCD34D{% else %}var(--muted){% endif %}"></i>
+          <span>{{ label }}</span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}
