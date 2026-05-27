@@ -17,14 +17,16 @@ def create_app():
 
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-    # Register Blueprints — Sprint 1 only
-    from app.routes.auth import auth_bp
+    # Register Blueprints
+    from app.routes.auth     import auth_bp
+    from app.routes.customer import customer_bp
 
-    app.register_blueprint(auth_bp, url_prefix='/auth')
+    app.register_blueprint(auth_bp,     url_prefix='/auth')
+    app.register_blueprint(customer_bp, url_prefix='/customer')
 
     @app.route('/')
     def index():
-        return redirect(url_for('auth.login'))
+        return redirect(url_for('customer.products'))
 
     @app.teardown_appcontext
     def close_db(e=None):

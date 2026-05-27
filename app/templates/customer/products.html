@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% block title %}{% if q %}Results for "{{ q }}"{% else %}All Products{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+
+  <!-- Header + inline search bar (AC1 + AC2) -->
+  <div class="row g-2 mb-4 align-items-end">
+    <div class="col-md-6">
+      <h1 class="page-title">
+        {% if q %}Results for "{{ q }}"{% else %}All Products{% endif %}
+      </h1>
+      <p class="page-subtitle">
+        {{ result_count }} product{% if result_count != 1 %}s{% endif %} found
+      </p>
+    </div>
+    <div class="col-md-6">
+      <form method="get" action="{{ url_for('customer.products') }}" class="d-flex gap-2">
+        <input type="text" class="form-control" name="q" value="{{ q }}"
+               placeholder="Search products..." autocomplete="off">
+        <button class="btn btn-purple" type="submit">
+          <i class="bi bi-search"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="row g-3">
+
+    <!-- Filters sidebar (AC3) -->
+    <div class="col-md-3">
+      <div class="card sticky-top" style="top:80px">
+        <div class="card-header"><i class="bi bi-funnel me-1"></i> Filters</div>
+        <div class="card-body">
+          <form method="get" action="{{ url_for('customer.products') }}" id="filter-form">
+            <input type="hidden" name="q" value="{{ q }}">
+
+            <!-- Category -->
+            <div class="mb-3">
+              <label class="form-label">Category</label>
+              <select class="form-select form-select-sm" name="cat"
+                      onchange="document.getElementById('filter-form').submit()">
+                <option value="">All Categories</option>
+                {% for c in cats %}
+                <option value="{{ c.slug }}" {% if cat_slug == c.slug %}selected{% endif %}>
+                  {{ c.name }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <!-- Price range -->
+            <div class="mb-3">
+              <label class="form-label">Price Range (Rs.)</label>
+              <div class="d-flex gap-2">
+                <input type="number" class="form-control form-control-sm"
+                       name="min_price" placeholder="Min" min="0" value="{{ min_p }}">
+                <input type="number" class="form-control form-control-sm"
+                       name="max_price" placeholder="Max" min="0" value="{{ max_p }}">
+              </div>
+            </div>
+
+            <!-- Rating -->
+            <div class="mb-3">
+              <label class="form-label">Min Rating</label>
+              <select class="form-select form-select-sm" name="rating">
+                <option value="">Any</option>
+                <option value="5" {% if rating == '5' %}selected{% endif %}>5★ only</option>
+                <option value="4" {% if rating == '4' %}selected{% endif %}>4★ &amp; above</option>
+                <option value="3" {% if rating == '3' %}selected{% endif %}>3★ &amp; above</option>
+                <option value="2" {% if rating == '2' %}selected{% endif %}>2★ &amp; above</option>
+              </select>
+            </div>
+
+            <!-- Sort -->
+            <div class="mb-3">
+              <label class="form-label">Sort By</label>
+              <select class="form-select form-select-sm" name="sort">
+                <option value="newest"     {% if sort == 'newest'     %}selected{% endif %}>Newest First</option>
+                <option value="price_asc"  {% if sort == 'price_asc'  %}selected{% endif %}>Price: Low to High</option>
+                <option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+                <option value="rating"     {% if sort == 'rating'     %}selected{% endif %}>Top Rated</option>
+              </select>
+            </div>
+
+            <button type="submit" class="btn btn-purple btn-sm w-100">Apply Filters</button>
+            <a href="{{ url_for('customer.products') }}"
+               class="btn btn-sm w-100 mt-1" style="color:var(--muted)">Clear All</a>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results (AC4) / No results (AC5) -->
+    <div class="col-md-9">
+      {% if items %}
+      <div class="row g-3">
+        {% for p in items %}
+        <div class="col-6 col-lg-4">
+          <div class="product-card">
+            {% if p.image_path %}
+            <img src="{{ url_for('static', filename='uploads/' ~ p.image_path) }}"
+                 alt="{{ p.name }}" loading="lazy">
+            {% else %}
+            <div class="product-no-img"><i class="bi bi-image"></i></div>
+            {% endif %}
+            <div class="p-body">
+              <div class="p-store"><i class="bi bi-shop me-1"></i>{{ p.store_name }}</div>
+              <div class="p-name">{{ p.name }}</div>
+              {% if p.cat_name %}
+              <span class="badge-purple" style="font-size:.7rem">{{ p.cat_name }}</span>
+              {% endif %}
+              <div class="p-rating mt-1">
+                {% for i in range(5) %}
+                <i class="bi bi-star{% if i < p.avg_rating|int %}-fill{% endif %}"></i>
+                {% endfor %}
+                <span style="color:var(--muted);font-size:.75rem">({{ p.review_count }})</span>
+              </div>
+              <div class="mt-1">
+                <span class="p-price">Rs. {{ "%.0f"|format(p.price) }}</span>
+                {% if p.compare_price and p.compare_price > p.price %}
+                <span class="p-compare">Rs. {{ "%.0f"|format(p.compare_price) }}</span>
+                <span class="badge-red ms-1" style="font-size:.68rem">
+                  {{ ((p.compare_price - p.price) / p.compare_price * 100)|int }}% off
+                </span>
+                {% endif %}
+              </div>
+              {% if p.stock_qty == 0 %}
+              <div style="color:#F87171;font-size:.78rem;margin-top:.2rem">
+                <i class="bi bi-x-circle me-1"></i>Out of stock
+              </div>
+              {% elif p.stock_qty <= 5 %}
+              <div style="color:#FCD34D;font-size:.78rem;margin-top:.2rem">
+                <i class="bi bi-exclamation-circle me-1"></i>Only {{ p.stock_qty }} left
+              </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      {% else %}
+      <!-- AC5: No results message -->
+      <div class="text-center py-5" style="color:var(--muted)">
+        <i class="bi bi-search" style="font-size:3.5rem;opacity:.4;display:block;margin-bottom:1rem"></i>
+        <h4 style="color:var(--text)">No products found</h4>
+        <p style="max-width:360px;margin:.5rem auto 1.25rem">
+          {% if q %}
+            Nothing matched <strong style="color:var(--text)">"{{ q }}"</strong>.
+            Try a different keyword or remove some filters.
+          {% else %}
+            No products match the selected filters. Try adjusting or clearing them.
+          {% endif %}
+        </p>
+        <a href="{{ url_for('customer.products') }}" class="btn btn-purple mt-2">
+          <i class="bi bi-arrow-counterclockwise me-1"></i>Browse All Products
+        </a>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+{% endblock %}

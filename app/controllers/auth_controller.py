@@ -73,14 +73,53 @@ def login():
         session['email']   = user['email']
         log_action(user['id'], 'login')
 
-        # Sprint 1 — redirect all to change-password as landing
-        return redirect(url_for('auth.change_password'))
+        session['email']   = user['email']
+        log_action(user['id'], 'login')
 
-        # Sprint 1 — all roles land on change-password after login
-        return redirect(url_for('auth.change_password'))
-
+        # Updated to point exactly to your customer blueprint's products page
+        return redirect(url_for('customer.products'))
+    
     return render_template('auth/login.html')
 
 
+def logout():
+    uid = session.get('user_id')
+    if uid:
+        log_action(uid, 'logout')
+    session.clear()
+    flash('Logged out successfully.', 'info')
+    return redirect(url_for('auth.login'))
 
-          
+
+def forgot_password():
+    if request.method == 'POST':
+        email = request.form.get('email', '').strip().lower()
+        db.query("SELECT id FROM users WHERE email=%s", (email,), one=True)
+        flash('If that email exists, a reset link has been sent.', 'info')
+        return redirect(url_for('auth.login'))
+    return render_template('auth/forgot_password.html')
+
+
+def change_password():
+    if 'user_id' not in session:
+        return redirect(url_for('auth.login'))
+
+    if request.method == 'POST':
+        old_pw = request.form.get('old_password', '')
+        new_pw = request.form.get('new_password', '')
+        user   = db.query("SELECT * FROM users WHERE id=%s", (session['user_id'],), one=True)
+
+        if not check_password(old_pw, user['password_hash']):
+            flash('Current password is incorrect.', 'danger')
+        elif len(new_pw) < 8:
+            flash('New password must be at least 8 characters.', 'danger')
+        else:
+            db.execute(
+                "UPDATE users SET password_hash=%s WHERE id=%s",
+                (hash_password(new_pw), session['user_id'])
+            )
+            log_action(session['user_id'], 'change_password')
+            flash('Password updated successfully.', 'success')
+            return redirect(url_for('auth.login'))
+
+    return render_template('auth/change_password.html')
