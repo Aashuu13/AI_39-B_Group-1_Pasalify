@@ -44,20 +44,4 @@ def products():
         'price_desc': 'p.price DESC',
         'rating':     'p.avg_rating DESC',
     }
-    sql += f" ORDER BY {order_map.get(sort, 'p.created_at DESC')}"
-
-    items = db.query(sql, args)
-    cats  = db.query("SELECT * FROM categories ORDER BY name ASC")
-
-    return render_template(
-        'customer/products.html',
-        items=items,
-        cats=cats,
-        q=q,
-        cat_slug=cat_slug,
-        min_p=min_p,
-        max_p=max_p,
-        sort=sort,
-        rating=rating,
-        result_count=len(items),
-    )
+   
