@@ -209,6 +209,7 @@ class AdminController(BaseController):
             self._run("UPDATE promo_codes SET is_active=%s WHERE id=%s", (new_state, pid))
             self._ok('Promo code updated.')
         return redirect(url_for('admin.promos'))
+    
 
     def content_control(self):
         """US 5.2 - View flagged content and manage reviews/products."""
