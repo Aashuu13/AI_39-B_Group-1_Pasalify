@@ -177,6 +177,7 @@ class AdminController(BaseController):
             self._run("UPDATE promo_codes SET is_active=%s WHERE id=%s", (new_state, pid))
             self._ok('Promo code updated.')
         return redirect(url_for('admin.promos'))
+    
 
 
 admin_controller = AdminController()
