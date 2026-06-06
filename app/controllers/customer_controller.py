@@ -408,7 +408,54 @@ class CustomerController(BaseController):
 
     def store_page(self, slug: str):
         return self.store_detail(slug)
+    
 
+     # ── US 1.5  Edit Profile ──────────────────────────────────────────────────
+
+    def profile(self):
+        """
+        GET  /profile  → show the edit-profile form pre-filled with user data
+        POST /profile  → validate & save name, phone, address, city, avatar
+        """
+        user = self._q(
+            "SELECT * FROM users WHERE id = %s",
+            (self._current_user_id(),),
+            one=True,
+        )
+        if not user:
+            return redirect(url_for('auth.login'))
+
+        if request.method == 'POST':
+            name    = request.form.get('name', '').strip()
+            phone   = request.form.get('phone', '').strip()
+            address = request.form.get('address', '').strip()
+            city    = request.form.get('city', '').strip()
+
+            # Save uploaded avatar; fall back to existing avatar if none uploaded
+            avatar = (
+                self._save_file(request.files.get('avatar'), 'images')
+                or user.get('avatar')
+            )
+
+            # Step 3 – Validate input data
+            if not name:
+                self._err('Full name is required.')
+                return render_template('customer/profile.html', user=user)
+
+            # Step 4 – Save the search history (persist updated fields)
+            self._run(
+                "UPDATE users SET name=%s, phone=%s, address=%s, city=%s, avatar=%s "
+                "WHERE id=%s",
+                (name, phone, address, city, avatar, self._current_user_id()),
+            )
+
+            # Keep session name in sync
+            session['name'] = name
+
+            self._ok('Profile updated!')
+            return redirect(url_for('customer.profile'))
+
+        return render_template('customer/profile.html', user=user)
 
 # ── Singleton ─────────────────────────────────────────────────────────────────
 customer_controller = CustomerController()

@@ -46,7 +46,7 @@ def init_db():
     conn = pymysql.connect(
         host=os.environ.get('MYSQL_HOST', 'localhost'),
         user=os.environ.get('MYSQL_USER', 'root'),
-        password=os.environ.get('MYSQL_PASSWORD', 'aashuNEXTdoor2007_'),
+        password=os.environ.get('MYSQL_PASSWORD', '@ayushma1234'),
         charset='utf8mb4',
         cursorclass=pymysql.cursors.DictCursor
     )

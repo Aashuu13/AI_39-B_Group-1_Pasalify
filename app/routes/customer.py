@@ -39,7 +39,6 @@ customer_bp.add_url_rule('/wishlist',                   'wishlist',        _lr(c
 customer_bp.add_url_rule('/wishlist/toggle/<int:pid>',  'wishlist_toggle', _lr(cc.wishlist_toggle))
 
 # ── Profile & Account ─────────────────────────────────────────────────────────
-customer_bp.add_url_rule('/profile',                    'profile',         _lr(cc.profile),         methods=['GET', 'POST'])
 customer_bp.add_url_rule('/notifications',              'notifications',   _lr(cc.notifications))
 customer_bp.add_url_rule('/payments',                   'payment_history', _lr(cc.payment_history))
 
@@ -47,3 +46,13 @@ customer_bp.add_url_rule('/payments',                   'payment_history', _lr(c
 customer_bp.add_url_rule('/support',                    'support',         cc.support)
 customer_bp.add_url_rule('/product/<int:pid>/review',   'submit_review',   _lr(cc.submit_review),   methods=['POST'])
 customer_bp.add_url_rule('/store/<slug>',                'store_page',      cc.store_page)
+
+# ── US 1.5  Edit Profile ──────────────────────────────────────────────────────
+customer_bp.add_url_rule(
+    '/profile',
+    'profile',
+    login_required(customer_controller.profile),
+    methods=['GET', 'POST'],
+)
+
+
