@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+{% block title %}{{ p.name }}{% endblock %}
+{% block content %}
+<div class="container mt-4 mb-5">
+
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{{ url_for('customer.products') }}">Products</a></li>
+      <li class="breadcrumb-item active">{{ p.name[:50] }}</li>
+    </ol>
+  </nav>
+
+  <div class="row g-4">
+    <!-- Product Image -->
+    <div class="col-md-5">
+      {% if p.image_path %}
+      <div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--navy2)">
+        <img src="{{ url_for('static', filename=p.image_path) }}" alt="{{ p.name }}"
+             style="width:100%;height:400px;object-fit:contain;padding:.5rem">
+      </div>
+      {% else %}
+      <div style="height:400px;background:var(--navy2);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:4rem">
+        <i class="bi bi-image"></i>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Product Info -->
+    <div class="col-md-7">
+      <h1 style="font-family:'Playfair Display',serif;font-size:1.8rem;line-height:1.3">{{ p.name }}</h1>
+
+      <!-- Rating summary -->
+      {% if p.avg_rating is defined %}
+      <div class="d-flex align-items-center gap-2 mt-2 mb-3">
+        <div class="stars">
+          {% for i in range(5) %}
+          <i class="bi bi-star{% if i < p.avg_rating|int %}-fill{% endif %}" style="color:var(--gold,#F59E0B)"></i>
+          {% endfor %}
+        </div>
+        <span style="color:var(--muted);font-size:.85rem">
+          {{ "%.1f"|format(p.avg_rating) }}
+          ({{ p.review_count if p.review_count else reviews|length }} reviews)
+        </span>
+      </div>
+      {% endif %}
+
+      <!-- Price -->
+      <div class="mb-3">
+        <span style="font-size:2rem;font-weight:700;color:var(--purple2)">Rs. {{ "%.0f"|format(p.price) }}</span>
+        {% if p.compare_price and p.compare_price > p.price %}
+        <span style="text-decoration:line-through;color:var(--muted);font-size:1.1rem;margin-left:.5rem">Rs. {{ "%.0f"|format(p.compare_price) }}</span>
+        <span class="badge bg-danger ms-2">{{ ((p.compare_price - p.price) / p.compare_price * 100)|int }}% OFF</span>
+        {% endif %}
+      </div>
+
+      <!-- Stock -->
+      {% if p.stock_qty is defined %}
+      <div class="mb-3">
+        {% if p.stock_qty > 10 %}
+        <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>In Stock ({{ p.stock_qty }} available)</span>
+        {% elif p.stock_qty > 0 %}
+        <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-circle me-1"></i>Low Stock — only {{ p.stock_qty }} left!</span>
+        {% else %}
+        <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Out of Stock</span>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <!-- Description -->
+      {% if p.description %}
+      <div style="color:var(--muted);font-size:.92rem;line-height:1.7;margin-bottom:1.5rem;border-top:1px solid var(--border);padding-top:1rem">
+        {{ p.description }}
+      </div>
+      {% endif %}
+
+      <!-- Action buttons -->
+      <div class="d-flex gap-3 align-items-center flex-wrap mt-3">
+        <!-- Wishlist toggle -->
+        {% if session.user_id %}
+        <a href="{{ url_for('customer.wishlist_toggle', pid=p.id) }}"
+           class="btn {% if in_wish %}btn-danger{% else %}btn-outline-secondary{% endif %}">
+          <i class="bi bi-heart{% if in_wish %}-fill{% endif %} me-1"></i>
+          {% if in_wish %}Wishlisted{% else %}Add to Wishlist{% endif %}
+        </a>
+        {% else %}
+        <a href="{{ url_for('auth.login') }}" class="btn btn-outline-secondary">
+          <i class="bi bi-heart me-1"></i>Add to Wishlist
+        </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Reviews Section ─────────────────────────────────────────────────── -->
+  <div class="row mt-5">
+    <div class="col-md-8">
+      <h3 style="font-family:'Playfair Display',serif;margin-bottom:1.5rem">
+        Customer Reviews
+        <span style="color:var(--muted);font-size:1rem">({{ reviews|length }})</span>
+      </h3>
+
+      <!-- Write a review form (logged-in customers only, not yet reviewed) -->
+      {% if session.user_id and session.role == 'customer' and not user_reviewed %}
+      <div class="card mb-4" style="background:var(--navy2);border-color:var(--border)">
+        <div class="card-header" style="background:transparent;border-color:var(--border);font-weight:600">
+          <i class="bi bi-pencil-square me-1"></i>Write a Review
+        </div>
+        <div class="card-body">
+          <form method="post" action="{{ url_for('customer.submit_review', pid=p.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <!-- Star rating picker -->
+            <div class="mb-3">
+              <label class="form-label">Rating <span class="text-danger">*</span></label>
+              <div class="d-flex gap-2" id="star-picker">
+                {% for i in [1,2,3,4,5] %}
+                <label style="cursor:pointer;font-size:1.8rem;color:#D1D5DB" class="star-label" data-val="{{ i }}">
+                  <input type="radio" name="rating" value="{{ i }}" style="display:none" {% if i == 5 %}checked{% endif %}>
+                  <i class="bi bi-star-fill"></i>
+                </label>
+                {% endfor %}
+              </div>
+            </div>
+
+            <div class="mb-2">
+              <input type="text" class="form-control" name="title" placeholder="Review title (optional)"
+                     style="background:var(--navy);border-color:var(--border);color:var(--text)">
+            </div>
+            <div class="mb-3">
+              <textarea class="form-control" name="body" rows="3"
+                        placeholder="Share your experience with this product..."
+                        style="background:var(--navy);border-color:var(--border);color:var(--text)"></textarea>
+            </div>
+            <button type="submit" class="btn btn-purple btn-sm">
+              <i class="bi bi-send me-1"></i>Submit Review
+            </button>
+          </form>
+        </div>
+      </div>
+
+      {% elif session.user_id and session.role == 'customer' and user_reviewed %}
+      <div class="alert alert-info mb-4" style="background:var(--navy2);border-color:var(--border);color:var(--text)">
+        <i class="bi bi-check-circle me-1"></i>You have already reviewed this product.
+      </div>
+      {% elif not session.user_id %}
+      <div class="mb-4" style="color:var(--muted)">
+        <a href="{{ url_for('auth.login') }}" style="color:var(--purple2)">Log in</a> to leave a review.
+      </div>
+      {% endif %}
+
+      <!-- Existing reviews list -->
+      {% for r in reviews %}
+      <div class="card mb-3" style="background:var(--navy2);border-color:var(--border)">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <strong>{{ r.reviewer_name }}</strong>
+              <div class="stars" style="font-size:.85rem;margin:.2rem 0">
+                {% for i in range(5) %}
+                <i class="bi bi-star{% if i < r.rating %}-fill{% endif %}" style="color:var(--gold,#F59E0B)"></i>
+                {% endfor %}
+              </div>
+              {% if r.title %}
+              <div style="font-weight:600;margin-top:.3rem">{{ r.title }}</div>
+              {% endif %}
+              {% if r.body %}
+              <div style="color:var(--muted);font-size:.9rem;margin-top:.2rem">{{ r.body }}</div>
+              {% endif %}
+            </div>
+            <span style="color:var(--muted);font-size:.75rem;white-space:nowrap">
+              {{ r.created_at.strftime('%b %d, %Y') if r.created_at else '' }}
+            </span>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div style="color:var(--muted);text-align:center;padding:2rem">
+        <i class="bi bi-chat-square-text" style="font-size:2rem;opacity:.4"></i>
+        <p class="mt-2">No reviews yet. Be the first!</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+
+<!-- Star picker JS -->
+<script>
+(function () {
+  const labels = document.querySelectorAll('.star-label');
+  function highlight(val) {
+    labels.forEach(l => {
+      const star = l.querySelector('i');
+      star.style.color = parseInt(l.dataset.val) <= val ? '#F59E0B' : '#D1D5DB';
+    });
+  }
+  labels.forEach(l => {
+    l.addEventListener('mouseenter', () => highlight(parseInt(l.dataset.val)));
+    l.addEventListener('click', () => {
+      l.querySelector('input').checked = true;
+      highlight(parseInt(l.dataset.val));
+    });
+  });
+  document.getElementById('star-picker')?.addEventListener('mouseleave', () => {
+    const checked = document.querySelector('input[name="rating"]:checked');
+    highlight(checked ? parseInt(checked.value) : 5);
+  });
+  // Initial highlight
+  highlight(5);
+})();
+</script>
+{% endblock %}

@@ -20,6 +20,13 @@
     </a>
     <ul class="navbar-nav ms-auto gap-1 align-items-center">
       {% if session.user_id %}
+        {% if session.role == 'customer' %}
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('customer.wishlist') }}" title="My Wishlist">
+            <i class="bi bi-heart"></i> Wishlist
+          </a>
+        </li>
+        {% endif %}
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle d-flex align-items-center gap-1" href="#" data-bs-toggle="dropdown">
             <i class="bi bi-person-circle"></i> {{ session.name.split()[0] }}
