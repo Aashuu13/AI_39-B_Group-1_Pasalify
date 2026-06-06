@@ -1,0 +1,182 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block admin_content %}
+<div class="page-title">Admin Dashboard</div>
+<div class="page-subtitle">Platform overview — Pasalify</div>
+
+<!-- Stat cards -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(108,63,200,.15)"><i class="bi bi-people" style="color:var(--purple2)"></i></div>
+      <div class="stat-value">{{ total_users }}</div>
+      <div class="stat-label">Customers</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(16,185,129,.15)"><i class="bi bi-shop" style="color:#10B981"></i></div>
+      <div class="stat-value">{{ total_sellers }}</div>
+      <div class="stat-label">Sellers</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(245,158,11,.15)"><i class="bi bi-box-seam" style="color:#F59E0B"></i></div>
+      <div class="stat-value">{{ total_orders }}</div>
+      <div class="stat-label">Total Orders</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(239,68,68,.15)"><i class="bi bi-currency-rupee" style="color:#EF4444"></i></div>
+      <div class="stat-value">Rs.{{ "%.0f"|format(total_revenue) }}</div>
+      <div class="stat-label">Platform Revenue</div>
+    </div>
+  </div>
+</div>
+
+<!-- Pending approvals -->
+{% if pending_stores > 0 or pending_prods > 0 %}
+<div class="row g-2 mb-4">
+  {% if pending_stores > 0 %}
+  <div class="col-md-6">
+    <div class="alert alert-warning d-flex justify-content-between align-items-center mb-0">
+      <span><i class="bi bi-shop me-1"></i> <strong>{{ pending_stores }}</strong> store(s) awaiting approval</span>
+      <a href="{{ url_for('admin.sellers') }}" class="btn btn-sm btn-outline-purple">Review</a>
+    </div>
+  </div>
+  {% endif %}
+  {% if pending_prods > 0 %}
+  <div class="col-md-6">
+    <div class="alert alert-info d-flex justify-content-between align-items-center mb-0">
+      <span><i class="bi bi-grid me-1"></i> <strong>{{ pending_prods }}</strong> product(s) awaiting approval</span>
+      <a href="{{ url_for('admin.products') }}" class="btn btn-sm btn-outline-purple">Review</a>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+<div class="row g-3">
+  <!-- Revenue chart -->
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header">Platform Revenue — Last 6 Months</div>
+      <div class="card-body">
+        <canvas id="revenueChart" height="200"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick actions -->
+  <div class="col-md-4">
+    <div class="card mb-3">
+      <div class="card-header">Quick Actions</div>
+      <div class="card-body d-flex flex-column gap-2">
+        <a href="{{ url_for('admin.sellers') }}" class="btn btn-outline-purple btn-sm w-100 text-start">
+          <i class="bi bi-shop me-2"></i> Manage Sellers
+        </a>
+        <a href="{{ url_for('admin.products') }}" class="btn btn-outline-purple btn-sm w-100 text-start">
+          <i class="bi bi-check-circle me-2"></i> Approve Products
+        </a>
+        <a href="{{ url_for('admin.promos') }}" class="btn btn-outline-purple btn-sm w-100 text-start">
+          <i class="bi bi-tag me-2"></i> Create Promo Code
+        </a>
+        <a href="{{ url_for('admin.finance_export') }}" class="btn btn-outline-purple btn-sm w-100 text-start">
+          <i class="bi bi-download me-2"></i> Export Transactions
+        </a>
+        <a href="{{ url_for('admin.backup') }}" class="btn btn-outline-purple btn-sm w-100 text-start">
+          <i class="bi bi-cloud-arrow-up me-2"></i> Trigger Backup
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent orders -->
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Recent Orders</span>
+        <span style="color:var(--muted);font-size:.8rem">Latest 8</span>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table mb-0">
+            <thead><tr><th>Order #</th><th>Customer</th><th>Amount</th><th>Method</th><th>Status</th><th>Date</th></tr></thead>
+            <tbody>
+            {% for o in recent_orders %}
+            <tr>
+              <td style="color:var(--purple2);font-weight:600">{{ o.order_number }}</td>
+              <td style="font-size:.88rem">{{ o.customer }}</td>
+              <td style="font-weight:600">Rs. {{ "%.0f"|format(o.total_amount) }}</td>
+              <td><span class="badge-purple" style="font-size:.72rem">{{ o.payment_method|upper }}</span></td>
+              <td><span class="status-badge s-{{ o.status }}">{{ o.status|title }}</span></td>
+              <td style="color:var(--muted);font-size:.8rem">{{ o.created_at.strftime('%b %d, %Y') if o.created_at else '' }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Activity logs -->
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between">
+        <span><i class="bi bi-activity me-1"></i> Recent Activity</span>
+        <a href="{{ url_for('admin.system') }}" style="font-size:.8rem;color:var(--purple2)">View all logs</a>
+      </div>
+      <div class="card-body p-0">
+        {% for l in logs %}
+        <div class="d-flex align-items-center gap-3 px-3 py-2 {% if not loop.last %}border-bottom{% endif %}" style="border-color:var(--border)">
+          <div style="width:32px;height:32px;background:rgba(108,63,200,.1);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <i class="bi bi-activity" style="color:var(--purple2);font-size:.8rem"></i>
+          </div>
+          <div class="flex-grow-1">
+            <span style="font-size:.85rem;font-weight:500">{{ l.name or 'System' }}</span>
+            <span style="color:var(--muted);font-size:.82rem"> · {{ l.action }}</span>
+          </div>
+          <span style="color:var(--muted);font-size:.75rem">{{ l.created_at.strftime('%b %d %H:%M') if l.created_at else '' }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const labels = {{ monthly|map(attribute='month')|list|tojson }};
+const revs   = {{ monthly|map(attribute='revenue')|list|tojson }};
+const ords   = {{ monthly|map(attribute='orders')|list|tojson }};
+new Chart(document.getElementById('revenueChart'), {
+  type: 'line',
+  data: {
+    labels: labels.length ? labels : ['No data'],
+    datasets: [
+      { label:'Revenue (Rs.)', data: revs.length ? revs : [0],
+        borderColor:'#8B5CF6', backgroundColor:'rgba(139,92,246,.1)',
+        fill:true, tension:.4, pointBackgroundColor:'#8B5CF6' },
+      { label:'Orders', data: ords.length ? ords : [0],
+        borderColor:'#10B981', backgroundColor:'rgba(16,185,129,.08)',
+        fill:true, tension:.4, yAxisID:'y2', pointBackgroundColor:'#10B981' }
+    ]
+  },
+  options: {
+    responsive:true,
+    interaction:{mode:'index',intersect:false},
+    plugins:{ legend:{ labels:{ color:'#8B949E' } } },
+    scales:{
+      x:{ grid:{color:'rgba(48,54,61,.5)'}, ticks:{color:'#8B949E'} },
+      y:{ grid:{color:'rgba(48,54,61,.5)'}, ticks:{color:'#8B949E'} },
+      y2:{ position:'right', grid:{display:false}, ticks:{color:'#8B949E'} }
+    }
+  }
+});
+</script>
+{% endblock %}
+{% endblock %}

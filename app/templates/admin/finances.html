@@ -1,0 +1,97 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Financial Management{% endblock %}
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-start mb-4">
+  <div>
+    <div class="page-title">Financial Management</div>
+    <div class="page-subtitle">All transactions, commissions and platform revenue</div>
+  </div>
+  <a href="{{ url_for('admin.finance_export') }}" class="btn btn-outline-purple btn-sm">
+    <i class="bi bi-download me-1"></i> Export CSV
+  </a>
+</div>
+
+<!-- Summary cards -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(108,63,200,.15)"><i class="bi bi-currency-rupee" style="color:var(--purple2)"></i></div>
+      <div class="stat-value">Rs. {{ "%.0f"|format(total_rev) }}</div>
+      <div class="stat-label">Platform Commission Earned</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(16,185,129,.15)"><i class="bi bi-check-circle" style="color:#10B981"></i></div>
+      <div class="stat-value">{{ transactions|selectattr('status','equalto','success')|list|length }}</div>
+      <div class="stat-label">Successful Payments</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(245,158,11,.15)"><i class="bi bi-clock" style="color:#F59E0B"></i></div>
+      <div class="stat-value">{{ transactions|selectattr('status','equalto','pending')|list|length }}</div>
+      <div class="stat-label">Pending Payments</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Transactions table -->
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header">All Transactions</div>
+      <div class="card-body p-0">
+        <div class="table-responsive" style="max-height:500px;overflow-y:auto">
+          <table class="table mb-0">
+            <thead style="position:sticky;top:0">
+              <tr><th>Date</th><th>Order</th><th>Customer</th><th>Amount</th><th>Method</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+            {% for t in transactions %}
+            <tr>
+              <td style="color:var(--muted);font-size:.8rem">{{ t.created_at.strftime('%b %d, %Y') if t.created_at else '' }}</td>
+              <td style="color:var(--purple2);font-size:.85rem;font-weight:600">{{ t.order_number }}</td>
+              <td style="font-size:.85rem">{{ t.customer }}</td>
+              <td style="font-weight:700">Rs. {{ "%.0f"|format(t.amount) }}</td>
+              <td><span class="badge-purple" style="font-size:.7rem">{{ t.method|upper }}</span></td>
+              <td><span class="status-badge s-{{ t.status }}">{{ t.status|title }}</span></td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" class="text-center py-3" style="color:var(--muted)">No transactions yet.</td></tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Commissions -->
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header">Commission Breakdown</div>
+      <div class="card-body p-0">
+        <div style="max-height:500px;overflow-y:auto">
+        {% for c in commissions %}
+        <div class="p-3 {% if not loop.last %}border-bottom{% endif %}" style="border-color:var(--border)">
+          <div style="font-weight:600;font-size:.85rem">{{ c.store_name }}</div>
+          <div class="d-flex justify-content-between mt-1">
+            <span style="color:var(--muted);font-size:.78rem">Seller:</span>
+            <span style="color:#34D399;font-size:.82rem">Rs. {{ "%.0f"|format(c.seller_amount) }}</span>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span style="color:var(--muted);font-size:.78rem">Platform:</span>
+            <span style="color:var(--purple2);font-size:.82rem">Rs. {{ "%.0f"|format(c.platform_amount) }}</span>
+          </div>
+          <span class="status-badge s-{{ c.status }}" style="font-size:.7rem;margin-top:.3rem;display:inline-block">{{ c.status|title }}</span>
+        </div>
+        {% else %}
+        <div class="p-3 text-center" style="color:var(--muted);font-size:.85rem">No commissions yet.</div>
+        {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
