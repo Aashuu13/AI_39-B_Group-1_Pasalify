@@ -1,61 +1,88 @@
-# Pasalify — Sprint 2: View Product (US 2.2)
+# Pasalify - Sprint 3
 
-**Team Member Feature:** View Product  
-**User Story:** As a user, I want to view product details so that I can see the information I need before deciding.
+Flask MVC e-commerce platform. Sprint 3 completes all features through v3.0.
 
-## Acceptance Criteria
-1. Click on the desired product
-2. Show the product information and details
-3. Display the availability status of the product
-4. Load all relevant product data
-5. Provide a back navigation system to return to the previous page
+## Sprint Coverage
 
-## Quick Start
+### Sprint 1 · Core Foundation (Completed)
+- US 1.1 Create User Account · US 1.2 Login System · US 1.3 Reset Password · US 1.6 Platform Security
+
+### Sprint 2 · Core Shopping (Completed)
+- US 2.1 Search Products · US 2.2 View Product · US 2.3 Manage Cart
+- US 3.1 Place Order · US 3.3 Make Payment
+- US 4.1 Register Store · US 4.3 Manage Products · US 5.1 Admin Dashboard
+
+### Sprint 3 · Seller & Orders (This Release)
+- **US 1.4** Change Password · **US 1.5** Edit Profile (avatar, address, city)
+- **US 2.4** Wishlist (fixed table name, add/remove)
+- **US 2.5** Product Reviews (submit, display, avg rating update)
+- **US 2.6** Seller Chat (customer ↔ seller messaging, unread badges)
+- **US 3.2** Track Orders (status timeline, cancel if 'placed')
+- **US 3.5** Apply Promo Code (AJAX validation at checkout)
+- **US 4.5** Manage Inventory (filter by low/out, bulk update)
+- **US 4.6** Manage Orders (status filter, update with customer notification)
+- **US 5.2** Content Control (review moderation, flag resolution)
+- **US 5.3** Track Transactions (paginated view, CSV export, commission report)
+
+## Setup
 
 ```bash
-# 1. Install dependencies
+# 1. Create and activate virtual environment
+python -m venv venv
+venv\Scripts\activate        # Windows
+source venv/bin/activate     # Mac/Linux
+
+# 2. Install dependencies
 pip install -r requirements.txt
 
-# 2. Set up your database credentials
+# 3. Configure environment
 cp .env.example .env
-# Edit .env → set MYSQL_PASSWORD (and MYSQL_DB if needed)
+# Edit .env with your MySQL credentials
 
-# 3. Initialize database (creates tables + demo product)
+# 4. Create database and tables
 python setup_db.py
 
-# 4. Run the app
+# 5. Run
 python run.py
-# → http://127.0.0.1:5000
 ```
-
-The app opens on the **Products listing** page. Click any product to reach the **View Product** detail page.
 
 ## Demo Accounts
 
-| Role     | Email                      | Password      |
-|----------|---------------------------|---------------|
-| Customer | customer@pasalify.com     | customer123   |
-| Seller   | seller@pasalify.com       | seller123     |
+| Role     | Email                    | Password    |
+|----------|--------------------------|-------------|
+| Admin    | admin@pasalify.com       | admin123    |
+| Seller   | seller@pasalify.com      | seller123   |
+| Customer | customer@pasalify.com    | customer123 |
 
-## Feature Flow (US 2.2)
+## Project Structure
 
-1. Go to `http://127.0.0.1:5000` → lands on **Products** listing
-2. Click on any product card
-3. **Product Detail page** opens showing:
-   - Product images with thumbnail switcher
-   - Name, price, discount badge
-   - **Availability/stock status** (In Stock / Low Stock / Out of Stock)
-   - Full description and product details
-   - Customer reviews and rating
-   - Related products in the same category
-4. Click **Back to Products** breadcrumb or button to return
+```
+pasalify_sprint3/
+├── app/
+│   ├── controllers/        # MVC Controllers (OOP: Inheritance, Encapsulation)
+│   │   ├── base_controller.py      # Abstract base with shared helpers
+│   │   ├── auth_controller.py      # Sprint 1: Register, Login, Password
+│   │   ├── customer_controller.py  # Sprint 1-3: Shopping + Chat + Orders
+│   │   ├── seller_controller.py    # Sprint 1-3: Store + Inventory + Orders
+│   │   └── admin_controller.py     # Sprint 1-3: Dashboard + Content + Finance
+│   ├── models/             # Database models (OOP: Abstraction)
+│   ├── routes/             # Flask blueprints (URL → controller mapping)
+│   ├── templates/          # Jinja2 HTML templates
+│   │   ├── admin/          # Admin panel templates
+│   │   ├── auth/           # Login, register, password templates
+│   │   ├── customer/       # Customer-facing templates
+│   │   └── seller/         # Seller dashboard templates
+│   ├── static/             # CSS, JS, uploaded images
+│   └── utils/              # Auth helpers (login_required, role_required)
+├── schema.sql              # Full DB schema (all 3 sprints)
+├── setup_db.py             # DB initialisation script
+├── requirements.txt
+└── run.py
+```
 
-## Files for This Feature
+## OOP Concepts Used
 
-| File | Purpose |
-|------|---------|
-| `app/controllers/customer_controller.py` | `product_detail()` method — core logic |
-| `app/routes/customer.py` | URL rule for `/customer/product/<pid>` |
-| `app/templates/customer/product_detail.html` | Product detail page template |
-| `app/models/product_model.py` | `get_with_images()`, `search()` |
-| `app/models/review_model.py` | `find_by_product()` |
+- **Inheritance**: All controllers inherit from `BaseController` (shared `_q`, `_run`, `_ok`, `_err`, `_notify`, `_save_file`)
+- **Encapsulation**: Validation, password hashing, file upload logic all hidden inside models/controllers
+- **Abstraction**: `BaseModel` provides generic CRUD; controllers call high-level methods, not raw SQL
+- **Polymorphism**: `role_required()` decorator routes the same login flow differently per role

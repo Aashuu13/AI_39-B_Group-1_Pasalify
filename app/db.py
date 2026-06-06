@@ -1,5 +1,6 @@
 import pymysql
 import os
+import re
 from flask import g, current_app
 
 
@@ -43,26 +44,34 @@ def execute(sql, args=()):
 
 
 def init_db():
-    from dotenv import load_dotenv
-    load_dotenv(override=True)
     conn = pymysql.connect(
         host=os.environ.get('MYSQL_HOST', 'localhost'),
         user=os.environ.get('MYSQL_USER', 'root'),
-        password=os.environ.get('MYSQL_PASSWORD', ''),
+        password=os.environ.get('MYSQL_PASSWORD', 'aashuNEXTdoor2007_'),
         charset='utf8mb4',
         cursorclass=pymysql.cursors.DictCursor
     )
     try:
         with conn.cursor() as cur:
-            db_name = os.environ.get('MYSQL_DB', 'sprint2')
+            db_name = os.environ.get('MYSQL_DB', 'sprint3')
             cur.execute(f"CREATE DATABASE IF NOT EXISTS {db_name} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
             cur.execute(f"USE {db_name}")
             schema = os.path.join(os.path.dirname(__file__), '..', 'schema.sql')
-            with open(schema) as f:
-                for stmt in f.read().split(';'):
-                    s = stmt.strip()
-                    if s:
-                        cur.execute(s)
+            with open(schema, encoding='utf-8') as f:
+                raw = f.read()
+            raw = re.sub(r'/\*.*?\*/', '', raw, flags=re.DOTALL)
+            raw = re.sub(r'--[^\n]*', '', raw)
+            for stmt in raw.split(';'):
+                s = stmt.strip()
+                if not s:
+                    continue
+                try:
+                    cur.execute(s)
+                except (pymysql.err.OperationalError, pymysql.err.ProgrammingError) as e:
+                    if e.args[0] in (1060, 1061, 1062, 1065):
+                        pass
+                    else:
+                        raise
         conn.commit()
         print("[Pasalify] DB ready.")
     finally:

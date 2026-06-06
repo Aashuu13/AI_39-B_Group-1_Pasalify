@@ -1,6 +1,3 @@
--- Sprint 2: US 2.2 View Product
--- Tables required for the View Product feature
-
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(120) NOT NULL,
@@ -8,6 +5,9 @@ CREATE TABLE IF NOT EXISTS users (
     phone VARCHAR(20),
     password_hash VARCHAR(512) NOT NULL,
     role ENUM('customer','seller','admin') DEFAULT 'customer',
+    avatar VARCHAR(255),
+    address TEXT,
+    city VARCHAR(80),
     is_active TINYINT(1) DEFAULT 1,
     failed_logins TINYINT DEFAULT 0,
     last_login TIMESTAMP NULL,
@@ -23,14 +23,13 @@ CREATE TABLE IF NOT EXISTS stores (
     logo VARCHAR(255),
     banner VARCHAR(255),
     theme_color VARCHAR(20) DEFAULT '#6C3FC8',
+    theme_layout ENUM('grid','list','masonry') DEFAULT 'grid',
     is_approved TINYINT(1) DEFAULT 0,
     is_active TINYINT(1) DEFAULT 1,
+    commission_rate DECIMAL(5,2) DEFAULT 10.00,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
-
--- ALTER TABLE stores ADD COLUMN primary_color VARCHAR(20) DEFAULT '#6C3FC8'; -- Run manually if needed
--- ALTER TABLE stores ADD COLUMN banner_text VARCHAR(255); -- Run manually if needed
 
 CREATE TABLE IF NOT EXISTS categories (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -71,6 +70,88 @@ CREATE TABLE IF NOT EXISTS product_images (
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS wishlists (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    product_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_wish (user_id, product_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS cart_items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    product_id INT NOT NULL,
+    quantity INT DEFAULT 1,
+    UNIQUE KEY uq_cart (user_id, product_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS promo_codes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    code VARCHAR(50) UNIQUE NOT NULL,
+    discount_type ENUM('percent','fixed') DEFAULT 'percent',
+    discount_value DECIMAL(10,2) NOT NULL,
+    min_order DECIMAL(10,2) DEFAULT 0,
+    max_uses INT,
+    used_count INT DEFAULT 0,
+    valid_from DATE,
+    valid_until DATE,
+    is_active TINYINT(1) DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS orders (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    order_number VARCHAR(30) UNIQUE NOT NULL,
+    full_name VARCHAR(120) NOT NULL,
+    phone VARCHAR(20),
+    address TEXT NOT NULL,
+    city VARCHAR(80),
+    total_amount DECIMAL(10,2) NOT NULL,
+    discount_amount DECIMAL(10,2) DEFAULT 0,
+    promo_code_id INT,
+    payment_method ENUM('cod','esewa','khalti') DEFAULT 'cod',
+    payment_status ENUM('pending','paid','failed','refunded') DEFAULT 'pending',
+    status ENUM('placed','confirmed','processing','shipped','delivered','cancelled') DEFAULT 'placed',
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (promo_code_id) REFERENCES promo_codes(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS order_items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    product_id INT NOT NULL,
+    store_id INT NOT NULL,
+    product_name VARCHAR(200) NOT NULL,
+    price DECIMAL(10,2) NOT NULL,
+    quantity INT NOT NULL,
+    subtotal DECIMAL(10,2) NOT NULL,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+    FOREIGN KEY (store_id) REFERENCES stores(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS payments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    user_id INT NOT NULL,
+    amount DECIMAL(10,2) NOT NULL,
+    method ENUM('cod','esewa','khalti') NOT NULL,
+    status ENUM('pending','success','failed','refunded') DEFAULT 'pending',
+    transaction_id VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS reviews (
     id INT AUTO_INCREMENT PRIMARY KEY,
     product_id INT NOT NULL,
@@ -86,16 +167,6 @@ CREATE TABLE IF NOT EXISTS reviews (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS activity_logs (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT,
-    action VARCHAR(100),
-    entity_type VARCHAR(50),
-    entity_id INT,
-    ip_address VARCHAR(45),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
 CREATE TABLE IF NOT EXISTS notifications (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -104,48 +175,130 @@ CREATE TABLE IF NOT EXISTS notifications (
     type ENUM('order','payment','promo','system','review') DEFAULT 'system',
     is_read TINYINT(1) DEFAULT 0,
     link VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS support_messages (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    session_id VARCHAR(100),
+    role ENUM('user','bot') DEFAULT 'user',
+    message TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Demo data
-INSERT IGNORE INTO categories (name, slug, icon) VALUES
-('Electronics', 'electronics', 'cpu'),
-('Fashion',     'fashion',     'bag'),
-('Home & Garden','home-garden','house'),
-('Books',       'books',       'book'),
-('Sports',      'sports',      'trophy');
+CREATE TABLE IF NOT EXISTS chats (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT NOT NULL,
+    seller_id INT NOT NULL,
+    product_id INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (customer_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (seller_id) REFERENCES users(id) ON DELETE CASCADE
+);
 
--- Demo customer (password: customer123)
+CREATE TABLE IF NOT EXISTS chat_messages (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    chat_id INT NOT NULL,
+    sender_id INT NOT NULL,
+    message TEXT NOT NULL,
+    is_read TINYINT(1) DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (chat_id) REFERENCES chats(id) ON DELETE CASCADE,
+    FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS activity_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    action VARCHAR(200) NOT NULL,
+    entity_type VARCHAR(50),
+    entity_id INT,
+    ip_address VARCHAR(45),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS commissions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_item_id INT NOT NULL,
+    store_id INT NOT NULL,
+    seller_amount DECIMAL(10,2) NOT NULL,
+    platform_amount DECIMAL(10,2) NOT NULL,
+    status ENUM('pending','paid') DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (order_item_id) REFERENCES order_items(id) ON DELETE CASCADE,
+    FOREIGN KEY (store_id) REFERENCES stores(id) ON DELETE CASCADE
+);
+
+INSERT IGNORE INTO categories (name, slug, icon) VALUES
+('Electronics','electronics','cpu'),
+('Fashion','fashion','shopping-bag'),
+('Home & Garden','home-garden','home'),
+('Sports','sports','activity'),
+('Books','books','book-open'),
+('Beauty','beauty','star'),
+('Food & Grocery','food-grocery','package'),
+('Toys & Kids','toys-kids','gift');
+
+INSERT IGNORE INTO users (name,email,phone,password_hash,role,is_active) VALUES
+('Pasalify Admin','admin@pasalify.com','9800000000',
+ '3ac179c671a66c06af031954e0ed311f35e567477c6cd8b1bdabd09796d267d1:f913dd1eaabbb9cc573a44502cdf9ac90254b8d47a0db0a64082a823da3fa2f7','admin',1);
+
+-- Demo customer account (password: customer123)
 INSERT IGNORE INTO users (name,email,phone,password_hash,role,is_active) VALUES
 ('Demo Customer','customer@pasalify.com','9811111111',
  'aabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccdd:4fb3cbbc86b04c8c3cdd5a2f566f10a7e041ccf0105ea90813ee519c68def446','customer',1);
 
--- Demo seller (password: seller123)
+-- Demo seller account (password: seller123)
 INSERT IGNORE INTO users (name,email,phone,password_hash,role,is_active) VALUES
 ('Demo Seller','seller@pasalify.com','9822222222',
  '1122334455667788112233445566778811223344556677881122334455667788:2a5c34aa29be7f7a5b73b9a76556485e139a4776b1d763ab524f72143f0cd87b','seller',1);
 
--- Demo store
+-- Demo store for demo seller (resolves seller's actual user_id dynamically)
 INSERT IGNORE INTO stores (user_id,name,slug,description,is_approved,is_active)
 SELECT id,'Demo Store','demo-store','A demo store for testing.',1,1
 FROM users WHERE email='seller@pasalify.com' LIMIT 1;
 
--- Demo product (visible on product listing and detail page)
-INSERT IGNORE INTO products (store_id,category_id,name,slug,description,price,compare_price,sku,stock_qty,is_active,is_approved,avg_rating,review_count)
-SELECT
-  s.id,
-  c.id,
-  'Pasalify Demo Product',
-  'pasalify-demo-product',
-  'This is a demo product to showcase the View Product feature. It displays all product information including name, price, stock status, description, and reviews.',
-  1499.00,
-  1999.00,
-  'DEMO-001',
-  25,
-  1,
-  1,
-  4.50,
-  2
-FROM stores s, categories c
-WHERE s.slug='demo-store' AND c.slug='electronics'
-LIMIT 1;
+-- Add store customization columns (MySQL 5.7+ compatible — ignore error if already exists)
+ALTER TABLE stores ADD COLUMN primary_color VARCHAR(20) DEFAULT '#6C3FC8';
+ALTER TABLE stores ADD COLUMN banner_text VARCHAR(255);
+
+-- ═══════════════════════════════════════════════════════════════════
+-- Sprint 3 Schema additions
+-- US 1.4 Change Password (uses existing users table - already done in auth)
+-- US 1.5 Edit Profile   (users table already supports this)
+-- US 2.4 Wishlist       (wishlists already exists — renamed from wishlist)
+-- US 2.5 Product Reviews (reviews already exists)
+-- US 2.6 Seller Chat    (chats + chat_messages already exists)
+-- US 3.2 Track Orders   (orders table already supports status tracking)
+-- US 3.5 Apply Promo Code (promo_codes already exists, adding apply support)
+-- US 4.5 Manage Inventory (products table already supports stock)
+-- US 4.6 Manage Orders  (orders + order_items already exist)
+-- US 5.2 Content Control (new: content_flags table)
+-- US 5.3 Track Transactions (payments + commissions already exist)
+-- ═══════════════════════════════════════════════════════════════════
+
+-- US 5.2 Content Control: admin can flag/remove reviews & products
+CREATE TABLE IF NOT EXISTS content_flags (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    entity_type ENUM('review','product','user') NOT NULL,
+    entity_id INT NOT NULL,
+    reason TEXT,
+    flagged_by INT,
+    status ENUM('pending','reviewed','dismissed') DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (flagged_by) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- US 3.5 Track which promo was used per order (already in orders.promo_code_id)
+-- Add applied_promo tracking column to orders if not exists
+ALTER TABLE orders ADD COLUMN promo_code VARCHAR(50) DEFAULT NULL;
+
+-- Add avatar support to users (Sprint 3 - US 1.5 Edit Profile)
+ALTER TABLE orders MODIFY COLUMN status 
+    ENUM('placed','confirmed','processing','shipped','out_for_delivery','delivered','cancelled') 
+    DEFAULT 'placed';
+
+-- Ensure wishlists uses standard name (sprint2 used 'wishlist' in queries; fix alias)
+-- (No structural change needed — table is 'wishlists')
