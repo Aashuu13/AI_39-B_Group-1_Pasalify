@@ -1,0 +1,43 @@
+{% extends 'seller/base_seller.html' %}
+{% block title %}Manage Orders{% endblock %}
+{% block content %}
+<h5 class="mb-4">Order Management (US 4.6)</h5>
+
+<div class="mb-3 d-flex flex-wrap gap-2">
+  <a href="{{ url_for('seller.orders') }}" class="btn btn-sm {% if not status_filter %}btn-primary{% else %}btn-outline-primary{% endif %}">
+    All <span class="badge bg-white text-primary">{{ counts.values()|sum }}</span>
+  </a>
+  {% for s in ['placed','confirmed','processing','shipped','out_for_delivery','delivered','cancelled'] %}
+  <a href="{{ url_for('seller.orders', status=s) }}"
+     class="btn btn-sm {% if status_filter==s %}btn-dark{% else %}btn-outline-secondary{% endif %}">
+    {{ s.replace('_',' ')|title }}
+    {% if counts.get(s) %}<span class="badge bg-secondary ms-1">{{ counts[s] }}</span>{% endif %}
+  </a>
+  {% endfor %}
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr><th>Order #</th><th>Customer</th><th>Total</th><th>Payment</th><th>Status</th><th>Date</th><th>Action</th></tr>
+      </thead>
+      <tbody>
+      {% for o in orders %}
+      <tr>
+        <td><a href="{{ url_for('seller.order_detail', oid=o.id) }}">{{ o.order_number }}</a></td>
+        <td>{{ o.customer_name }}</td>
+        <td>Rs {{ "%.2f"|format(o.total_amount) }}</td>
+        <td><span class="badge bg-{% if o.payment_status=='paid' %}success{% else %}warning text-dark{% endif %}">{{ o.payment_status }}</span></td>
+        <td><span class="badge bg-secondary">{{ o.status.replace('_',' ')|title }}</span></td>
+        <td><small>{{ o.created_at.strftime('%Y-%m-%d') if o.created_at else '' }}</small></td>
+        <td><a href="{{ url_for('seller.order_detail', oid=o.id) }}" class="btn btn-sm btn-outline-primary">View</a></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" class="text-center text-muted py-4">No orders found.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
