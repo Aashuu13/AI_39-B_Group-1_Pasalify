@@ -10,7 +10,7 @@ OOP Concept: ENCAPSULATION (Database Wrapper)
 ==============================================================
 """
 
-from app import db as _db
+from app.utils import db as _db
 
 
 class Database:

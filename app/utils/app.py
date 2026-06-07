@@ -3,7 +3,7 @@ load_dotenv()
 
 from flask import Flask, redirect, url_for
 from flask_wtf.csrf import CSRFProtect
-from app.config import Config
+from app.utils.config import Config
 import os
 
 csrf = CSRFProtect()
@@ -33,7 +33,9 @@ def create_app():
 
     @app.teardown_appcontext
     def close_db(e=None):
-        from app import db
+        from app.utils import db
         db.close_db(e)
 
     return app
+
+

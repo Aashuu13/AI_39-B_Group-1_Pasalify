@@ -18,7 +18,7 @@ import uuid
 from abc import ABC, abstractmethod
 
 from flask import session, flash, redirect, url_for, request, current_app
-from app import db
+from app.utils import db
 from app.utils.auth import log_action, notify as _notify
 
 
@@ -162,7 +162,7 @@ import uuid
 from abc import ABC, abstractmethod
 
 from flask import session, flash, redirect, url_for, request, current_app
-from app import db
+from app.utils import db
 from app.utils.auth import log_action, notify as _notify
 
 

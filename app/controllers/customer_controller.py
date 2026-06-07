@@ -13,7 +13,7 @@ from flask import render_template, request, redirect, url_for, session, flash, j
 
 from app.controllers.base_controller import BaseController
 from app.models import UserModel, ProductModel, CategoryModel, OrderModel
-from app import db
+from app.utils import db
 
 
 class CustomerController(BaseController):

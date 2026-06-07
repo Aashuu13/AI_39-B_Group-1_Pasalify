@@ -5,7 +5,7 @@ from functools import wraps
 
 from flask import session, redirect, url_for, flash, request
 
-from app import db
+from app.utils import db
 
 
 def hash_password(pw):
