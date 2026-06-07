@@ -11,7 +11,6 @@ OOP Concept: INHERITANCE (Review Model)
 from app.models.basemodel import BaseModel
 from app.models.database import Database
 
-
 class ReviewModel(BaseModel):
     """
     Represents the `reviews` table.
@@ -22,8 +21,6 @@ class ReviewModel(BaseModel):
     @property
     def table(self) -> str:
         return self.TABLE
-
-   
 
     @classmethod
     def find_by_product(cls, product_id: int, approved_only: bool = True) -> list[dict]:
@@ -46,8 +43,6 @@ class ReviewModel(BaseModel):
             "user_id = %s AND product_id = %s", (user_id, product_id), one=True
         )
         return row is not None
-
-    
 
     @classmethod
     def approve(cls, review_id: int) -> None:

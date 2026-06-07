@@ -5,14 +5,12 @@ from functools import wraps
 
 from flask import session, redirect, url_for, flash, request
 
-from app.utils import db
-
+from app import db
 
 def hash_password(pw):
     salt = os.urandom(32)
     key  = hashlib.pbkdf2_hmac('sha256', pw.encode(), salt, 260000)
     return salt.hex() + ':' + key.hex()
-
 
 def check_password(pw, stored):
     try:
@@ -22,10 +20,8 @@ def check_password(pw, stored):
     except Exception:
         return False
 
-
 def valid_email(e):
     return bool(re.match(r'^[\w.+-]+@[\w-]+\.[a-z]{2,}$', e, re.I))
-
 
 def login_required(f):
     @wraps(f)
@@ -35,7 +31,6 @@ def login_required(f):
             return redirect(url_for('auth.login'))
         return f(*args, **kwargs)
     return decorated
-
 
 def role_required(*roles):
     def decorator(f):
@@ -51,13 +46,11 @@ def role_required(*roles):
         return decorated
     return decorator
 
-
 def log_action(user_id, action, entity_type=None, entity_id=None):
     db.execute(
         "INSERT INTO activity_logs (user_id,action,entity_type,entity_id,ip_address) VALUES (%s,%s,%s,%s,%s)",
         (user_id, action, entity_type, entity_id, request.remote_addr)
     )
-
 
 def notify(user_id, title, message, ntype='system', link=None):
     db.execute(

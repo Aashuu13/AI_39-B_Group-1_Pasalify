@@ -12,7 +12,6 @@ OOP Concept: INHERITANCE & ENCAPSULATION (Order Model)
 from app.models.basemodel import BaseModel
 from app.models.database import Database
 
-
 class OrderModel(BaseModel):
     """
     Represents the `orders` table.
@@ -30,8 +29,6 @@ class OrderModel(BaseModel):
     @property
     def table(self) -> str:
         return self.TABLE
-
-    # ── Lookups ───────────────────────────────────────────────────────────────
 
     @classmethod
     def find_by_user(cls, user_id: int) -> list[dict]:
@@ -76,8 +73,6 @@ class OrderModel(BaseModel):
             LIMIT %s
         """, (limit,))
 
-    # ── Status Transitions (Encapsulation) ────────────────────────────────────
-
     @classmethod
     def cancel(cls, order_id: int) -> None:
         """Cancel a pending order."""
@@ -97,8 +92,6 @@ class OrderModel(BaseModel):
     def mark_paid(cls, order_id: int) -> None:
         """Update payment_status to paid."""
         cls.update(order_id, {'payment_status': 'paid'})
-
-    # ── Revenue Stats ─────────────────────────────────────────────────────────
 
     @classmethod
     def monthly_revenue(cls, store_id: int | None = None, months: int = 6) -> list[dict]:

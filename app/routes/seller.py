@@ -10,10 +10,8 @@ seller_bp = Blueprint('seller', __name__)
 sc      = seller_controller
 _seller = role_required('seller')
 
-
 seller_bp.add_url_rule('/setup',                            'setup',              _seller(sc.setup),              methods=['GET', 'POST'])
 seller_bp.add_url_rule('/dashboard',                        'dashboard',          _seller(sc.dashboard))
-
 
 seller_bp.add_url_rule('/products',                         'products',           _seller(sc.products))
 seller_bp.add_url_rule('/products/add',                     'product_add',        _seller(sc.product_add),        methods=['GET', 'POST'])
@@ -29,9 +27,7 @@ seller_bp.add_url_rule('/orders/<int:oid>',                 'order_detail',     
 seller_bp.add_url_rule('/orders/<int:oid>/status',          'order_status',       _seller(sc.order_status),       methods=['POST'])
 seller_bp.add_url_rule('/orders/<int:oid>/update',          'order_update',       _seller(sc.order_update),       methods=['POST'])
 
-
 seller_bp.add_url_rule('/categories',                       'categories',         _seller(sc.categories))
-
 
 seller_bp.add_url_rule('/reviews',                          'reviews',            _seller(sc.reviews))
 

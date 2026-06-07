@@ -13,12 +13,9 @@ from flask import render_template, request, redirect, url_for, session, flash, j
 
 from app.controllers.base_controller import BaseController
 from app.models import UserModel, ProductModel, CategoryModel, OrderModel
-from app.utils import db
-
+from app import db
 
 class CustomerController(BaseController):
-
-  
 
     def _get_cart_items(self) -> list[dict]:
         return self._q("""
@@ -44,8 +41,6 @@ class CustomerController(BaseController):
     def _generate_order_number(self) -> str:
         suffix = str(uuid.uuid4())[:6].upper()
         return f"ORD-{datetime.now().strftime('%Y%m%d')}-{suffix}"
-
-    
 
     def home(self):
         cats = CategoryModel.find_all()
@@ -83,8 +78,6 @@ class CustomerController(BaseController):
             q=q, cat_slug=cat_slug, sort=sort,
         )
 
-    
-
     def product_detail(self, pid: int):
         p = ProductModel.get_with_images(pid)
         if not p:
@@ -106,7 +99,6 @@ class CustomerController(BaseController):
             LIMIT  4
         """, (p['category_id'], pid))
 
-        # US 2.5 Product Reviews
         reviews = self._q("""
             SELECT r.*, u.name AS reviewer_name
             FROM   reviews r
@@ -115,7 +107,6 @@ class CustomerController(BaseController):
             ORDER  BY r.created_at DESC
         """, (pid,))
 
-        
         user_reviewed = False
         if self._is_logged_in():
             existing = self._q(
@@ -130,7 +121,6 @@ class CustomerController(BaseController):
             reviews=reviews, user_reviewed=user_reviewed,
         )
 
-   
     def stores(self):
         stores = self._q("""
             SELECT s.*, COUNT(p.id) AS product_count
@@ -165,7 +155,6 @@ class CustomerController(BaseController):
 
         return render_template('customer/store_detail.html', store=store, products=products)
 
-    
     def wishlist(self):
         items = self._q("""
             SELECT w.id, p.*, pi.image_path, s.name AS store_name
@@ -194,8 +183,6 @@ class CustomerController(BaseController):
             )
             self._ok('Added to wishlist!')
         return redirect(request.referrer or url_for('customer.wishlist'))
-
-   
 
     def cart(self):
         items = self._get_cart_items()
@@ -259,8 +246,6 @@ class CustomerController(BaseController):
         )
         self._info('Item removed.')
         return redirect(url_for('customer.cart'))
-
-    
 
     def apply_promo(self):
         """AJAX endpoint: validate promo code and return discount info."""
@@ -326,7 +311,6 @@ class CustomerController(BaseController):
         discount   = float(request.form.get('discount_amount', 0))
         final_total = subtotal - discount
 
-        # Mark promo as used
         if promo_id:
             self._run(
                 "UPDATE promo_codes SET used_count = used_count + 1 WHERE id = %s",
@@ -378,15 +362,12 @@ class CustomerController(BaseController):
             (oid, uid, final_total, method, pay_status),
         )
 
-        # Notify customer
         self._notify(uid, 'Order Placed!',
                      f'Your order {order_no} has been placed successfully.',
                      'order', f'/customer/order/{oid}')
 
         self._ok(f'Order {order_no} placed successfully!')
         return redirect(url_for('customer.order_detail', oid=oid))
-
-    
 
     def orders(self):
         ords = self._q(
@@ -412,7 +393,6 @@ class CustomerController(BaseController):
             WHERE  oi.order_id = %s
         """, (oid,))
 
-        # Status timeline for tracking
         status_steps = ['placed', 'confirmed', 'processing', 'shipped', 'out_for_delivery', 'delivered']
         current_step = order['status'] if order['status'] in status_steps else 'placed'
 
@@ -436,7 +416,7 @@ class CustomerController(BaseController):
             return redirect(url_for('customer.order_detail', oid=oid))
 
         self._run("UPDATE orders SET status='cancelled' WHERE id=%s", (oid,))
-        # Restore stock
+
         items = self._q("SELECT * FROM order_items WHERE order_id=%s", (oid,))
         for item in items:
             self._run(
@@ -446,11 +426,8 @@ class CustomerController(BaseController):
         self._ok('Order cancelled.')
         return redirect(url_for('customer.order_detail', oid=oid))
 
-   
-
     def support(self):
         return render_template('customer/support.html')
-
 
     def profile(self):
         user = self._q("SELECT * FROM users WHERE id = %s",
@@ -473,8 +450,6 @@ class CustomerController(BaseController):
             return redirect(url_for('customer.profile'))
         return render_template('customer/profile.html', user=user)
 
-    
-
     def notifications(self):
         notifs = self._q(
             "SELECT * FROM notifications WHERE user_id = %s ORDER BY created_at DESC LIMIT 30",
@@ -484,8 +459,6 @@ class CustomerController(BaseController):
                   (self._current_user_id(),))
         return render_template('customer/notifications.html', notifications=notifs)
 
-   
-
     def payment_history(self):
         payments = self._q("""
             SELECT p.*, o.order_number FROM payments p
@@ -493,8 +466,6 @@ class CustomerController(BaseController):
             WHERE p.user_id = %s ORDER BY p.created_at DESC
         """, (self._current_user_id(),))
         return render_template('customer/payment_history.html', payments=payments)
-
-    
 
     def submit_review(self, pid: int):
         rating = int(request.form.get('rating', 5))
@@ -508,7 +479,7 @@ class CustomerController(BaseController):
                    ON DUPLICATE KEY UPDATE rating=%s,title=%s,body=%s""",
                 (pid, uid, rating, title, body, rating, title, body)
             )
-            # Update product avg_rating
+
             self._run("""
                 UPDATE products SET
                     avg_rating = (SELECT AVG(rating) FROM reviews WHERE product_id=%s AND is_approved=1),
@@ -520,14 +491,11 @@ class CustomerController(BaseController):
             self._err('Could not submit review.')
         return redirect(url_for('customer.product_detail', pid=pid))
 
-    
-
     def start_chat(self, seller_id: int):
         """Start or resume a chat with a seller."""
         uid    = self._current_user_id()
         pid    = request.args.get('product_id')
-        
-        # Find existing chat or create new one
+
         existing = self._q(
             "SELECT id FROM chats WHERE customer_id=%s AND seller_id=%s",
             (uid, seller_id), one=True
@@ -574,7 +542,6 @@ class CustomerController(BaseController):
             (chat_id,)
         )
 
-        # Mark messages as read
         self._run(
             "UPDATE chat_messages SET is_read=1 WHERE chat_id=%s AND sender_id != %s",
             (chat_id, uid)
@@ -591,11 +558,7 @@ class CustomerController(BaseController):
 
         return render_template('customer/chat_detail.html', chat=chat, messages=messages)
 
-    #
-
     def store_page(self, slug: str):
         return self.store_detail(slug)
-
-
 
 customer_controller = CustomerController()

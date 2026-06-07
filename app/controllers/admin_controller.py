@@ -11,7 +11,6 @@ from datetime import datetime
 from app.controllers.base_controller import BaseController
 from app.models import UserModel, ProductModel, StoreModel, CategoryModel
 
-
 class AdminController(BaseController):
 
     def _dashboard_stats(self) -> dict:
@@ -31,7 +30,6 @@ class AdminController(BaseController):
             'pending_flags':  flags_row['c'] if flags_row else 0,
         }
 
-    
     def dashboard(self):
         stats = self._dashboard_stats()
         recent_orders = self._q("""
@@ -135,8 +133,6 @@ class AdminController(BaseController):
         """)
         return render_template('admin/system.html', logs=logs)
 
-    
-
     def finances(self):
         orders = self._q("""
             SELECT o.*, u.name AS customer FROM orders o
@@ -214,8 +210,6 @@ class AdminController(BaseController):
             self._ok('Promo code updated.')
         return redirect(url_for('admin.promos'))
 
-    
-
     def content_control(self):
         """US 5.2 - View flagged content and manage reviews/products."""
         flags = self._q("""
@@ -226,7 +220,6 @@ class AdminController(BaseController):
             ORDER BY cf.created_at DESC
         """)
 
-        
         pending_reviews = self._q("""
             SELECT r.*, u.name AS reviewer_name, p.name AS product_name,
                    s.name AS store_name
@@ -268,7 +261,6 @@ class AdminController(BaseController):
                 self._warn('Content removed.')
         return redirect(url_for('admin.content_control'))
 
-  
     def transactions(self):
         """US 5.3 - Detailed transaction tracking."""
         page     = int(request.args.get('page', 1))
@@ -301,7 +293,6 @@ class AdminController(BaseController):
         sql += f" ORDER BY p.created_at DESC LIMIT {per_page} OFFSET {offset}"
         payments = self._q(sql, tuple(args))
 
-        
         summary = self._q("""
             SELECT
                 COALESCE(SUM(CASE WHEN status='success' THEN amount ELSE 0 END), 0) AS total_success,
@@ -333,6 +324,5 @@ class AdminController(BaseController):
             ORDER BY total_platform DESC
         """)
         return render_template('admin/commissions.html', commissions=commissions)
-
 
 admin_controller = AdminController()

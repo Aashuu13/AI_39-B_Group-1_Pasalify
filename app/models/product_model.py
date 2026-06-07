@@ -15,7 +15,6 @@ OOP Concept: INHERITANCE & POLYMORPHISM (Product Model)
 from app.models.basemodel import BaseModel
 from app.models.database import Database
 
-
 class ProductModel(BaseModel):
     """
     Represents the `products` table.
@@ -34,8 +33,6 @@ class ProductModel(BaseModel):
     @property
     def table(self) -> str:
         return self.TABLE
-
-  
 
     @classmethod
     def find_active(cls) -> list[dict]:
@@ -122,7 +119,6 @@ class ProductModel(BaseModel):
             (store_id,)
         )
 
-    
     @classmethod
     def approve(cls, product_id: int) -> None:
         """Admin approves a product."""
@@ -137,8 +133,6 @@ class ProductModel(BaseModel):
     def soft_delete(cls, product_id: int) -> None:
         """Seller removes a product (keeps row for order history)."""
         cls.update(product_id, {'is_active': 0})
-
-   
 
     @classmethod
     def decrement_stock(cls, product_id: int, qty: int) -> None:
@@ -159,7 +153,6 @@ class ProductModel(BaseModel):
             (qty, product_id)
         )
 
-  
     @classmethod
     def update_rating(cls, product_id: int) -> None:
         """
