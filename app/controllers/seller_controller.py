@@ -1,6 +1,7 @@
 """
-Sprint 2 - Seller Controller
-US 4.1 Register Store | US 4.3 Manage Products
+Sprint 3 - Seller Controller
+US 4.5 Manage Inventory | US 4.6 Manage Orders | US 2.6 Seller Chat
+(Builds on Sprint 1+2: Store setup, Products, Reviews, Dashboard)
 """
 
 from flask import render_template, request, redirect, url_for, session, flash
@@ -11,7 +12,7 @@ from app.models import StoreModel, ProductModel, CategoryModel
 
 class SellerController(BaseController):
 
-    # ── Helpers ───────────────────────────────────────────────────────────────
+    
 
     def _get_store(self) -> dict | None:
         return StoreModel.find_by_user(self._current_user_id())
@@ -43,7 +44,7 @@ class SellerController(BaseController):
                     (product_id, path, 1 if (i == 0 and first_is_primary) else 0)
                 )
 
-    # ── US 4.1 Register Store ─────────────────────────────────────────────────
+    
 
     def setup(self):
         if self._get_store():
@@ -115,10 +116,20 @@ class SellerController(BaseController):
         )
 
         recent_orders = self._q(
-            """SELECT DISTINCT o.* FROM orders o JOIN order_items oi ON oi.order_id=o.id
+            """SELECT DISTINCT o.*, u.name AS customer_name FROM orders o
+               JOIN order_items oi ON oi.order_id=o.id
+               JOIN users u ON u.id=o.user_id
                WHERE oi.store_id=%s ORDER BY o.created_at DESC LIMIT 5""",
             (sid,)
         )
+
+      
+        pending_reviews = self._q(
+            """SELECT COUNT(*) AS c FROM reviews r
+               JOIN products p ON p.id=r.product_id
+               WHERE p.store_id=%s AND r.is_approved=0""",
+            (sid,), one=True
+        )['c']
 
         return render_template('seller/dashboard.html',
                                store=store,
@@ -128,9 +139,10 @@ class SellerController(BaseController):
                                low_stock=low_stock,
                                top_products=top_products,
                                monthly=monthly,
-                               recent_orders=recent_orders)
+                               recent_orders=recent_orders,
+                               pending_reviews=pending_reviews)
 
-    # ── US 4.3 Manage Products ────────────────────────────────────────────────
+    
 
     def products(self):
         store, redir = self._require_store()
@@ -216,51 +228,111 @@ class SellerController(BaseController):
         self._info('Product removed.')
         return redirect(url_for('seller.products'))
 
-    # ── Inventory ─────────────────────────────────────────────────────────────
+    
 
     def inventory(self):
         store, redir = self._require_store()
         if redir:
             return redir
-        prods = ProductModel.find_where(
-            "store_id = %s AND is_active = 1 ORDER BY stock_qty ASC", (store['id'],)
-        )
-        return render_template('seller/inventory.html', products=prods, store=store)
+        
+        filter_by = request.args.get('filter', 'all')
+        base_sql  = "SELECT * FROM products WHERE store_id = %s AND is_active = 1"
+        
+        if filter_by == 'low':
+            base_sql += " AND stock_qty <= low_stock_threshold"
+        elif filter_by == 'out':
+            base_sql += " AND stock_qty = 0"
+        
+        base_sql += " ORDER BY stock_qty ASC"
+        prods = self._q(base_sql, (store['id'],))
+        
+        # Summary stats
+        total_products  = self._q("SELECT COUNT(*) AS c FROM products WHERE store_id=%s AND is_active=1", (store['id'],), one=True)['c']
+        low_stock_count = self._q("SELECT COUNT(*) AS c FROM products WHERE store_id=%s AND is_active=1 AND stock_qty <= low_stock_threshold AND stock_qty > 0", (store['id'],), one=True)['c']
+        out_of_stock    = self._q("SELECT COUNT(*) AS c FROM products WHERE store_id=%s AND is_active=1 AND stock_qty=0", (store['id'],), one=True)['c']
+
+        return render_template('seller/inventory.html',
+                               products=prods, store=store,
+                               filter_by=filter_by,
+                               total_products=total_products,
+                               low_stock_count=low_stock_count,
+                               out_of_stock=out_of_stock)
 
     def inventory_update(self, pid: int):
         store, redir = self._require_store()
         if redir:
             return redir
-        qty = max(0, int(request.form.get('stock_qty', 0)))
+        qty       = max(0, int(request.form.get('stock_qty', 0)))
+        threshold = max(1, int(request.form.get('low_stock_threshold', 5)))
         self._run(
-            "UPDATE products SET stock_qty = %s WHERE id = %s AND store_id = %s",
-            (qty, pid, store['id'])
+            "UPDATE products SET stock_qty=%s, low_stock_threshold=%s WHERE id=%s AND store_id=%s",
+            (qty, threshold, pid, store['id'])
         )
         self._ok('Stock updated!')
         return redirect(url_for('seller.inventory'))
 
-    # ── Orders ────────────────────────────────────────────────────────────────
+    def inventory_bulk_update(self):
+        """US 4.5 - Bulk stock update from inventory page."""
+        store, redir = self._require_store()
+        if redir:
+            return redir
+        
+        product_ids = request.form.getlist('product_id')
+        for pid in product_ids:
+            qty = request.form.get(f'stock_{pid}', 0)
+            try:
+                self._run(
+                    "UPDATE products SET stock_qty=%s WHERE id=%s AND store_id=%s",
+                    (int(qty), int(pid), store['id'])
+                )
+            except Exception:
+                pass
+        self._ok('Inventory updated!')
+        return redirect(url_for('seller.inventory'))
+
+   
 
     def orders(self):
         store, redir = self._require_store()
         if redir:
             return redir
-        ords = self._q("""
+        
+        status_filter = request.args.get('status', '')
+        
+        sql = """
             SELECT DISTINCT o.*, u.name AS customer_name
             FROM   orders o
             JOIN   order_items oi ON oi.order_id = o.id
             JOIN   users u        ON u.id = o.user_id
             WHERE  oi.store_id = %s
-            ORDER  BY o.created_at DESC
+        """
+        args = [store['id']]
+        if status_filter:
+            sql += " AND o.status = %s"
+            args.append(status_filter)
+        sql += " ORDER BY o.created_at DESC"
+        
+        ords = self._q(sql, tuple(args))
+        
+        # Order counts by status
+        status_counts = self._q("""
+            SELECT o.status, COUNT(DISTINCT o.id) AS cnt
+            FROM orders o JOIN order_items oi ON oi.order_id=o.id
+            WHERE oi.store_id=%s GROUP BY o.status
         """, (store['id'],))
-        return render_template('seller/orders.html', orders=ords, store=store)
+        counts = {r['status']: r['cnt'] for r in status_counts}
+        
+        return render_template('seller/orders.html',
+                               orders=ords, store=store,
+                               status_filter=status_filter,
+                               counts=counts)
 
     def order_detail(self, oid: int):
         store, redir = self._require_store()
         if redir:
             return redir
         order = self._q(
-            "SELECT o.*, u.name AS customer_name FROM orders o JOIN users u ON u.id = o.user_id WHERE o.id = %s",
+            "SELECT o.*, u.name AS customer_name, u.phone AS customer_phone FROM orders o JOIN users u ON u.id = o.user_id WHERE o.id = %s",
             (oid,), one=True
         )
         if not order:
@@ -278,11 +350,31 @@ class SellerController(BaseController):
         if redir:
             return redir
         status = request.form.get('status')
+        note   = request.form.get('note', '').strip()
+        
+        valid_statuses = ['confirmed', 'processing', 'shipped', 'out_for_delivery', 'delivered', 'cancelled']
+        if status not in valid_statuses:
+            self._err('Invalid status.')
+            return redirect(url_for('seller.order_detail', oid=oid))
+        
         self._run("UPDATE orders SET status = %s WHERE id = %s", (status, oid))
+        self._log('order_status_updated', 'order', oid)
+        
+        # Notify customer
+        order = self._q("SELECT user_id, order_number FROM orders WHERE id=%s", (oid,), one=True)
+        if order:
+            self._notify(
+                order['user_id'],
+                f'Order {order["order_number"]} Update',
+                f'Your order status has been updated to: {status.replace("_", " ").title()}',
+                'order',
+                f'/customer/order/{oid}'
+            )
+        
         self._ok('Order status updated.')
         return redirect(url_for('seller.order_detail', oid=oid))
 
-    # ── Categories ────────────────────────────────────────────────────────────
+    
 
     def categories(self):
         store, redir = self._require_store()
@@ -291,7 +383,7 @@ class SellerController(BaseController):
         cats = CategoryModel.find_all()
         return render_template('seller/categories.html', cats=cats, store=store)
 
-    # ── Reviews ───────────────────────────────────────────────────────────────
+    
 
     def reviews(self):
         store, redir = self._require_store()
@@ -307,15 +399,67 @@ class SellerController(BaseController):
         """, (store['id'],))
         return render_template('seller/reviews.html', reviews=reviews, store=store)
 
-    # ── Chats ─────────────────────────────────────────────────────────────────
+
 
     def chats(self):
         store, redir = self._require_store()
         if redir:
             return redir
-        return render_template('seller/chats.html', store=store)
+        uid   = self._current_user_id()
+        chats = self._q("""
+            SELECT c.*, u.name AS customer_name,
+                   (SELECT message FROM chat_messages WHERE chat_id=c.id ORDER BY created_at DESC LIMIT 1) AS last_message,
+                   (SELECT COUNT(*) FROM chat_messages WHERE chat_id=c.id AND sender_id != %s AND is_read=0) AS unread_count
+            FROM chats c
+            JOIN users u ON u.id = c.customer_id
+            WHERE c.seller_id = %s
+            ORDER BY c.created_at DESC
+        """, (uid, uid))
+        return render_template('seller/chats.html', chats=chats, store=store)
 
-    # ── Store Profile & Customize ─────────────────────────────────────────────
+    def chat_detail(self, chat_id: int):
+        store, redir = self._require_store()
+        if redir:
+            return redir
+        uid  = self._current_user_id()
+        chat = self._q(
+            """SELECT c.*, u.name AS customer_name FROM chats c
+               JOIN users u ON u.id=c.customer_id
+               WHERE c.id=%s AND c.seller_id=%s""",
+            (chat_id, uid), one=True
+        )
+        if not chat:
+            self._err('Chat not found.')
+            return redirect(url_for('seller.chats'))
+
+        messages = self._q(
+            """SELECT cm.*, u.name AS sender_name FROM chat_messages cm
+               JOIN users u ON u.id = cm.sender_id
+               WHERE cm.chat_id = %s ORDER BY cm.created_at""",
+            (chat_id,)
+        )
+        # Mark messages as read
+        self._run(
+            "UPDATE chat_messages SET is_read=1 WHERE chat_id=%s AND sender_id != %s",
+            (chat_id, uid)
+        )
+
+        if request.method == 'POST':
+            msg = request.form.get('message', '').strip()
+            if msg:
+                self._run(
+                    "INSERT INTO chat_messages (chat_id, sender_id, message) VALUES (%s,%s,%s)",
+                    (chat_id, uid, msg)
+                )
+            return redirect(url_for('seller.chat_detail', chat_id=chat_id))
+
+        return render_template('seller/chat_detail.html',
+                               chat=chat, messages=messages, store=store)
+
+    def send_message(self, chat_id: int):
+        """POST-only send message endpoint."""
+        return self.chat_detail(chat_id)
+
 
     def store_profile(self):
         store, redir = self._require_store()
@@ -349,33 +493,11 @@ class SellerController(BaseController):
             return redirect(url_for('seller.store_customize'))
         return render_template('seller/store_customize.html', store=store)
 
-    # ── Chat Detail ───────────────────────────────────────────────────────────
-
-    def chat_detail(self, chat_id: int):
-        store, redir = self._require_store()
-        if redir:
-            return redir
-        chat = self._q(
-            "SELECT * FROM chats WHERE id=%s AND seller_id=%s",
-            (chat_id, self._current_user_id()), one=True
-        )
-        if not chat:
-            self._err('Chat not found.')
-            return redirect(url_for('seller.chats'))
-        messages = self._q(
-            """SELECT cm.*, u.name FROM chat_messages cm
-               JOIN users u ON u.id = cm.sender_id
-               WHERE cm.chat_id = %s ORDER BY cm.created_at""",
-            (chat_id,)
-        )
-        return render_template('seller/chat_detail.html',
-                               chat=chat, messages=messages, store=store)
-
-    # ── Order Update (alias for order_status) ────────────────────────────────
+    
 
     def order_update(self, oid: int):
         return self.order_status(oid)
 
 
-# ── Singleton ─────────────────────────────────────────────────────────────────
+
 seller_controller = SellerController()
