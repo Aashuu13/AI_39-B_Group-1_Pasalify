@@ -25,7 +25,7 @@ class BaseModel(ABC):
     - Child classes INHERIT all the helper methods below.
     """
 
-    # ── Abstract Property (child MUST define this) ────────────────────────────
+    
 
     @property
     @abstractmethod
@@ -33,7 +33,7 @@ class BaseModel(ABC):
         """Each child model must specify its database table name."""
         pass
 
-    # ── Shared Methods (inherited by all child models) ────────────────────────
+    
 
     @classmethod
     def _get_table(cls) -> str:
@@ -45,7 +45,7 @@ class BaseModel(ABC):
         """
         return cls.TABLE  # child classes define TABLE = 'tablename'
 
-    # ── CRUD Helpers ──────────────────────────────────────────────────────────
+    
 
     @classmethod
     def find_by_id(cls, record_id: int) -> dict | None:
@@ -125,7 +125,7 @@ class BaseModel(ABC):
         row = Database.query(sql, args, one=True)
         return row['c'] if row else 0
 
-    # ── Representation ────────────────────────────────────────────────────────
+   
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} table='{self.TABLE}'>"
