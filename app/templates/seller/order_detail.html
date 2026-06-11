@@ -1,80 +1,70 @@
-{% extends "seller/base_seller.html" %}
-{% block title %}Order Detail{% endblock %}
-{% block seller_content %}
+{% extends 'seller/base_seller.html' %}
+{% block title %}Order #{{ order.order_number }}{% endblock %}
+{% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-  <div>
-    <div class="page-title">Order #{{ order.order_number }}</div>
-    <div class="page-subtitle">{{ order.created_at.strftime('%B %d, %Y') if order.created_at else '' }}</div>
-  </div>
-  <a href="{{ url_for('seller.orders') }}" class="btn btn-outline-purple btn-sm"><i class="bi bi-arrow-left me-1"></i> Back</a>
+  <h5 class="mb-0">Order #{{ order.order_number }}</h5>
+  <a href="{{ url_for('seller.orders') }}" class="btn btn-sm btn-outline-secondary">← Orders</a>
 </div>
 
-<div class="row g-3">
+<div class="row g-4">
   <div class="col-md-8">
-    <div class="card">
-      <div class="card-header">Order Items</div>
+    <div class="card shadow-sm mb-3">
+      <div class="card-header"><strong>Items</strong></div>
       <div class="card-body p-0">
-        <div class="table-responsive">
-          <table class="table mb-0">
-            <thead><tr><th>Product</th><th>Price</th><th>Qty</th><th>Subtotal</th></tr></thead>
-            <tbody>
-            {% for item in items %}
-            <tr>
-              <td>
-                <div class="d-flex align-items-center gap-2">
-                  {% if item.image_path %}
-                  <img src="{{ url_for('static', filename=item.image_path) }}" style="width:40px;height:40px;object-fit:cover;border-radius:6px">
-                  {% endif %}
-                  <span style="font-size:.88rem">{{ item.product_name }}</span>
-                </div>
-              </td>
-              <td>Rs. {{ "%.0f"|format(item.price) }}</td>
-              <td>{{ item.quantity }}</td>
-              <td style="font-weight:600">Rs. {{ "%.0f"|format(item.subtotal) }}</td>
-            </tr>
-            {% endfor %}
-            </tbody>
-          </table>
+        {% for item in items %}
+        <div class="d-flex align-items-center p-3 border-bottom">
+          {% if item.image_path %}
+          <img src="{{ url_for('static', filename=item.image_path) }}" width="50" height="50"
+               class="rounded me-3" style="object-fit:cover;">
+          {% endif %}
+          <div class="flex-fill">
+            <div class="fw-semibold">{{ item.product_name }}</div>
+            <small class="text-muted">{{ item.quantity }} × Rs {{ item.price }}</small>
+          </div>
+          <div class="fw-bold">Rs {{ item.subtotal }}</div>
         </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- US 4.6 Update Order Status -->
+    <div class="card shadow-sm">
+      <div class="card-header"><strong>Update Status</strong></div>
+      <div class="card-body">
+        <form method="POST" action="{{ url_for('seller.order_status', oid=order.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="d-flex gap-2 flex-wrap">
+            {% for s in ['confirmed','processing','shipped','out_for_delivery','delivered','cancelled'] %}
+            <button type="submit" name="status" value="{{ s }}"
+              class="btn btn-sm {% if order.status == s %}btn-dark{% else %}btn-outline-secondary{% endif %}">
+              {{ s.replace('_',' ')|title }}
+            </button>
+            {% endfor %}
+          </div>
+        </form>
       </div>
     </div>
   </div>
 
   <div class="col-md-4">
-    <div class="card mb-3">
-      <div class="card-header">Order Info</div>
+    <div class="card shadow-sm mb-3">
+      <div class="card-header"><strong>Customer</strong></div>
       <div class="card-body">
-        <div class="d-flex justify-content-between mb-2">
-          <span style="color:var(--muted)">Customer</span>
-          <span>{{ order.customer_name }}</span>
-        </div>
-        <div class="d-flex justify-content-between mb-2">
-          <span style="color:var(--muted)">Status</span>
-          <span class="status-badge s-{{ order.status }}">{{ order.status|title }}</span>
-        </div>
-        <div class="d-flex justify-content-between mb-2">
-          <span style="color:var(--muted)">Payment</span>
-          <span class="badge-purple">{{ order.payment_method|upper }}</span>
-        </div>
-        <div class="d-flex justify-content-between">
-          <span style="color:var(--muted)">Total</span>
-          <span style="font-weight:700;color:var(--purple2)">Rs. {{ "%.0f"|format(order.total_amount) }}</span>
-        </div>
+        <strong>{{ order.customer_name }}</strong><br>
+        {{ order.customer_phone }}<br>
+        {{ order.address }}<br>
+        {% if order.city %}{{ order.city }}{% endif %}
       </div>
     </div>
-
-    <div class="card">
-      <div class="card-header">Update Status</div>
+    <div class="card shadow-sm">
+      <div class="card-header"><strong>Summary</strong></div>
       <div class="card-body">
-        <form method="post" action="{{ url_for('seller.order_status', oid=order.id) }}">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <select class="form-select form-select-sm mb-2" name="status">
-            {% for s in ['placed','processing','shipped','delivered','cancelled'] %}
-            <option value="{{ s }}" {% if order.status == s %}selected{% endif %}>{{ s|title }}</option>
-            {% endfor %}
-          </select>
-          <button type="submit" class="btn btn-purple btn-sm w-100">Update</button>
-        </form>
+        <div class="d-flex justify-content-between"><span>Total</span><strong>Rs {{ "%.2f"|format(order.total_amount) }}</strong></div>
+        <div class="d-flex justify-content-between mt-1"><span>Payment</span>
+          <span class="badge bg-{% if order.payment_status=='paid' %}success{% else %}warning text-dark{% endif %}">{{ order.payment_status }}</span></div>
+        <div class="d-flex justify-content-between mt-1"><span>Method</span><span>{{ order.payment_method|upper }}</span></div>
+        <div class="d-flex justify-content-between mt-1"><span>Status</span>
+          <span class="badge bg-secondary">{{ order.status.replace('_',' ')|title }}</span></div>
       </div>
     </div>
   </div>

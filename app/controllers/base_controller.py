@@ -21,7 +21,6 @@ from flask import session, flash, redirect, url_for, request, current_app
 from app import db
 from app.utils.auth import log_action, notify as _notify
 
-
 class BaseController(ABC):
     """
     Abstract Base Controller.
@@ -38,10 +37,7 @@ class BaseController(ABC):
       - DB shorthand       (_q, _run)
     """
 
-    # ── Allowed image extensions (Encapsulation) ──────────────────────────────
     _ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
-
-    # ── Session helpers ───────────────────────────────────────────────────────
 
     @staticmethod
     def _current_user_id() -> int | None:
@@ -54,8 +50,6 @@ class BaseController(ABC):
     @staticmethod
     def _is_logged_in() -> bool:
         return 'user_id' in session
-
-    # ── Flash message shortcuts ───────────────────────────────────────────────
 
     @staticmethod
     def _ok(msg: str):
@@ -73,8 +67,6 @@ class BaseController(ABC):
     def _info(msg: str):
         flash(msg, 'info')
 
-    # ── Database shortcuts ────────────────────────────────────────────────────
-
     @staticmethod
     def _q(sql: str, args: tuple = (), one: bool = False):
         """Shorthand for db.query()."""
@@ -84,8 +76,6 @@ class BaseController(ABC):
     def _run(sql: str, args: tuple = ()) -> int:
         """Shorthand for db.execute(); returns lastrowid."""
         return db.execute(sql, args)
-
-    # ── File upload (Encapsulation) ───────────────────────────────────────────
 
     @classmethod
     def _allowed_file(cls, filename: str) -> bool:
@@ -115,8 +105,6 @@ class BaseController(ABC):
         file_obj.save(os.path.join(dest, name))
         return f'uploads/{folder}/{name}'
 
-    # ── Audit helpers ─────────────────────────────────────────────────────────
-
     @staticmethod
     def _log(action: str, entity_type: str = None, entity_id: int = None):
         """Write an activity_log row for the current user."""
@@ -128,8 +116,6 @@ class BaseController(ABC):
         """Send an in-app notification."""
         _notify(user_id, title, message, ntype, link)
 
-    # ── Abstract hook (optional — subclasses may override) ────────────────────
-
     def handle(self, *args, **kwargs):
         """
         Optional dispatch hook.
@@ -137,8 +123,6 @@ class BaseController(ABC):
         they expose named methods instead (login, register, …).
         """
         raise NotImplementedError
-
-    # ── Representation ────────────────────────────────────────────────────────
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__}>"

@@ -12,7 +12,6 @@ OOP Concept: INHERITANCE & ENCAPSULATION (Cart Model)
 from app.models.basemodel import BaseModel
 from app.models.database import Database
 
-
 class CartModel(BaseModel):
     """
     Represents the `cart` table (one row per user+product pair).
@@ -23,8 +22,6 @@ class CartModel(BaseModel):
     @property
     def table(self) -> str:
         return self.TABLE
-
-  
 
     @classmethod
     def get_cart(cls, user_id: int) -> list[dict]:

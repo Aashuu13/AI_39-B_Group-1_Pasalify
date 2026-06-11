@@ -7,7 +7,7 @@ class Config:
     WTF_CSRF_ENABLED   = True
     MYSQL_HOST         = os.environ.get('MYSQL_HOST', 'localhost')
     MYSQL_USER         = os.environ.get('MYSQL_USER', 'root')
-    MYSQL_PASSWORD     = os.environ.get('MYSQL_PASSWORD', '@ayushma1234')
+    MYSQL_PASSWORD     = os.environ.get('MYSQL_PASSWORD', 'aashuNEXTdoor2007_')
     MYSQL_DB           = os.environ.get('MYSQL_DB', 'sprint3')
     MYSQL_PORT         = int(os.environ.get('MYSQL_PORT', 3306))
     UPLOAD_FOLDER      = os.path.join(BASE, 'static', 'uploads')

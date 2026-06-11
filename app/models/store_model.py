@@ -12,7 +12,6 @@ import uuid
 from app.models.basemodel import BaseModel
 from app.models.database import Database
 
-
 class StoreModel(BaseModel):
     """
     Represents the `stores` table.
@@ -26,8 +25,6 @@ class StoreModel(BaseModel):
     @property
     def table(self) -> str:
         return self.TABLE
-
-    # ── Lookups ───────────────────────────────────────────────────────────────
 
     @classmethod
     def find_by_user(cls, user_id: int) -> dict | None:
@@ -49,8 +46,6 @@ class StoreModel(BaseModel):
             ORDER BY s.created_at DESC
         """)
 
-    # ── Creation Helper ───────────────────────────────────────────────────────
-
     @classmethod
     def make_unique_slug(cls, name: str) -> str:
         """
@@ -64,8 +59,6 @@ class StoreModel(BaseModel):
             slug += '-' + str(uuid.uuid4())[:4]
         return slug
 
-    # ── Moderation ────────────────────────────────────────────────────────────
-
     @classmethod
     def approve(cls, store_id: int) -> None:
         cls.update(store_id, {'is_approved': 1})
@@ -73,8 +66,6 @@ class StoreModel(BaseModel):
     @classmethod
     def reject(cls, store_id: int) -> None:
         cls.update(store_id, {'is_approved': 0, 'is_active': 0})
-
-    # ── Stats ─────────────────────────────────────────────────────────────────
 
     @classmethod
     def stats(cls, store_id: int) -> dict:
