@@ -22,6 +22,14 @@
     </button>
     <div class="collapse navbar-collapse" id="navMain">
       <ul class="navbar-nav me-auto ms-3 gap-1">
+        <li class="nav-item">
+          <a class="nav-link position-relative" href="{{ url_for('customer.notifications') }}">
+            <i class="bi bi-bell"></i>
+            <span id="notif-count"
+              class="position-absolute top-0 start-100 translate-middle badge rounded-pill"
+              style="background:var(--red);font-size:.6rem;display:none">0</span>
+          </a>
+        </li>
         <li class="nav-item"><a class="nav-link" href="{{ url_for('customer.home') }}"><i class="bi bi-house"></i> Home</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ url_for('customer.products') }}"><i class="bi bi-grid"></i> Products</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ url_for('customer.stores') }}"><i class="bi bi-shop"></i> Stores</a></li>
