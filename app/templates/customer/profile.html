@@ -52,23 +52,27 @@
           </div>
         </div>
         <div class="d-flex gap-2 mt-3">
-          <div class="mb-3">
-              <label class="form-label">Profile Photo</label>
-              {% if user.avatar %}
-              <div class="mb-2"><img src="{{ url_for('static', filename=user.avatar) }}" width="60" height="60" class="rounded-circle" style="object-fit:cover;border:2px solid var(--border)"></div>
-              {% endif %}
-              <input type="file" class="form-control" name="avatar" accept="image/*">
-            </div>
-            <button type="submit" class="btn btn-purple">Save Changes</button>
+          <button type="submit" class="btn btn-purple">Save Changes</button>
           <a href="{{ url_for('auth.change_password') }}" class="btn btn-outline-purple">Change Password</a>
         </div>
       </form>
     </div>
   </div>
 
+  <!-- Quick links to available features only -->
   <div class="row g-2 mt-3">
-    <div class="col-6"><a href="{{ url_for('customer.orders') }}" class="card text-center p-3" style="display:block;text-decoration:none"><i class="bi bi-box-seam" style="font-size:1.5rem;color:var(--purple2)"></i><div style="font-size:.85rem;margin-top:.3rem">My Orders</div></a></div>
-    <div class="col-6"><a href="{{ url_for('customer.payment_history') }}" class="card text-center p-3" style="display:block;text-decoration:none"><i class="bi bi-credit-card" style="font-size:1.5rem;color:var(--purple2)"></i><div style="font-size:.85rem;margin-top:.3rem">Payment History</div></a></div>
+    <div class="col-6">
+      <a href="{{ url_for('customer.chats') }}" class="card text-center p-3" style="display:block;text-decoration:none">
+        <i class="bi bi-chat-dots" style="font-size:1.5rem;color:var(--purple2)"></i>
+        <div style="font-size:.85rem;margin-top:.3rem">My Chats</div>
+      </a>
+    </div>
+    <div class="col-6">
+      <a href="{{ url_for('customer.products') }}" class="card text-center p-3" style="display:block;text-decoration:none">
+        <i class="bi bi-grid" style="font-size:1.5rem;color:var(--purple2)"></i>
+        <div style="font-size:.85rem;margin-top:.3rem">Browse Products</div>
+      </a>
+    </div>
   </div>
 </div>
 {% endblock %}

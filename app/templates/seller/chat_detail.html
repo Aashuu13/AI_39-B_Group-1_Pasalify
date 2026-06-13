@@ -1,35 +1,28 @@
-{% extends 'seller/base_seller.html' %}
-{% block title %}Chat with {{ chat.customer_name }}{% endblock %}
-{% block content %}
-<div style="max-width:700px;">
-  <div class="card shadow-sm">
-    <div class="card-header d-flex align-items-center gap-2">
-      <a href="{{ url_for('seller.chats') }}" class="btn btn-sm btn-outline-secondary me-2">←</a>
-      <strong>{{ chat.customer_name }}</strong>
+{% extends "seller/base_seller.html" %}
+{% block title %}Chat{% endblock %}
+{% block seller_content %}
+<div class="d-flex align-items-center gap-2 mb-3">
+  <a href="{{ url_for('seller.chats') }}" style="color:var(--muted)"><i class="bi bi-arrow-left"></i></a>
+  <div class="page-title mb-0">Chat with {{ customer.name }}</div>
+</div>
+<div class="card" style="max-width:700px">
+  <div class="card-header" style="font-size:.88rem;color:var(--muted)">
+    <i class="bi bi-person-circle me-1" style="color:var(--purple2)"></i>{{ customer.name }}
+  </div>
+  <div class="chat-box" id="chat-messages">
+    {% for m in msgs %}
+    <div class="msg-bubble {% if m.sender_id == session.user_id %}msg-me{% else %}msg-other{% endif %}">
+      <span>{{ m.message }}</span>
+      <span class="msg-time">{{ m.name }} · {{ m.created_at.strftime('%I:%M %p') if m.created_at else '' }}</span>
     </div>
-    <div class="card-body" style="height:400px;overflow-y:auto;" id="chat-box">
-      {% for msg in messages %}
-      <div class="mb-3 d-flex {% if msg.sender_id == session.user_id %}justify-content-end{% endif %}">
-        <div class="px-3 py-2 rounded-3 {% if msg.sender_id == session.user_id %}bg-primary text-white{% else %}bg-light{% endif %}"
-             style="max-width:75%;">
-          <div class="small">{{ msg.message }}</div>
-          <div class="text-end" style="font-size:0.7rem;opacity:0.7;">{{ msg.created_at.strftime('%H:%M') if msg.created_at else '' }}</div>
-        </div>
-      </div>
-      {% else %}
-      <p class="text-center text-muted">No messages yet.</p>
-      {% endfor %}
-    </div>
-    <div class="card-footer">
-      <form method="POST" action="{{ url_for('seller.chat_detail', chat_id=chat.id) }}">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <div class="input-group">
-          <input type="text" name="message" class="form-control" placeholder="Reply…" required autofocus>
-          <button type="submit" class="btn btn-primary">Send</button>
-        </div>
-      </form>
-    </div>
+    {% endfor %}
+  </div>
+  <div style="padding:1rem;border-top:1px solid var(--border)">
+    <form method="post" class="d-flex gap-2">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="text" class="form-control" name="message" placeholder="Type a message..." autocomplete="off" required>
+      <button type="submit" class="btn btn-purple"><i class="bi bi-send"></i></button>
+    </form>
   </div>
 </div>
-<script>document.getElementById('chat-box').scrollTop = 9999;</script>
 {% endblock %}

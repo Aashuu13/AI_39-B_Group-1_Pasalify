@@ -15,7 +15,7 @@
 <nav class="navbar navbar-expand-lg">
   <div class="container-fluid px-4">
     <a class="navbar-brand" href="{{ url_for('customer.home') }}">
-      <img src="{{ url_for('static', filename='uploads/logo/pasalifylogo.jpeg') }}" alt="Pasalify" style="height:40px">
+    <img src="{{ url_for('static', filename='uploads/images/logo.jpeg') }}" alt="Pasalify" style="height:40px">
     </a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
       <span class="navbar-toggler-icon"></span>
@@ -24,12 +24,11 @@
       <ul class="navbar-nav me-auto ms-3 gap-1">
         <li class="nav-item"><a class="nav-link" href="{{ url_for('customer.home') }}"><i class="bi bi-house"></i> Home</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ url_for('customer.products') }}"><i class="bi bi-grid"></i> Products</a></li>
-        <li class="nav-item"><a class="nav-link" href="{{ url_for('customer.stores') }}"><i class="bi bi-shop"></i> Stores</a></li>
       </ul>
       <!-- Search bar -->
       <form class="d-flex me-3" action="{{ url_for('customer.products') }}" method="get">
         <div class="input-group" style="width:280px">
-          <input class="form-control form-control-sm" type="search" name="q" placeholder="Search products..." value="{{ request.args.get('q', '') }}">
+          <input class="form-control form-control-sm" type="search" name="q" placeholder="Search products...">
           <button class="btn btn-purple btn-sm" type="submit"><i class="bi bi-search"></i></button>
         </div>
       </form>
@@ -37,19 +36,7 @@
         {% if session.user_id %}
           {% if session.role == 'customer' %}
           <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('customer.cart') }}"><i class="bi bi-cart3"></i> Cart</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('customer.wishlist') }}" title="Wishlist"><i class="bi bi-heart"></i></a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('customer.my_chats') }}" title="Messages"><i class="bi bi-chat-dots"></i></a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link position-relative" href="{{ url_for('customer.notifications') }}" title="Notifications">
-              <i class="bi bi-bell"></i>
-              <span id="notif-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill" style="background:var(--red);font-size:.6rem;display:none">0</span>
-            </a>
+            <a class="nav-link" href="{{ url_for('customer.chats') }}"><i class="bi bi-chat"></i> Chats</a>
           </li>
           {% endif %}
           <li class="nav-item dropdown">
@@ -59,12 +46,9 @@
             <ul class="dropdown-menu dropdown-menu-end" style="background:var(--navy2);border-color:var(--border)">
               {% if session.role == 'customer' %}
               <li><a class="dropdown-item" href="{{ url_for('customer.profile') }}" style="color:var(--text)"><i class="bi bi-person me-2"></i>My Profile</a></li>
-              <li><a class="dropdown-item" href="{{ url_for('customer.orders') }}" style="color:var(--text)"><i class="bi bi-box me-2"></i>My Orders</a></li>
-              <li><a class="dropdown-item" href="{{ url_for('customer.payment_history') }}" style="color:var(--text)"><i class="bi bi-credit-card me-2"></i>Payments</a></li>
               {% elif session.role == 'seller' %}
-              <li><a class="dropdown-item" href="{{ url_for('seller.dashboard') }}" style="color:var(--text)"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
-              {% elif session.role == 'admin' %}
-              <li><a class="dropdown-item" href="{{ url_for('admin.dashboard') }}" style="color:var(--text)"><i class="bi bi-shield me-2"></i>Admin Panel</a></li>
+              <li><a class="dropdown-item" href="{{ url_for('seller.products') }}" style="color:var(--text)"><i class="bi bi-box me-2"></i>My Products</a></li>
+              <li><a class="dropdown-item" href="{{ url_for('seller.chats') }}" style="color:var(--text)"><i class="bi bi-chat me-2"></i>Customer Chats</a></li>
               {% endif %}
               <li><hr class="dropdown-divider" style="border-color:var(--border)"></li>
               <li><a class="dropdown-item" href="{{ url_for('auth.change_password') }}" style="color:var(--text)"><i class="bi bi-key me-2"></i>Change Password</a></li>
@@ -109,15 +93,12 @@
         <p style="color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;font-weight:700">Shop</p>
         <ul style="list-style:none;padding:0">
           <li><a href="{{ url_for('customer.products') }}" style="color:var(--muted);font-size:.85rem">All Products</a></li>
-          <li><a href="{{ url_for('customer.stores') }}" style="color:var(--muted);font-size:.85rem">Browse Stores</a></li>
-          <li><a href="#" style="color:var(--muted);font-size:.85rem">Categories</a></li>
         </ul>
       </div>
       <div class="col-md-2">
         <p style="color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;font-weight:700">Sell</p>
         <ul style="list-style:none;padding:0">
           <li><a href="{{ url_for('auth.register') }}" style="color:var(--muted);font-size:.85rem">Become a Seller</a></li>
-          <li><a href="{{ url_for('customer.support') }}" style="color:var(--muted);font-size:.85rem">Seller Help</a></li>
         </ul>
       </div>
       <div class="col-md-4">

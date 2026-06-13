@@ -2,7 +2,6 @@
 {% block title %}Products{% endblock %}
 {% block content %}
 <div class="container mt-4 mb-5">
-  <!-- Search bar -->
   <div class="row g-2 mb-4 align-items-end">
     <div class="col-md-6">
       <h1 class="page-title">{% if q %}Results for "{{ q }}"{% else %}All Products{% endif %}</h1>
@@ -24,7 +23,6 @@
         <div class="card-body">
           <form method="get" id="filter-form">
             <input type="hidden" name="q" value="{{ q }}">
-            <!-- Categories -->
             <div class="mb-3">
               <label class="form-label">Category</label>
               <select class="form-select form-select-sm" name="cat" onchange="document.getElementById('filter-form').submit()">
@@ -34,7 +32,6 @@
                 {% endfor %}
               </select>
             </div>
-            <!-- Price range -->
             <div class="mb-3">
               <label class="form-label">Price Range (Rs.)</label>
               <div class="d-flex gap-2">
@@ -42,7 +39,6 @@
                 <input type="number" class="form-control form-control-sm" name="max_price" placeholder="Max" value="{{ request.args.get('max_price','') }}">
               </div>
             </div>
-            <!-- Rating -->
             <div class="mb-3">
               <label class="form-label">Min Rating</label>
               <select class="form-select form-select-sm" name="rating">
@@ -51,7 +47,6 @@
                 <option value="3" {% if request.args.get('rating')=='3' %}selected{% endif %}>3★ & above</option>
               </select>
             </div>
-            <!-- Sort -->
             <div class="mb-3">
               <label class="form-label">Sort By</label>
               <select class="form-select form-select-sm" name="sort">
@@ -110,20 +105,9 @@
               {% elif p.stock_qty <= 5 %}
               <div style="color:#FCD34D;font-size:.78rem;margin-top:.2rem"><i class="bi bi-exclamation-circle me-1"></i>Only {{ p.stock_qty }} left</div>
               {% endif %}
-              <div class="p-actions">
-                {% if p.stock_qty > 0 %}
-                <form method="post" action="{{ url_for('customer.cart_add', pid=p.id) }}" style="flex:1">
-                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                  <input type="hidden" name="quantity" value="1">
-                  <button type="submit" class="btn btn-purple btn-sm w-100">
-                    <i class="bi bi-cart-plus"></i> Add
-                  </button>
-                </form>
-                {% else %}
-                <button class="btn btn-sm w-100" style="background:var(--navy3);color:var(--muted)" disabled>Out of Stock</button>
-                {% endif %}
-                <a href="{{ url_for('customer.wishlist_toggle', pid=p.id) }}" class="btn btn-outline-purple btn-sm">
-                  <i class="bi bi-heart"></i>
+              <div class="p-actions mt-2">
+                <a href="{{ url_for('customer.product_detail', pid=p.id) }}" class="btn btn-purple btn-sm w-100">
+                  <i class="bi bi-eye me-1"></i> View Product
                 </a>
               </div>
             </div>
