@@ -1,9 +1,14 @@
 """
-Sprint 3 - Customer Controller
-US 1.4 Change Password  | US 1.5 Edit Profile    | US 2.4 Wishlist
-US 2.5 Product Reviews  | US 2.6 Seller Chat     | US 3.2 Track Orders
-US 3.5 Apply Promo Code
-(Builds on Sprint 1+2: Search, View Product, Cart, Place Order, Payment)
+==============================================================
+OOP Concept: INHERITANCE & ENCAPSULATION (Customer Controller)
+==============================================================
+- Inheritance: CustomerController extends BaseController.
+- Encapsulation: Promo-code validation, checkout logic,
+  and cart upsert are all private methods — the route layer
+  calls one public method and never sees the internals.
+- Polymorphism: cart_add / cart_update / cart_remove all
+  operate on the same cart table but behave differently.
+==============================================================
 """
 
 import uuid
@@ -450,14 +455,7 @@ class CustomerController(BaseController):
             return redirect(url_for('customer.profile'))
         return render_template('customer/profile.html', user=user)
 
-    def notifications(self):
-        notifs = self._q(
-            "SELECT * FROM notifications WHERE user_id = %s ORDER BY created_at DESC LIMIT 30",
-            (self._current_user_id(),)
-        )
-        self._run("UPDATE notifications SET is_read=1 WHERE user_id=%s",
-                  (self._current_user_id(),))
-        return render_template('customer/notifications.html', notifications=notifs)
+    
 
     def payment_history(self):
         payments = self._q("""
@@ -560,6 +558,23 @@ class CustomerController(BaseController):
 
     def store_page(self, slug: str):
         return self.store_detail(slug)
+    
+    def notifications(self):
+        uid    = self._current_user_id()
+        notifs = self._q(
+            "SELECT * FROM notifications WHERE user_id = %s ORDER BY created_at DESC LIMIT 50",
+            (uid,)
+        )
+        self._run("UPDATE notifications SET is_read = 1 WHERE user_id = %s", (uid,))
+        return render_template('customer/notifications.html', notifs=notifs)
+
+    def notif_count(self):
+        c = self._q(
+            "SELECT COUNT(*) AS c FROM notifications WHERE user_id = %s AND is_read = 0",
+            (self._current_user_id(),), one=True
+        )
+        return jsonify({'count': c['c']})
+
     
 
 customer_controller = CustomerController()
