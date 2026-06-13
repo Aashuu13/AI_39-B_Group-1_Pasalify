@@ -1,0 +1,24 @@
+{% extends "seller/base_seller.html" %}
+{% block title %}Categories{% endblock %}
+{% block seller_content %}
+<div class="page-title">Category Management</div>
+<div class="page-subtitle">Platform categories available to assign products</div>
+<div class="card">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table mb-0">
+        <thead><tr><th>Icon</th><th>Name</th><th>Slug</th></tr></thead>
+        <tbody>
+        {% for c in cats %}
+        <tr>
+          <td><i class="bi bi-{{ c.icon }}" style="color:var(--purple2)"></i></td>
+          <td style="font-weight:500">{{ c.name }}</td>
+          <td style="color:var(--muted);font-size:.82rem">{{ c.slug }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

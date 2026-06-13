@@ -52,15 +52,25 @@ def init_db():
     )
     try:
         with conn.cursor() as cur:
-            db_name = os.environ.get('MYSQL_DB', 'pasalify2_db')
+            db_name = os.environ.get('MYSQL_DB', 'sprint4')
             cur.execute(f"CREATE DATABASE IF NOT EXISTS {db_name} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
             cur.execute(f"USE {db_name}")
             schema = os.path.join(os.path.dirname(__file__), '..', 'schema.sql')
             with open(schema) as f:
                 for stmt in f.read().split(';'):
                     s = stmt.strip()
-                    if s:
+                    if not s:
+                        continue
+                    try:
                         cur.execute(s)
+                    except pymysql.err.OperationalError as e:
+                        # 1060 = Duplicate column name (ALTER TABLE ADD COLUMN already applied)
+                        # 1005 = Can't create table (CREATE TABLE IF NOT EXISTS handles most,
+                        #        but ALTER TABLE MODIFY COLUMN on existing schema may fail)
+                        if e.args[0] in (1060, 1061, 1062):
+                            pass  # already applied — safe to skip
+                        else:
+                            raise
         conn.commit()
         print("[Pasalify] DB ready.")
     finally:

@@ -1,0 +1,49 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Categories{% endblock %}
+{% block admin_content %}
+<div class="page-title">Category Management</div>
+<div class="page-subtitle">Manage product categories across the platform</div>
+
+<div class="row g-3">
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-header"><i class="bi bi-plus-circle me-1"></i> Add Category</div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('admin.category_add') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="mb-2">
+            <label class="form-label">Category Name</label>
+            <input type="text" class="form-control form-control-sm" name="name" placeholder="e.g. Electronics" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Icon <small style="color:var(--muted)">(Bootstrap Icons name)</small></label>
+            <input type="text" class="form-control form-control-sm" name="icon" placeholder="e.g. cpu, bag, book" value="tag">
+          </div>
+          <button type="submit" class="btn btn-purple btn-sm w-100">Add Category</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header">All Categories ({{ cats|length }})</div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table mb-0">
+            <thead><tr><th>Icon</th><th>Name</th><th>Slug</th></tr></thead>
+            <tbody>
+            {% for c in cats %}
+            <tr>
+              <td><i class="bi bi-{{ c.icon }}" style="color:var(--purple2);font-size:1.1rem"></i></td>
+              <td style="font-weight:500">{{ c.name }}</td>
+              <td style="color:var(--muted);font-size:.82rem">{{ c.slug }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

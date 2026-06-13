@@ -5,7 +5,7 @@ from functools import wraps
 
 from flask import session, redirect, url_for, flash, request
 
-from app import db
+from app.utils import db
 
 
 def hash_password(pw):
@@ -46,7 +46,7 @@ def role_required(*roles):
                 return redirect(url_for('auth.login'))
             if session.get('role') not in roles:
                 flash('Access denied.', 'danger')
-                return redirect(url_for('auth.login'))
+                return redirect(url_for('customer.home'))
             return f(*args, **kwargs)
         return decorated
     return decorator

@@ -1,31 +1,50 @@
 """
-=============================================================
-OOP Concept: ENCAPSULATION  (Database)
-=============================================================
-All raw pymysql / db.py calls are hidden inside this class.
-Models never import db directly — they call Database.query()
-and Database.execute().  The connection details are invisible
-to the rest of the application.
-=============================================================
+==============================================================
+OOP Concept: ENCAPSULATION (Database Wrapper)
+==============================================================
+- Encapsulation: All raw pymysql connection logic is hidden
+  inside the Database class. Models never touch pymysql directly.
+- The Database class wraps app/db.py and exposes a clean, safe
+  interface (query / execute / last_insert_id) to all models.
+- Outside code never sees the connection details.
+==============================================================
 """
 
-from app import db as _db
+from app.utils import db as _db
 
 
 class Database:
     """
-    Thin OOP wrapper around app/db.py.
+    Singleton-style wrapper around app/db.py.
 
-    Encapsulation: one place owns how data is read/written.
-    Every model inherits access through BaseModel._db = Database.
+    Models import and use ONE shared instance of this class
+    (``from app.models.database import Database``).
+    They call ``Database.query()``, ``Database.execute()``, etc.
+    — and never touch pymysql themselves (Encapsulation).
     """
+
+    
 
     @staticmethod
     def query(sql: str, args: tuple = (), one: bool = False):
-        """Run a SELECT.  Returns list[dict] or dict|None when one=True."""
+        """
+        Run a SELECT statement.
+
+        :param sql:  SQL string with %s placeholders
+        :param args: Tuple of values to bind
+        :param one:  If True, return only the first row (or None)
+        :return:     dict | list[dict] | None
+        """
         return _db.query(sql, args, one)
 
+    
     @staticmethod
     def execute(sql: str, args: tuple = ()) -> int:
-        """Run INSERT / UPDATE / DELETE.  Returns lastrowid."""
+        """
+        Run an INSERT / UPDATE / DELETE statement.
+
+        :param sql:  SQL string with %s placeholders
+        :param args: Tuple of values to bind
+        :return:     lastrowid (useful after INSERT)
+        """
         return _db.execute(sql, args)
