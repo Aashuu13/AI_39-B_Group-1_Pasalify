@@ -1,9 +1,3 @@
-"""
-Customer routes - Sprint 3
-US 1.5 Edit Profile   | US 2.4 Wishlist        | US 2.5 Product Reviews
-US 2.6 Seller Chat    | US 3.2 Track Orders    | US 3.5 Apply Promo Code
-(Includes all Sprint 1+2 routes)
-"""
 from flask import Blueprint
 from app.controllers import customer_controller
 from app.utils.auth import login_required
@@ -46,6 +40,8 @@ customer_bp.add_url_rule('/stores/<slug>',                 'store_detail',    cc
 customer_bp.add_url_rule('/store/<slug>',                  'store_page',      cc.store_page)
 
 customer_bp.add_url_rule('/profile',                       'profile',         _lr(cc.profile),          methods=['GET', 'POST'])
-customer_bp.add_url_rule('/notifications',                 'notifications',   _lr(cc.notifications))
+
+customer_bp.add_url_rule('/notifications',       'notifications', _lr(cc.notifications))
+customer_bp.add_url_rule('/notifications/count', 'notif_count',   _lr(cc.notif_count))
 
 customer_bp.add_url_rule('/support',                       'support',         cc.support)
