@@ -1,6 +1,5 @@
 import pymysql
 import os
-import re
 from flask import g, current_app
 
 
@@ -53,25 +52,15 @@ def init_db():
     )
     try:
         with conn.cursor() as cur:
-            db_name = os.environ.get('MYSQL_DB', 'sprint3')
+            db_name = os.environ.get('MYSQL_DB', 'sp4')
             cur.execute(f"CREATE DATABASE IF NOT EXISTS {db_name} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
             cur.execute(f"USE {db_name}")
             schema = os.path.join(os.path.dirname(__file__), '..', 'schema.sql')
-            with open(schema, encoding='utf-8') as f:
-                raw = f.read()
-            raw = re.sub(r'/\*.*?\*/', '', raw, flags=re.DOTALL)
-            raw = re.sub(r'--[^\n]*', '', raw)
-            for stmt in raw.split(';'):
-                s = stmt.strip()
-                if not s:
-                    continue
-                try:
-                    cur.execute(s)
-                except (pymysql.err.OperationalError, pymysql.err.ProgrammingError) as e:
-                    if e.args[0] in (1060, 1061, 1062, 1065):
-                        pass
-                    else:
-                        raise
+            with open(schema) as f:
+                for stmt in f.read().split(';'):
+                    s = stmt.strip()
+                    if s:
+                        cur.execute(s)
         conn.commit()
         print("[Pasalify] DB ready.")
     finally:

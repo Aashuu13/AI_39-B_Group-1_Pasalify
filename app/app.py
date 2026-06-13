@@ -14,22 +14,20 @@ def create_app():
     app.config.from_object(Config)
 
     csrf.init_app(app)
-
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
+    # Only the blueprints for MY assigned features
     from app.routes.auth     import auth_bp
     from app.routes.customer import customer_bp
     from app.routes.seller   import seller_bp
-    from app.routes.admin    import admin_bp
 
     app.register_blueprint(auth_bp,     url_prefix='/auth')
     app.register_blueprint(customer_bp, url_prefix='/customer')
     app.register_blueprint(seller_bp,   url_prefix='/seller')
-    app.register_blueprint(admin_bp,    url_prefix='/admin')
 
     @app.route('/')
     def index():
-        return redirect(url_for('customer.home'))
+        return redirect(url_for('auth.login'))
 
     @app.teardown_appcontext
     def close_db(e=None):
