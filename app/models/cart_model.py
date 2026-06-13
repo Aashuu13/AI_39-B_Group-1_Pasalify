@@ -24,7 +24,7 @@ class CartModel(BaseModel):
     def table(self) -> str:
         return self.TABLE
 
-  
+    # ── Cart Operations ───────────────────────────────────────────────────────
 
     @classmethod
     def get_cart(cls, user_id: int) -> list[dict]:
