@@ -31,7 +31,6 @@ class AdminController(BaseController):
         _current_user_id, _is_logged_in
     """
 
-    # ── Private Helpers (Encapsulation) ───────────────────────────────────────
 
     def _dashboard_stats(self) -> dict:
         """
@@ -67,7 +66,6 @@ class AdminController(BaseController):
         out.headers['Content-Type'] = 'text/csv'
         return out
 
-    # ── Dashboard ─────────────────────────────────────────────────────────────
 
     def dashboard(self):
         stats         = self._dashboard_stats()
@@ -91,7 +89,6 @@ class AdminController(BaseController):
                                monthly=monthly,
                                logs=logs)
 
-    # ── Seller Moderation ─────────────────────────────────────────────────────
 
     def sellers(self):
         all_sellers = StoreModel.all_with_owner()
@@ -118,7 +115,6 @@ class AdminController(BaseController):
         self._warn('Seller rejected.')
         return redirect(url_for('admin.sellers'))
 
-    # ── Product Moderation ────────────────────────────────────────────────────
 
     def products(self):
         prods = self._q("""
@@ -143,7 +139,6 @@ class AdminController(BaseController):
         self._warn('Product removed.')
         return redirect(url_for('admin.products'))
 
-    # ── Financial Management ──────────────────────────────────────────────────
 
     def finances(self):
         transactions = self._q("""
@@ -181,7 +176,6 @@ class AdminController(BaseController):
             'pasalify_transactions.csv'
         )
 
-    # ── User Management ───────────────────────────────────────────────────────
 
     def users(self):
         all_users = UserModel.find_all()
@@ -198,7 +192,6 @@ class AdminController(BaseController):
             self._info(f'User {status}.')
         return redirect(url_for('admin.users'))
 
-    # ── Promo Codes ───────────────────────────────────────────────────────────
 
     def promos(self):
         codes = self._q("SELECT * FROM promo_codes ORDER BY created_at DESC")
@@ -229,7 +222,6 @@ class AdminController(BaseController):
                       (0 if p['is_active'] else 1, pid))
         return redirect(url_for('admin.promos'))
 
-    # ── System Monitoring ─────────────────────────────────────────────────────
 
     def system(self):
         logs = self._q("""
@@ -252,7 +244,6 @@ class AdminController(BaseController):
         self._info('Backup initiated. In production, connect mysqldump here.')
         return redirect(url_for('admin.system'))
 
-    # ── Categories ────────────────────────────────────────────────────────────
 
     def categories(self):
         cats = self._q("SELECT * FROM categories ORDER BY name")
@@ -267,7 +258,6 @@ class AdminController(BaseController):
         return redirect(url_for('admin.categories'))
 
 
-    # ── Support Tickets ───────────────────────────────────────────────────────
 
     def support_tickets(self):
         tickets = self._q("""
@@ -277,7 +267,6 @@ class AdminController(BaseController):
             WHERE sm.role = 'user'
             ORDER BY sm.created_at DESC
         """)
-        # attach admin replies to each ticket
         for t in tickets:
             t['replies'] = self._q("""
                 SELECT sm.*, u.name AS sender_name
@@ -306,7 +295,4 @@ class AdminController(BaseController):
         return redirect(url_for('admin.support_tickets'))
 
 
-# ── Singleton instance ────────────────────────────────────────────────────────
 admin_controller = AdminController()
-
-# Append before the singleton line - but we'll patch via str_replace

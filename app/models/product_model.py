@@ -122,8 +122,7 @@ class ProductModel(BaseModel):
             (store_id,)
         )
 
-    # ── Moderation ────────────────────────────────────────────────────────────
-
+   
     @classmethod
     def approve(cls, product_id: int) -> None:
         """Admin approves a product."""
@@ -139,7 +138,6 @@ class ProductModel(BaseModel):
         """Seller removes a product (keeps row for order history)."""
         cls.update(product_id, {'is_active': 0})
 
-    # ── Stock Management ──────────────────────────────────────────────────────
 
     @classmethod
     def decrement_stock(cls, product_id: int, qty: int) -> None:
@@ -160,7 +158,6 @@ class ProductModel(BaseModel):
             (qty, product_id)
         )
 
-    # ── Rating ────────────────────────────────────────────────────────────────
 
     @classmethod
     def update_rating(cls, product_id: int) -> None:
