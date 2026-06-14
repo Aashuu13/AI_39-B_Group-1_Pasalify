@@ -8,6 +8,7 @@ import os
 
 csrf = CSRFProtect()
 
+
 def create_app():
     app = Flask(__name__, template_folder='templates', static_folder='static')
     app.config.from_object(Config)
@@ -16,15 +17,18 @@ def create_app():
 
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
+    # Register Blueprints
     from app.routes.auth     import auth_bp
     from app.routes.customer import customer_bp
     from app.routes.seller   import seller_bp
     from app.routes.admin    import admin_bp
+    from app.routes.store    import store_bp
 
     app.register_blueprint(auth_bp,     url_prefix='/auth')
     app.register_blueprint(customer_bp, url_prefix='/customer')
     app.register_blueprint(seller_bp,   url_prefix='/seller')
     app.register_blueprint(admin_bp,    url_prefix='/admin')
+    app.register_blueprint(store_bp,    url_prefix='/store')
 
     @app.route('/')
     def index():

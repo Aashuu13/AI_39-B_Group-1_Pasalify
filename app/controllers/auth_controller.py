@@ -17,6 +17,7 @@ from app.controllers.base_controller import BaseController
 from app.models import UserModel, StoreModel
 from app.utils.auth import valid_email, log_action
 
+
 class AuthController(BaseController):
     """
     Handles: register, login, logout, forgot_password,
@@ -26,6 +27,8 @@ class AuthController(BaseController):
         _ok, _err, _warn, _info, _q, _run, _log, _notify,
         _current_user_id, _is_logged_in
     """
+
+    # ── Private Validation (Encapsulation) ────────────────────────────────────
 
     def _validate_registration(self, name, email, phone, pw, pw2, role) -> list[str]:
         """
@@ -47,6 +50,8 @@ class AuthController(BaseController):
         if UserModel.find_by_email_or_phone(email, phone):
             errors.append('Email or phone already registered.')
         return errors
+
+    # ── Public Actions ────────────────────────────────────────────────────────
 
     def register(self):
         """
@@ -85,6 +90,7 @@ class AuthController(BaseController):
             email = request.form.get('email', '').strip().lower()
             pw    = request.form.get('password', '')
 
+            # Attempt authentication (Encapsulation: hash check inside UserModel)
             user = UserModel.find_by_email(email)
 
             if not user or not UserModel.authenticate(email, pw):
@@ -97,6 +103,7 @@ class AuthController(BaseController):
                 self._err('Your account has been deactivated.')
                 return render_template('auth/login.html')
 
+            # Successful login
             UserModel.update_last_login(user['id'])
             session.clear()
             session['user_id'] = user['id']
@@ -105,6 +112,7 @@ class AuthController(BaseController):
             session['email']   = user['email']
             self._log('login')
 
+            # Role-based redirect (Polymorphism: each role routes differently)
             if user['role'] == 'admin':
                 return redirect(url_for('admin.dashboard'))
             elif user['role'] == 'seller':
@@ -128,7 +136,7 @@ class AuthController(BaseController):
         POST → stub (would send reset email in production)
         """
         if request.method == 'POST':
-
+            # Encapsulation: don't reveal whether the email exists
             self._info('If that email exists, a reset link has been sent.')
             return redirect(url_for('auth.login'))
         return render_template('auth/forgot_password.html')
@@ -146,6 +154,7 @@ class AuthController(BaseController):
             new_pw = request.form.get('new_password', '')
             user   = UserModel.find_by_id(self._current_user_id())
 
+            # Encapsulation: password verification inside UserModel.authenticate
             if not UserModel.authenticate(user['email'], old_pw):
                 self._err('Current password is incorrect.')
             elif len(new_pw) < 8:
@@ -158,4 +167,6 @@ class AuthController(BaseController):
 
         return render_template('auth/change_password.html')
 
+
+# ── Singleton instance (used by routes) ──────────────────────────────────────
 auth_controller = AuthController()

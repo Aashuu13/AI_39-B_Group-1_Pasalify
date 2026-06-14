@@ -10,6 +10,7 @@ OOP Concept: INHERITANCE (Category Model)
 from app.models.basemodel import BaseModel
 from app.models.database import Database
 
+
 class CategoryModel(BaseModel):
     """
     Represents the `categories` table.

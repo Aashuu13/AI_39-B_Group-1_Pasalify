@@ -1,38 +1,52 @@
-{% extends 'base.html' %}
-{% block title %}Chat with {{ chat.other_name }}{% endblock %}
+{% extends "base.html" %}
+{% block title %}Chat with {{ store.name }}{% endblock %}
 {% block content %}
-<div class="container py-4" style="max-width:700px;">
-  <div class="card shadow-sm">
-    <div class="card-header d-flex align-items-center gap-2">
-      <a href="{{ url_for('customer.my_chats') }}" class="btn btn-sm btn-outline-secondary me-2">←</a>
-      <strong>{{ chat.other_name }}</strong>
+<div class="container mt-4 mb-5" style="max-width:700px">
+  <a href="{{ url_for('customer.chats') }}" style="color:var(--muted);font-size:.88rem">
+    <i class="bi bi-arrow-left me-1"></i>Back to Messages
+  </a>
+  <div class="d-flex align-items-center gap-3 mt-3 mb-4">
+    {% if store.logo %}
+    <img src="{{ url_for('static', filename=store.logo) }}"
+         style="width:44px;height:44px;border-radius:10px;object-fit:cover">
+    {% else %}
+    <div style="width:44px;height:44px;border-radius:10px;background:var(--purple);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff">
+      {{ store.name[0]|upper }}
     </div>
-    <div class="card-body" style="height:400px;overflow-y:auto;" id="chat-box">
-      {% for msg in messages %}
-      <div class="mb-3 d-flex {% if msg.sender_id == session.user_id %}justify-content-end{% endif %}">
-        <div class="px-3 py-2 rounded-3 {% if msg.sender_id == session.user_id %}bg-primary text-white{% else %}bg-light{% endif %}"
-             style="max-width:75%;">
-          <div class="small">{{ msg.message }}</div>
-          <div class="text-end" style="font-size:0.7rem;opacity:0.7;">{{ msg.created_at.strftime('%H:%M') if msg.created_at else '' }}</div>
-        </div>
-      </div>
-      {% else %}
-      <p class="text-center text-muted">Start the conversation!</p>
-      {% endfor %}
-    </div>
-    <div class="card-footer">
-      <form method="POST">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <div class="input-group">
-          <input type="text" name="message" class="form-control" placeholder="Type a message…" required autofocus>
-          <button type="submit" class="btn btn-primary">Send</button>
-        </div>
-      </form>
+    {% endif %}
+    <div>
+      <div style="font-weight:700">{{ store.name }}</div>
+      <div style="color:var(--muted);font-size:.8rem">Store Chat</div>
     </div>
   </div>
+
+  <!-- Messages -->
+  <div class="chat-box mb-3" id="chatBox">
+    {% for m in msgs %}
+    <div class="msg-bubble {% if m.sender_id == session.user_id %}msg-me{% else %}msg-other{% endif %}">
+      {{ m.message }}
+      <span class="msg-time">{{ m.created_at.strftime('%b %d, %I:%M %p') if m.created_at else '' }}</span>
+    </div>
+    {% else %}
+    <div style="text-align:center;color:var(--muted);font-size:.85rem;margin:auto">
+      Start the conversation!
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Input -->
+  <form method="post" class="d-flex gap-2">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="text" name="message" class="form-control" placeholder="Type a message..." autocomplete="off" required>
+    <button class="btn btn-purple" style="border-radius:8px;padding:.45rem 1.2rem">
+      <i class="bi bi-send"></i>
+    </button>
+  </form>
 </div>
+
 <script>
-  const box = document.getElementById('chat-box');
+  // Auto scroll to bottom
+  const box = document.getElementById('chatBox');
   box.scrollTop = box.scrollHeight;
 </script>
 {% endblock %}

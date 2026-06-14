@@ -36,6 +36,9 @@
     <a href="{{ url_for('admin.system') }}" class="sidebar-link {% if request.endpoint=='admin.system' %}active{% endif %}">
       <i class="bi bi-shield-check"></i> Monitoring & Logs
     </a>
+    <a href="{{ url_for('admin.support_tickets') }}" class="sidebar-link {% if request.endpoint=='admin.support_tickets' %}active{% endif %}">
+      <i class="bi bi-headset"></i> Support Tickets
+    </a>
     <div style="border-top:1px solid var(--border);margin:.75rem 0"></div>
     <a href="{{ url_for('customer.home') }}" class="sidebar-link">
       <i class="bi bi-box-arrow-left"></i> Back to Store

@@ -1,103 +1,93 @@
-{% extends 'base.html' %}
-{% block title %}Order #{{ order.order_number }}{% endblock %}
+{% extends "base.html" %}
+{% block title %}Order {{ order.order_number }}{% endblock %}
 {% block content %}
-<div class="container py-4">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="mb-0">Order <strong>{{ order.order_number }}</strong></h4>
-    <a href="{{ url_for('customer.orders') }}" class="btn btn-outline-secondary btn-sm">← Back to Orders</a>
+<div class="container mt-4 mb-5" style="max-width:800px">
+  <a href="{{ url_for('customer.orders') }}" style="color:var(--muted);font-size:.88rem"><i class="bi bi-arrow-left me-1"></i>Back to Orders</a>
+  <div class="d-flex justify-content-between align-items-start mt-3 mb-4">
+    <div>
+      <h1 class="page-title mb-0">{{ order.order_number }}</h1>
+      <p style="color:var(--muted);font-size:.85rem">Placed {{ order.created_at.strftime('%B %d, %Y at %I:%M %p') if order.created_at else '' }}</p>
+    </div>
+    <span class="status-badge s-{{ order.status }}" style="font-size:.9rem;padding:.4rem 1rem">{{ order.status|title }}</span>
   </div>
 
-  {# ── US 3.2 Order Tracking Timeline ── #}
-  <div class="card mb-4 shadow-sm">
+  <!-- Progress tracker -->
+  {% set steps = ['placed','confirmed','processing','shipped','delivered'] %}
+  {% set step_idx = steps.index(order.status) if order.status in steps else 0 %}
+  <div class="card mb-4">
     <div class="card-body">
-      <h6 class="card-title mb-3">Order Status</h6>
-      <div class="d-flex align-items-center justify-content-between flex-wrap gap-2" id="status-timeline">
-        {% set step_labels = {
-          'placed': 'Placed', 'confirmed': 'Confirmed', 'processing': 'Processing',
-          'shipped': 'Shipped', 'out_for_delivery': 'Out for Delivery', 'delivered': 'Delivered'
-        } %}
-        {% set cancelled = order.status == 'cancelled' %}
-        {% for step in status_steps %}
-          {% set active = (status_steps.index(step) <= status_steps.index(current_step)) and not cancelled %}
-          <div class="text-center flex-fill">
-            <div class="rounded-circle mx-auto d-flex align-items-center justify-content-center mb-1
-              {% if active %}bg-success text-white{% else %}bg-light text-muted{% endif %}"
-              style="width:36px;height:36px;font-size:14px;">
-              {% if active %}<i class="bi bi-check-lg"></i>{% else %}•{% endif %}
-            </div>
-            <small class="{% if active %}text-success fw-bold{% else %}text-muted{% endif %}">
-              {{ step_labels[step] }}
-            </small>
+      <div class="d-flex justify-content-between align-items-center position-relative">
+        <div style="position:absolute;top:20px;left:10%;right:10%;height:2px;background:var(--border);z-index:0">
+          <div style="width:{{ (step_idx/4*100)|int }}%;height:100%;background:var(--purple);transition:.5s"></div>
+        </div>
+        {% for step in steps %}
+        <div class="text-center" style="z-index:1;flex:1">
+          <div style="width:40px;height:40px;border-radius:50%;margin:0 auto;display:flex;align-items:center;justify-content:center;
+               background:{% if loop.index0 <= step_idx %}var(--purple){% else %}var(--navy3){% endif %};
+               border:2px solid {% if loop.index0 <= step_idx %}var(--purple){% else %}var(--border){% endif %}">
+            <i class="bi bi-check" style="color:{% if loop.index0 <= step_idx %}#fff{% else %}var(--muted){% endif %}"></i>
           </div>
-          {% if not loop.last %}
-            <div class="flex-fill" style="height:2px;background:{% if active %}#198754{% else %}#dee2e6{% endif %};margin-bottom:20px;"></div>
-          {% endif %}
+          <div style="font-size:.72rem;margin-top:.4rem;color:{% if loop.index0 <= step_idx %}var(--text){% else %}var(--muted){% endif %}">{{ step|title }}</div>
+        </div>
         {% endfor %}
-        {% if cancelled %}
-          <div class="text-center flex-fill">
-            <div class="rounded-circle mx-auto d-flex align-items-center justify-content-center mb-1 bg-danger text-white"
-              style="width:36px;height:36px;">✕</div>
-            <small class="text-danger fw-bold">Cancelled</small>
-          </div>
-        {% endif %}
       </div>
     </div>
   </div>
 
-  <div class="row g-4">
-    <div class="col-md-8">
-      <div class="card shadow-sm">
-        <div class="card-header"><strong>Items Ordered</strong></div>
+  <div class="row g-3">
+    <div class="col-md-7">
+      <div class="card mb-3">
+        <div class="card-header">Order Items</div>
         <div class="card-body p-0">
           {% for item in items %}
-          <div class="d-flex align-items-center p-3 border-bottom">
+          <div class="d-flex gap-3 align-items-center p-3 {% if not loop.last %}border-bottom{% endif %}" style="border-color:var(--border)">
             {% if item.image_path %}
-            <img src="{{ url_for('static', filename=item.image_path) }}" width="56" height="56"
-                 class="rounded me-3" style="object-fit:cover;">
+            <img src="{{ url_for('static', filename=item.image_path) }}" style="width:55px;height:55px;object-fit:cover;border-radius:8px">
+            {% else %}
+            <div style="width:55px;height:55px;background:var(--navy3);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--muted)"><i class="bi bi-image"></i></div>
             {% endif %}
-            <div class="flex-fill">
-              <div class="fw-semibold">{{ item.product_name }}</div>
-              <small class="text-muted">Qty: {{ item.quantity }} × Rs {{ item.price }}</small>
+            <div class="flex-grow-1">
+              <div style="font-weight:600;font-size:.9rem">{{ item.product_name }}</div>
+              <div style="color:var(--muted);font-size:.8rem">Qty: {{ item.quantity }} × Rs. {{ "%.0f"|format(item.price) }}</div>
             </div>
-            <div class="fw-bold">Rs {{ item.subtotal }}</div>
+            <div style="font-weight:700">Rs. {{ "%.0f"|format(item.subtotal) }}</div>
           </div>
           {% endfor %}
         </div>
       </div>
     </div>
-
-    <div class="col-md-4">
-      <div class="card shadow-sm mb-3">
-        <div class="card-header"><strong>Order Summary</strong></div>
-        <div class="card-body">
-          <div class="d-flex justify-content-between"><span>Subtotal</span><span>Rs {{ "%.2f"|format(order.total_amount + order.discount_amount) }}</span></div>
+    <div class="col-md-5">
+      <div class="card mb-3">
+        <div class="card-header">Delivery Address</div>
+        <div class="card-body" style="font-size:.88rem;color:var(--muted)">
+          <strong style="color:var(--text)">{{ order.full_name }}</strong><br>
+          {{ order.phone }}<br>{{ order.address }}<br>{{ order.city }}
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">Payment Summary</div>
+        <div class="card-body" style="font-size:.88rem">
+          <div class="d-flex justify-content-between mb-1">
+            <span style="color:var(--muted)">Method</span>
+            <span class="badge-purple">{{ order.payment_method|upper }}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-1">
+            <span style="color:var(--muted)">Payment Status</span>
+            <span class="s-{{ order.payment_status }} status-badge">{{ order.payment_status|title }}</span>
+          </div>
           {% if order.discount_amount > 0 %}
-          <div class="d-flex justify-content-between text-success"><span>Promo Discount</span><span>- Rs {{ "%.2f"|format(order.discount_amount) }}</span></div>
+          <div class="d-flex justify-content-between mb-1">
+            <span style="color:var(--muted)">Discount</span>
+            <span style="color:#34D399">- Rs. {{ "%.0f"|format(order.discount_amount) }}</span>
+          </div>
           {% endif %}
-          <hr>
-          <div class="d-flex justify-content-between fw-bold"><span>Total</span><span>Rs {{ "%.2f"|format(order.total_amount) }}</span></div>
-          <div class="mt-2"><small class="text-muted">Payment: <strong>{{ order.payment_method|upper }}</strong></small></div>
-          <div><small class="badge bg-{% if order.payment_status == 'paid' %}success{% elif order.payment_status == 'pending' %}warning{% else %}danger{% endif %}">{{ order.payment_status }}</small></div>
+          <div class="divider"></div>
+          <div class="d-flex justify-content-between">
+            <strong>Total</strong>
+            <strong style="color:var(--purple2);font-size:1.05rem">Rs. {{ "%.0f"|format(order.total_amount) }}</strong>
+          </div>
         </div>
       </div>
-
-      <div class="card shadow-sm mb-3">
-        <div class="card-header"><strong>Delivery Address</strong></div>
-        <div class="card-body">
-          <strong>{{ order.full_name }}</strong><br>
-          {{ order.phone }}<br>
-          {{ order.address }}<br>
-          {% if order.city %}{{ order.city }}{% endif %}
-        </div>
-      </div>
-
-      {% if order.status == 'placed' %}
-      <form method="POST" action="{{ url_for('customer.order_cancel', oid=order.id) }}"
-            onsubmit="return confirm('Are you sure you want to cancel this order?')">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <button type="submit" class="btn btn-outline-danger w-100">Cancel Order</button>
-      </form>
-      {% endif %}
     </div>
   </div>
 </div>

@@ -12,6 +12,7 @@ OOP Concept: ENCAPSULATION (Database Wrapper)
 
 from app import db as _db
 
+
 class Database:
     """
     Singleton-style wrapper around app/db.py.
@@ -21,6 +22,8 @@ class Database:
     They call ``Database.query()``, ``Database.execute()``, etc.
     — and never touch pymysql themselves (Encapsulation).
     """
+
+    # ── Read ──────────────────────────────────────────────────────────────────
 
     @staticmethod
     def query(sql: str, args: tuple = (), one: bool = False):
@@ -33,6 +36,8 @@ class Database:
         :return:     dict | list[dict] | None
         """
         return _db.query(sql, args, one)
+
+    # ── Write ─────────────────────────────────────────────────────────────────
 
     @staticmethod
     def execute(sql: str, args: tuple = ()) -> int:

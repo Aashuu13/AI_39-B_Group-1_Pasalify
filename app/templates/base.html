@@ -15,7 +15,7 @@
 <nav class="navbar navbar-expand-lg">
   <div class="container-fluid px-4">
     <a class="navbar-brand" href="{{ url_for('customer.home') }}">
-      <img src="{{ url_for('static', filename='uploads/logo/pasalifylogo.jpeg') }}" alt="Pasalify" style="height:40px">
+    <img src="{{ url_for('static', filename='uploads/images/logo.jpeg') }}" alt="Pasalify" style="height:40px">
     </a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
       <span class="navbar-toggler-icon"></span>
@@ -25,11 +25,12 @@
         <li class="nav-item"><a class="nav-link" href="{{ url_for('customer.home') }}"><i class="bi bi-house"></i> Home</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ url_for('customer.products') }}"><i class="bi bi-grid"></i> Products</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ url_for('customer.stores') }}"><i class="bi bi-shop"></i> Stores</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('customer.support') }}"><i class="bi bi-headset"></i> Support</a></li>
       </ul>
       <!-- Search bar -->
       <form class="d-flex me-3" action="{{ url_for('customer.products') }}" method="get">
         <div class="input-group" style="width:280px">
-          <input class="form-control form-control-sm" type="search" name="q" placeholder="Search products..." value="{{ request.args.get('q', '') }}">
+          <input class="form-control form-control-sm" type="search" name="q" placeholder="Search products...">
           <button class="btn btn-purple btn-sm" type="submit"><i class="bi bi-search"></i></button>
         </div>
       </form>
@@ -40,13 +41,15 @@
             <a class="nav-link" href="{{ url_for('customer.cart') }}"><i class="bi bi-cart3"></i> Cart</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('customer.wishlist') }}" title="Wishlist"><i class="bi bi-heart"></i></a>
+            <a class="nav-link" href="{{ url_for('customer.wishlist') }}"><i class="bi bi-heart"></i></a>
           </li>
+          {% if session.role == 'customer' %}
+  <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('customer.chats') }}"><i class="bi bi-chat"></i></a>
+  </li>
+{% endif %}
           <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('customer.my_chats') }}" title="Messages"><i class="bi bi-chat-dots"></i></a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link position-relative" href="{{ url_for('customer.notifications') }}" title="Notifications">
+            <a class="nav-link position-relative" href="{{ url_for('customer.notifications') }}">
               <i class="bi bi-bell"></i>
               <span id="notif-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill" style="background:var(--red);font-size:.6rem;display:none">0</span>
             </a>
@@ -132,7 +135,7 @@
       </div>
     </div>
     <hr style="border-color:var(--border);margin-top:2rem">
-    <p style="color:var(--muted);font-size:.8rem;text-align:center">© 2026 Pasalify.</p>
+    <p style="color:var(--muted);font-size:.8rem;text-align:center">© 2026 Pasalify. </p>
   </div>
 </footer>
 

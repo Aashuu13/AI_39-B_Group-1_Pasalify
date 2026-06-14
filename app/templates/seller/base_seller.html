@@ -43,6 +43,9 @@
     <a href="{{ url_for('seller.reviews') }}" class="sidebar-link {% if request.endpoint=='seller.reviews' %}active{% endif %}">
       <i class="bi bi-star"></i> Reviews
     </a>
+    <a href="{{ url_for('seller.support_tickets') }}" class="sidebar-link {% if request.endpoint=='seller.support_tickets' %}active{% endif %}">
+      <i class="bi bi-headset"></i> Support Tickets
+    </a>
     <div class="sidebar-section">Store</div>
     <a href="{{ url_for('seller.store_profile') }}" class="sidebar-link {% if request.endpoint=='seller.store_profile' %}active{% endif %}">
       <i class="bi bi-person-vcard"></i> Store Profile
@@ -51,7 +54,7 @@
       <i class="bi bi-palette"></i> Customize
     </a>
     {% if store %}
-    <a href="{{ url_for('customer.store_detail', slug=store.slug) }}" class="sidebar-link" target="_blank">
+    <a href="{{ url_for('store.public_store', slug=store.slug) }}" class="sidebar-link" target="_blank">
       <i class="bi bi-box-arrow-up-right"></i> View Store
     </a>
     {% endif %}

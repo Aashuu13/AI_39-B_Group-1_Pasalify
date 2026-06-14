@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}{{ store.name }}{% endblock %}
+{% block content %}
+
+<!-- Store banner -->
+<div style="position:relative;height:200px;background:linear-gradient(135deg, {{ store.theme_color }}22, {{ store.theme_color }}44);border-bottom:1px solid var(--border);overflow:hidden">
+  {% if store.banner %}
+  <img src="{{ url_for('static', filename=store.banner) }}" style="width:100%;height:100%;object-fit:cover;opacity:.4">
+  {% endif %}
+  <div style="position:absolute;inset:0;display:flex;align-items:center;padding:2rem">
+    <div class="d-flex align-items-center gap-4">
+      {% if store.logo %}
+      <img src="{{ url_for('static', filename=store.logo) }}" style="width:90px;height:90px;object-fit:cover;border-radius:50%;border:3px solid {{ store.theme_color }};box-shadow:0 4px 20px {{ store.theme_color }}66">
+      {% else %}
+      <div style="width:90px;height:90px;background:{{ store.theme_color }}33;border-radius:50%;border:3px solid {{ store.theme_color }};display:flex;align-items:center;justify-content:center;font-size:2rem;color:{{ store.theme_color }}">
+        <i class="bi bi-shop"></i>
+      </div>
+      {% endif %}
+      <div>
+        <h1 style="font-family:'Playfair Display',serif;font-size:1.8rem;margin:0">{{ store.name }}</h1>
+        {% if owner %}<div style="color:var(--muted);font-size:.85rem">by {{ owner.name }}</div>{% endif %}
+        {% if store.description %}<div style="color:var(--muted);font-size:.88rem;margin-top:.3rem;max-width:500px">{{ store.description }}</div>{% endif %}
+        <div class="d-flex gap-3 mt-2">
+          <span style="color:var(--muted);font-size:.8rem"><i class="bi bi-grid me-1"></i>{{ products|length }} Products</span>
+          {% if reviews_avg.avg %}
+          <span style="color:var(--gold);font-size:.8rem"><i class="bi bi-star-fill me-1"></i>{{ "%.1f"|format(reviews_avg.avg) }} ({{ reviews_avg.cnt }} reviews)</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container mt-4 mb-5">
+  <div class="row g-3">
+    <!-- Sidebar filters -->
+    <div class="col-md-3">
+      <div class="card sticky-top" style="top:80px">
+        <div class="card-header"><i class="bi bi-funnel me-1"></i> Filter</div>
+        <div class="card-body">
+          <form method="get">
+            <div class="mb-3">
+              <input type="text" class="form-control form-control-sm" name="q" value="{{ q }}" placeholder="Search in store...">
+            </div>
+            {% if cats %}
+            <div class="mb-3">
+              <label class="form-label" style="font-size:.82rem">Category</label>
+              {% for c in cats %}
+              <a href="?cat={{ c.slug }}" class="d-block mb-1" style="color:{% if request.args.get('cat')==c.slug %}{{ store.theme_color }}{% else %}var(--muted){% endif %};font-size:.85rem">
+                <i class="bi bi-chevron-right me-1" style="font-size:.7rem"></i>{{ c.name }}
+              </a>
+              {% endfor %}
+              {% if request.args.get('cat') %}
+              <a href="?" style="color:var(--muted);font-size:.78rem"><i class="bi bi-x me-1"></i>Clear</a>
+              {% endif %}
+            </div>
+            {% endif %}
+            <select class="form-select form-select-sm" name="sort" onchange="this.form.submit()">
+              <option value="newest" {% if sort=='newest' %}selected{% endif %}>Newest</option>
+              <option value="price_asc" {% if sort=='price_asc' %}selected{% endif %}>Price ↑</option>
+              <option value="price_desc" {% if sort=='price_desc' %}selected{% endif %}>Price ↓</option>
+            </select>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Products -->
+    <div class="col-md-9">
+      {% if products %}
+      <div class="row g-3 {% if store.theme_layout=='list' %}row-cols-1{% elif store.theme_layout=='masonry' %}row-cols-2{% else %}row-cols-2 row-cols-md-3{% endif %}">
+        {% for p in products %}
+        <div class="col">
+          <div class="product-card" style="--card-accent:{{ store.theme_color }}">
+            <a href="{{ url_for('customer.product_detail', pid=p.id) }}">
+              {% if p.image_path %}
+              <img src="{{ url_for('static', filename=p.image_path) }}" alt="{{ p.name }}"
+                   style="{% if store.theme_layout=='list' %}height:120px{% else %}height:180px{% endif %}">
+              {% else %}
+              <div class="product-no-img" style="{% if store.theme_layout=='list' %}height:120px{% else %}height:180px{% endif %}">
+                <i class="bi bi-image"></i>
+              </div>
+              {% endif %}
+            </a>
+            <div class="p-body">
+              <a href="{{ url_for('customer.product_detail', pid=p.id) }}" style="color:var(--text)">
+                <div class="p-name">{{ p.name }}</div>
+              </a>
+              {% if p.cat_name %}<span class="badge-purple" style="font-size:.68rem">{{ p.cat_name }}</span>{% endif %}
+              <div class="d-flex align-items-baseline gap-1 mt-1">
+                <span class="p-price" style="color:{{ store.theme_color }}">Rs. {{ "%.0f"|format(p.price) }}</span>
+                {% if p.compare_price and p.compare_price > p.price %}
+                <span class="p-compare">Rs. {{ "%.0f"|format(p.compare_price) }}</span>
+                {% endif %}
+              </div>
+              <div class="p-actions">
+                {% if p.stock_qty > 0 %}
+                <form method="post" action="{{ url_for('customer.cart_add', pid=p.id) }}" style="flex:1">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <input type="hidden" name="quantity" value="1">
+                  <button type="submit" class="btn btn-sm w-100" style="background:{{ store.theme_color }};color:#fff;border:none">
+                    <i class="bi bi-cart-plus"></i> Add to Cart
+                  </button>
+                </form>
+                {% else %}
+                <span style="color:var(--muted);font-size:.78rem">Out of stock</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="text-center py-5" style="color:var(--muted)">
+        <i class="bi bi-search" style="font-size:3rem;opacity:.3"></i>
+        <h4 class="mt-3">No products found</h4>
+        <a href="{{ url_for('store.public_store', slug=store.slug) }}" class="btn btn-sm mt-2" style="color:var(--muted)">Clear filters</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Chat with seller button -->
+  {% if session.user_id and session.role == 'customer' %}
+  <div style="position:fixed;bottom:2rem;right:2rem;z-index:500">
+    <form method="post" action="{{ url_for('store.start_chat', seller_id=store.user_id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn btn-purple" style="border-radius:50px;padding:.75rem 1.5rem;box-shadow:0 4px 20px rgba(108,63,200,.4)">
+        <i class="bi bi-chat-dots me-1"></i> Chat with Seller
+      </button>
+    </form>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

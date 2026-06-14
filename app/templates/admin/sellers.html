@@ -27,7 +27,7 @@
               {% endif %}
               <div>
                 <div style="font-weight:600;font-size:.88rem">{{ s.name }}</div>
-                <a href="{{ url_for('customer.store_detail', slug=s.slug) }}" target="_blank" style="font-size:.74rem;color:var(--purple2)">
+                <a href="{{ url_for('store.public_store', slug=s.slug) }}" target="_blank" style="font-size:.74rem;color:var(--purple2)">
                   /store/{{ s.slug }} <i class="bi bi-box-arrow-up-right"></i>
                 </a>
               </div>

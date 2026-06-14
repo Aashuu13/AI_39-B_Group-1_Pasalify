@@ -1,37 +1,76 @@
 """
-Admin Controller - Sprint 3
-US 5.2 Content Control | US 5.3 Track Transactions
-(Builds on Sprint 1+2: Dashboard, Sellers, Products, Users, Finance)
+==============================================================
+OOP Concept: INHERITANCE & ENCAPSULATION (Admin Controller)
+==============================================================
+- Inheritance: AdminController extends BaseController.
+- Encapsulation: CSV export logic is hidden in _export_csv();
+  dashboard stats are gathered in _dashboard_stats().
+  Routes call one method; they never see the SQL.
+- Polymorphism: seller_approve / seller_reject both change
+  store state but produce different side-effects.
+==============================================================
 """
 
-from flask import render_template, request, redirect, url_for, Response
-import csv, io
-from datetime import datetime
+import csv
+import io
+
+from flask import render_template, request, redirect, url_for, session, flash, make_response
 
 from app.controllers.base_controller import BaseController
 from app.models import UserModel, ProductModel, StoreModel, CategoryModel
 
+
 class AdminController(BaseController):
+    """
+    Handles all admin-facing views:
+    dashboard, sellers, products, finances, users,
+    promo codes, system monitoring, categories.
+
+    Inherits from BaseController:
+        _ok/_err/_warn/_info, _q/_run, _log, _notify,
+        _current_user_id, _is_logged_in
+    """
+
+    # ── Private Helpers (Encapsulation) ───────────────────────────────────────
 
     def _dashboard_stats(self) -> dict:
-        orders_row  = self._q("SELECT COUNT(*) AS c FROM orders", one=True)
-        revenue_row = self._q(
-            "SELECT COALESCE(SUM(total_amount),0) AS t FROM orders WHERE payment_status='paid'",
-            one=True
-        )
-        flags_row = self._q("SELECT COUNT(*) AS c FROM content_flags WHERE status='pending'", one=True)
+        """
+        Gather all dashboard KPIs in one method.
+        Encapsulation: the dashboard view calls this; it never
+        writes a single SQL query itself.
+        """
         return {
             'total_users':    UserModel.count("role = 'customer'"),
             'total_sellers':  UserModel.count("role = 'seller'"),
-            'total_orders':   orders_row['c'] if orders_row else 0,
-            'total_revenue':  revenue_row['t'] if revenue_row else 0,
+            'total_orders':   self._q("SELECT COUNT(*) AS c FROM orders", one=True)['c'],
+            'total_revenue':  self._q(
+                "SELECT COALESCE(SUM(total_amount),0) AS t FROM orders WHERE payment_status='paid'",
+                one=True
+            )['t'],
             'pending_stores': StoreModel.count("is_approved = 0"),
             'pending_prods':  ProductModel.count("is_approved = 0 AND is_active = 1"),
-            'pending_flags':  flags_row['c'] if flags_row else 0,
         }
 
+    def _export_csv(self, rows: list[dict], headers: list[str],
+                    filename: str):
+        """
+        Build and return a CSV download response.
+        Encapsulation: CSV generation lives here, not in the route.
+        """
+        si = io.StringIO()
+        w  = csv.writer(si)
+        w.writerow(headers)
+        for r in rows:
+            w.writerow([r.get(h.lower().replace(' ', '_'), '') for h in headers])
+        out = make_response(si.getvalue())
+        out.headers['Content-Disposition'] = f'attachment; filename={filename}'
+        out.headers['Content-Type'] = 'text/csv'
+        return out
+
+    # ── Dashboard ─────────────────────────────────────────────────────────────
+
     def dashboard(self):
-        stats = self._dashboard_stats()
+        stats         = self._dashboard_stats()
         recent_orders = self._q("""
             SELECT o.*, u.name AS customer FROM orders o
             JOIN users u ON u.id = o.user_id ORDER BY o.created_at DESC LIMIT 8
@@ -44,8 +83,7 @@ class AdminController(BaseController):
         """)
         logs = self._q("""
             SELECT al.*, u.name FROM activity_logs al
-            LEFT JOIN users u ON u.id = al.user_id
-            ORDER BY al.created_at DESC LIMIT 10
+            LEFT JOIN users u ON u.id = al.user_id ORDER BY al.created_at DESC LIMIT 10
         """)
         return render_template('admin/dashboard.html',
                                **stats,
@@ -53,21 +91,34 @@ class AdminController(BaseController):
                                monthly=monthly,
                                logs=logs)
 
+    # ── Seller Moderation ─────────────────────────────────────────────────────
+
     def sellers(self):
         all_sellers = StoreModel.all_with_owner()
         return render_template('admin/sellers.html', sellers=all_sellers)
 
     def seller_approve(self, sid: int):
+        """Approve a store and notify the owner."""
         StoreModel.approve(sid)
+        store = StoreModel.find_by_id(sid)
+        if store:
+            self._notify(
+                store['user_id'], 'Store Approved!',
+                f'Your store "{store["name"]}" has been approved. Start selling now!',
+                'system'
+            )
         self._log('seller_approved', 'store', sid)
         self._ok('Seller approved.')
         return redirect(url_for('admin.sellers'))
 
     def seller_reject(self, sid: int):
+        """Reject (deactivate) a store."""
         StoreModel.reject(sid)
         self._log('seller_rejected', 'store', sid)
         self._warn('Seller rejected.')
         return redirect(url_for('admin.sellers'))
+
+    # ── Product Moderation ────────────────────────────────────────────────────
 
     def products(self):
         prods = self._q("""
@@ -92,237 +143,170 @@ class AdminController(BaseController):
         self._warn('Product removed.')
         return redirect(url_for('admin.products'))
 
+    # ── Financial Management ──────────────────────────────────────────────────
+
+    def finances(self):
+        transactions = self._q("""
+            SELECT p.*, o.order_number, u.name AS customer
+            FROM payments p
+            JOIN orders o ON o.id = p.order_id
+            JOIN users u ON u.id = p.user_id
+            ORDER BY p.created_at DESC
+        """)
+        commissions = self._q("""
+            SELECT c.*, s.name AS store_name FROM commissions c
+            JOIN stores s ON s.id = c.store_id ORDER BY c.created_at DESC LIMIT 50
+        """)
+        total_rev = self._q(
+            "SELECT COALESCE(SUM(platform_amount),0) AS t FROM commissions", one=True
+        )
+        return render_template('admin/finances.html',
+                               transactions=transactions,
+                               commissions=commissions,
+                               total_rev=total_rev['t'])
+
+    def finance_export(self):
+        """Export transactions as CSV. Encapsulation: _export_csv hides io logic."""
+        rows = self._q("""
+            SELECT p.id, o.order_number, u.name, p.amount,
+                   p.method, p.status, p.created_at
+            FROM payments p
+            JOIN orders o ON o.id = p.order_id
+            JOIN users u ON u.id = p.user_id
+            ORDER BY p.created_at DESC
+        """)
+        return self._export_csv(
+            rows,
+            ['ID', 'Order', 'Name', 'Amount', 'Method', 'Status', 'Created_at'],
+            'pasalify_transactions.csv'
+        )
+
+    # ── User Management ───────────────────────────────────────────────────────
+
     def users(self):
         all_users = UserModel.find_all()
         return render_template('admin/users.html', users=all_users)
 
     def user_toggle(self, uid: int):
-        user = UserModel.find_by_id(uid)
-        if user:
-            if user['is_active']:
-                UserModel.soft_delete(uid)
-                self._warn('User deactivated.')
-            else:
-                UserModel.activate(uid)
-                self._ok('User activated.')
+        """Toggle a user's active status (Polymorphism: same method, two outcomes)."""
+        u = UserModel.find_by_id(uid)
+        if u:
+            new_status = 0 if u['is_active'] else 1
+            UserModel.update(uid, {'is_active': new_status})
+            status = 'deactivated' if u['is_active'] else 'activated'
+            self._log(f'user_{status}', 'user', uid)
+            self._info(f'User {status}.')
         return redirect(url_for('admin.users'))
 
-    def categories(self):
-        cats = CategoryModel.find_all()
-        return render_template('admin/categories.html', cats=cats)
+    # ── Promo Codes ───────────────────────────────────────────────────────────
 
-    def category_add(self):
-        if request.method == 'POST':
-            name = request.form.get('name', '').strip()
-            slug = name.lower().replace(' ', '-')
-            if name:
-                CategoryModel.create({'name': name, 'slug': slug})
-                self._ok(f'Category "{name}" added.')
-        return redirect(url_for('admin.categories'))
+    def promos(self):
+        codes = self._q("SELECT * FROM promo_codes ORDER BY created_at DESC")
+        return render_template('admin/promos.html', codes=codes)
 
-    def category_delete(self, cid: int):
-        self._run("DELETE FROM categories WHERE id = %s", (cid,))
-        self._warn('Category deleted.')
-        return redirect(url_for('admin.categories'))
+    def promo_add(self):
+        self._run("""
+            INSERT INTO promo_codes
+              (code, discount_type, discount_value, min_order, max_uses,
+               valid_from, valid_until)
+            VALUES (%s,%s,%s,%s,%s,%s,%s)
+        """, (
+            request.form.get('code', '').strip().upper(),
+            request.form.get('discount_type', 'percent'),
+            float(request.form.get('discount_value', 0)),
+            float(request.form.get('min_order', 0)),
+            request.form.get('max_uses') or None,
+            request.form.get('valid_from') or None,
+            request.form.get('valid_until') or None,
+        ))
+        self._ok('Promo code created!')
+        return redirect(url_for('admin.promos'))
+
+    def promo_toggle(self, pid: int):
+        p = self._q("SELECT is_active FROM promo_codes WHERE id = %s", (pid,), one=True)
+        if p:
+            self._run("UPDATE promo_codes SET is_active = %s WHERE id = %s",
+                      (0 if p['is_active'] else 1, pid))
+        return redirect(url_for('admin.promos'))
+
+    # ── System Monitoring ─────────────────────────────────────────────────────
 
     def system(self):
         logs = self._q("""
             SELECT al.*, u.name FROM activity_logs al
-            LEFT JOIN users u ON u.id = al.user_id
-            ORDER BY al.created_at DESC LIMIT 50
+            LEFT JOIN users u ON u.id = al.user_id ORDER BY al.created_at DESC LIMIT 100
         """)
-        return render_template('admin/system.html', logs=logs)
-
-    def finances(self):
-        orders = self._q("""
-            SELECT o.*, u.name AS customer FROM orders o
-            JOIN users u ON u.id = o.user_id
-            ORDER BY o.created_at DESC LIMIT 100
+        db_size = self._q("""
+            SELECT ROUND(SUM(data_length + index_length)/1024/1024, 2) AS size
+            FROM information_schema.tables WHERE table_schema = 'pasalify'
+        """, one=True)
+        table_counts = self._q("""
+            SELECT table_name, table_rows FROM information_schema.tables
+            WHERE table_schema = 'pasalify' ORDER BY table_rows DESC
         """)
-        total = self._q(
-            "SELECT COALESCE(SUM(total_amount),0) AS t FROM orders WHERE payment_status='paid'",
-            one=True
-        )
-        return render_template('admin/finances.html', orders=orders,
-                               total_revenue=total['t'] if total else 0)
-
-    def finance_export(self):
-        """US 5.3 - Export transactions as CSV."""
-        orders = self._q("""
-            SELECT o.order_number, u.name AS customer, o.total_amount,
-                   o.discount_amount, o.payment_method, o.payment_status,
-                   o.status, o.created_at
-            FROM orders o
-            JOIN users u ON u.id = o.user_id
-            ORDER BY o.created_at DESC
-        """)
-
-        output = io.StringIO()
-        writer = csv.writer(output)
-        writer.writerow(['Order Number', 'Customer', 'Total', 'Discount',
-                         'Payment Method', 'Payment Status', 'Order Status', 'Date'])
-        for o in orders:
-            writer.writerow([
-                o['order_number'], o['customer'], o['total_amount'],
-                o['discount_amount'], o['payment_method'], o['payment_status'],
-                o['status'], o['created_at']
-            ])
-
-        filename = f"pasalify_transactions_{datetime.now().strftime('%Y%m%d_%H%M')}.csv"
-        return Response(
-            output.getvalue(),
-            mimetype='text/csv',
-            headers={'Content-Disposition': f'attachment; filename={filename}'}
-        )
-
-    def promos(self):
-        promos = self._q('SELECT * FROM promo_codes ORDER BY created_at DESC')
-        return render_template('admin/promos.html', promos=promos)
+        return render_template('admin/system.html', logs=logs,
+                               db_size=db_size, table_counts=table_counts)
 
     def backup(self):
-        self._info('Backup triggered (stub).')
-        return redirect(url_for('admin.dashboard'))
+        self._log('manual_backup_triggered')
+        self._info('Backup initiated. In production, connect mysqldump here.')
+        return redirect(url_for('admin.system'))
 
-    def promo_add(self):
-        if request.method == 'POST':
-            code      = request.form.get('code', '').strip().upper()
-            discount  = request.form.get('discount_value', 0)
-            dtype     = request.form.get('discount_type', 'percent')
-            min_order = request.form.get('min_order', 0)
-            max_uses  = request.form.get('max_uses') or None
-            valid_from  = request.form.get('valid_from') or None
-            valid_until = request.form.get('valid_until') or None
-            if code:
-                self._run(
-                    """INSERT INTO promo_codes
-                       (code, discount_type, discount_value, min_order, max_uses, valid_from, valid_until, is_active)
-                       VALUES (%s,%s,%s,%s,%s,%s,%s,1)""",
-                    (code, dtype, discount, min_order, max_uses, valid_from, valid_until)
-                )
-                self._ok(f'Promo code {code} created.')
-        return redirect(url_for('admin.promos'))
+    # ── Categories ────────────────────────────────────────────────────────────
 
-    def promo_toggle(self, pid: int):
-        promo = self._q("SELECT * FROM promo_codes WHERE id=%s", (pid,), one=True)
-        if promo:
-            new_state = 0 if promo['is_active'] else 1
-            self._run("UPDATE promo_codes SET is_active=%s WHERE id=%s", (new_state, pid))
-            self._ok('Promo code updated.')
-        return redirect(url_for('admin.promos'))
+    def categories(self):
+        cats = self._q("SELECT * FROM categories ORDER BY name")
+        return render_template('admin/categories.html', cats=cats)
 
-    def content_control(self):
-        """US 5.2 - View flagged content and manage reviews/products."""
-        flags = self._q("""
-            SELECT cf.*, u.name AS flagged_by_name
-            FROM content_flags cf
-            LEFT JOIN users u ON u.id = cf.flagged_by
-            WHERE cf.status = 'pending'
-            ORDER BY cf.created_at DESC
+    def category_add(self):
+        name = request.form.get('name', '').strip()
+        slug = name.lower().replace(' ', '-')
+        icon = request.form.get('icon', 'tag')
+        CategoryModel.create({'name': name, 'slug': slug, 'icon': icon})
+        self._ok('Category added.')
+        return redirect(url_for('admin.categories'))
+
+
+    # ── Support Tickets ───────────────────────────────────────────────────────
+
+    def support_tickets(self):
+        tickets = self._q("""
+            SELECT sm.*, u.name AS customer_name, u.email AS customer_email
+            FROM support_messages sm
+            LEFT JOIN users u ON u.id = sm.user_id
+            WHERE sm.role = 'user'
+            ORDER BY sm.created_at DESC
         """)
+        # attach admin replies to each ticket
+        for t in tickets:
+            t['replies'] = self._q("""
+                SELECT sm.*, u.name AS sender_name
+                FROM support_messages sm
+                LEFT JOIN users u ON u.id = sm.user_id
+                WHERE sm.role = 'admin' AND sm.parent_id = %s
+                ORDER BY sm.created_at ASC
+            """, (t['id'],))
+        return render_template('admin/support.html', tickets=tickets)
 
-        pending_reviews = self._q("""
-            SELECT r.*, u.name AS reviewer_name, p.name AS product_name,
-                   s.name AS store_name
-            FROM reviews r
-            JOIN users u ON u.id = r.user_id
-            JOIN products p ON p.id = r.product_id
-            JOIN stores s ON s.id = p.store_id
-            WHERE r.is_approved = 0
-            ORDER BY r.created_at DESC
-        """)
+    def support_reply(self):
+        parent_id   = request.form.get('parent_id', type=int)
+        customer_id = request.form.get('customer_id', type=int)
+        message     = request.form.get('message', '').strip()
+        if not message or not parent_id:
+            self._err('Reply cannot be empty.')
+            return redirect(url_for('admin.support_tickets'))
+        self._run("""
+            INSERT INTO support_messages (user_id, role, message, parent_id)
+            VALUES (%s, 'admin', %s, %s)
+        """, (self._current_user_id(), message, parent_id))
+        if customer_id:
+            self._notify(customer_id, 'Support Reply',
+                         'Admin replied to your support message.', 'system')
+        self._ok('Reply sent.')
+        return redirect(url_for('admin.support_tickets'))
 
-        return render_template('admin/content_control.html',
-                               flags=flags,
-                               pending_reviews=pending_reviews)
 
-    def review_approve(self, rid: int):
-        self._run("UPDATE reviews SET is_approved=1 WHERE id=%s", (rid,))
-        self._ok('Review approved.')
-        return redirect(url_for('admin.content_control'))
-
-    def review_remove(self, rid: int):
-        self._run("DELETE FROM reviews WHERE id=%s", (rid,))
-        self._warn('Review removed.')
-        return redirect(url_for('admin.content_control'))
-
-    def flag_resolve(self, fid: int):
-        action = request.form.get('action', 'dismiss')
-        if action == 'dismiss':
-            self._run("UPDATE content_flags SET status='dismissed' WHERE id=%s", (fid,))
-            self._info('Flag dismissed.')
-        elif action == 'remove':
-            flag = self._q("SELECT * FROM content_flags WHERE id=%s", (fid,), one=True)
-            if flag:
-                if flag['entity_type'] == 'review':
-                    self._run("DELETE FROM reviews WHERE id=%s", (flag['entity_id'],))
-                elif flag['entity_type'] == 'product':
-                    self._run("UPDATE products SET is_active=0 WHERE id=%s", (flag['entity_id'],))
-                self._run("UPDATE content_flags SET status='reviewed' WHERE id=%s", (fid,))
-                self._warn('Content removed.')
-        return redirect(url_for('admin.content_control'))
-
-    def transactions(self):
-        """US 5.3 - Detailed transaction tracking."""
-        page     = int(request.args.get('page', 1))
-        per_page = 20
-        offset   = (page - 1) * per_page
-
-        status_filter = request.args.get('status', '')
-        method_filter = request.args.get('method', '')
-
-        sql  = """
-            SELECT p.*, o.order_number, u.name AS customer_name,
-                   o.status AS order_status
-            FROM payments p
-            JOIN orders o ON o.id = p.order_id
-            JOIN users  u ON u.id = p.user_id
-            WHERE 1=1
-        """
-        args = []
-        if status_filter:
-            sql += " AND p.status = %s"
-            args.append(status_filter)
-        if method_filter:
-            sql += " AND p.method = %s"
-            args.append(method_filter)
-
-        total_count = self._q(
-            f"SELECT COUNT(*) AS c FROM ({sql}) t", tuple(args), one=True
-        )['c']
-
-        sql += f" ORDER BY p.created_at DESC LIMIT {per_page} OFFSET {offset}"
-        payments = self._q(sql, tuple(args))
-
-        summary = self._q("""
-            SELECT
-                COALESCE(SUM(CASE WHEN status='success' THEN amount ELSE 0 END), 0) AS total_success,
-                COALESCE(SUM(CASE WHEN status='pending' THEN amount ELSE 0 END), 0) AS total_pending,
-                COALESCE(SUM(CASE WHEN status='refunded' THEN amount ELSE 0 END), 0) AS total_refunded,
-                COUNT(*) AS total_transactions
-            FROM payments
-        """, one=True)
-
-        return render_template('admin/transactions.html',
-                               payments=payments,
-                               summary=summary,
-                               page=page,
-                               total_pages=(total_count + per_page - 1) // per_page,
-                               status_filter=status_filter,
-                               method_filter=method_filter)
-
-    def commission_report(self):
-        """US 5.3 - Commission tracking per store."""
-        commissions = self._q("""
-            SELECT s.name AS store_name, u.name AS seller_name,
-                   COALESCE(SUM(c.seller_amount),0) AS total_seller,
-                   COALESCE(SUM(c.platform_amount),0) AS total_platform,
-                   COUNT(*) AS transaction_count
-            FROM commissions c
-            JOIN stores s ON s.id = c.store_id
-            JOIN users  u ON u.id = s.user_id
-            GROUP BY s.id
-            ORDER BY total_platform DESC
-        """)
-        return render_template('admin/commissions.html', commissions=commissions)
-
+# ── Singleton instance ────────────────────────────────────────────────────────
 admin_controller = AdminController()
+
+# Append before the singleton line - but we'll patch via str_replace

@@ -14,6 +14,7 @@ OOP Concept: ABSTRACTION & INHERITANCE (Base Model)
 from abc import ABC, abstractmethod
 from app.models.database import Database
 
+
 class BaseModel(ABC):
     """
     Abstract Base Class for all Pasalify models.
@@ -24,11 +25,15 @@ class BaseModel(ABC):
     - Child classes INHERIT all the helper methods below.
     """
 
+    # ── Abstract Property (child MUST define this) ────────────────────────────
+
     @property
     @abstractmethod
     def table(self) -> str:
         """Each child model must specify its database table name."""
         pass
+
+    # ── Shared Methods (inherited by all child models) ────────────────────────
 
     @classmethod
     def _get_table(cls) -> str:
@@ -38,7 +43,9 @@ class BaseModel(ABC):
         Child classes expose `table` as a plain class-level string,
         so this helper just reads it from the class.
         """
-        return cls.TABLE
+        return cls.TABLE  # child classes define TABLE = 'tablename'
+
+    # ── CRUD Helpers ──────────────────────────────────────────────────────────
 
     @classmethod
     def find_by_id(cls, record_id: int) -> dict | None:
@@ -117,6 +124,8 @@ class BaseModel(ABC):
         sql = f"SELECT COUNT(*) AS c FROM {cls.TABLE} WHERE {condition}"
         row = Database.query(sql, args, one=True)
         return row['c'] if row else 0
+
+    # ── Representation ────────────────────────────────────────────────────────
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} table='{self.TABLE}'>"
