@@ -8,7 +8,7 @@ class Config:
     MYSQL_HOST         = os.environ.get('MYSQL_HOST', 'localhost')
     MYSQL_USER         = os.environ.get('MYSQL_USER', 'root')
     MYSQL_PASSWORD     = os.environ.get('MYSQL_PASSWORD', 'aashuNEXTdoor2007_')
-    MYSQL_DB           = os.environ.get('MYSQL_DB', 'sprint3')
+    MYSQL_DB           = os.environ.get('MYSQL_DB', 'sp4')
     MYSQL_PORT         = int(os.environ.get('MYSQL_PORT', 3306))
     UPLOAD_FOLDER      = os.path.join(BASE, 'static', 'uploads')
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024
