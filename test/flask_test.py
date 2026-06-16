@@ -1,14 +1,12 @@
 import unittest
 from flask import Flask, Blueprint
+from app.auth import login_required
 
 class TestFlaskBasics(unittest.TestCase):
     def setUp(self):
-        # Initialize the app instance
         self.app = Flask(__name__)
         self.app.secret_key = "secret_keyy"
-        self.app.config['TESTING'] = True
-        
-        # Define the blueprint
+
         auth = Blueprint("auth", __name__)
 
         @auth.route("/login")
@@ -16,22 +14,37 @@ class TestFlaskBasics(unittest.TestCase):
             return "this is the login page"
 
         @auth.route("/home")
+        @login_required
         def home():
             return "welcome home"
 
-        # Register blueprint and create test client
         self.app.register_blueprint(auth)
         self.client = self.app.test_client()
 
-    def test_login_route(self):
-        response = self.client.get("/login")
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data.decode("utf-8"), "this is the login page")
-
-    def test_home_route(self):
+    def test_locked_page_redirects_a_guest(self):
+        """A NOT-logged-in user to /home redirects to /login."""
         response = self.client.get("/home")
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/login", response.location)
+
+    def test_login_page_is_public(self):
+        """Anyone can open the login page."""
+        response = self.client.get("/login")
+
         self.assertEqual(response.status_code, 200)
-        self.assertIn("welcome home", response.data.decode("utf-8"))
+        self.assertIn("login page", response.data.decode())
+
+    def test_locked_page_opens_for_logged_in_user(self):
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess["user_id"] = 1
+
+            response = c.get("/home")
+
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.data.decode("utf-8"), "welcome home")
+
 
 if __name__ == "__main__":
     unittest.main()
