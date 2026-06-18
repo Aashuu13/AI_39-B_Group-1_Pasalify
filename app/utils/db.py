@@ -64,8 +64,8 @@ def init_db():
                     try:
                         cur.execute(s)
                     except pymysql.err.OperationalError as e:
-                        # 1060 = Duplicate column name (ALTER TABLE ADD COLUMN already applied)
-                        # 1005 = Can't create table (CREATE TABLE IF NOT EXISTS handles most,
+                        
+                        
                         #        but ALTER TABLE MODIFY COLUMN on existing schema may fail)
                         if e.args[0] in (1060, 1061, 1062):
                             pass  # already applied — safe to skip
