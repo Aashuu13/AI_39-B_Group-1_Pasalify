@@ -245,22 +245,21 @@ INSERT IGNORE INTO users (name,email,phone,password_hash,role,is_active) VALUES
 ('Pasalify Admin','admin@pasalify.com','9800000000',
  '3ac179c671a66c06af031954e0ed311f35e567477c6cd8b1bdabd09796d267d1:f913dd1eaabbb9cc573a44502cdf9ac90254b8d47a0db0a64082a823da3fa2f7','admin',1);
 
--- Demo customer account (password: customer123)
 INSERT IGNORE INTO users (name,email,phone,password_hash,role,is_active) VALUES
 ('Demo Customer','customer@pasalify.com','9811111111',
  'aabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccdd:4fb3cbbc86b04c8c3cdd5a2f566f10a7e041ccf0105ea90813ee519c68def446','customer',1);
 
--- Demo seller account (password: seller123)
+
 INSERT IGNORE INTO users (name,email,phone,password_hash,role,is_active) VALUES
 ('Demo Seller','seller@pasalify.com','9822222222',
  '1122334455667788112233445566778811223344556677881122334455667788:2a5c34aa29be7f7a5b73b9a76556485e139a4776b1d763ab524f72143f0cd87b','seller',1);
 
--- Demo store for demo seller (resolves seller's actual user_id dynamically)
+
 INSERT IGNORE INTO stores (user_id,name,slug,description,is_approved,is_active)
 SELECT id,'Demo Store','demo-store','A demo store for testing.',1,1
 FROM users WHERE email='seller@pasalify.com' LIMIT 1;
 
--- Add store customization columns (MySQL 5.7+ compatible — ignore error if already exists)
+
 ALTER TABLE stores ADD COLUMN primary_color VARCHAR(20) DEFAULT '#6C3FC8';
 ALTER TABLE stores ADD COLUMN banner_text VARCHAR(255);
 
