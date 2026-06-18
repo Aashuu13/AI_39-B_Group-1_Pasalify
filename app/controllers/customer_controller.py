@@ -375,7 +375,6 @@ class CustomerController(BaseController):
             (oid, uid, final_total, method, pay_status),
         )
 
-        # Notify customer
         self._notify(uid, 'Order Placed!',
                      f'Your order {order_no} has been placed successfully.',
                      'order', f'/customer/order/{oid}')
@@ -383,7 +382,6 @@ class CustomerController(BaseController):
         self._ok(f'Order {order_no} placed successfully!')
         return redirect(url_for('customer.order_detail', oid=oid))
 
-    # ── US 3.2  Track Orders ──────────────────────────────────────────────────
 
     def orders(self):
         ords = self._q(
@@ -409,7 +407,7 @@ class CustomerController(BaseController):
             WHERE  oi.order_id = %s
         """, (oid,))
 
-        # Status timeline for tracking
+       
         status_steps = ['placed', 'confirmed', 'processing', 'shipped', 'out_for_delivery', 'delivered']
         current_step = order['status'] if order['status'] in status_steps else 'placed'
 
@@ -433,7 +431,7 @@ class CustomerController(BaseController):
             return redirect(url_for('customer.order_detail', oid=oid))
 
         self._run("UPDATE orders SET status='cancelled' WHERE id=%s", (oid,))
-        # Restore stock
+        
         items = self._q("SELECT * FROM order_items WHERE order_id=%s", (oid,))
         for item in items:
             self._run(
@@ -443,12 +441,12 @@ class CustomerController(BaseController):
         self._ok('Order cancelled.')
         return redirect(url_for('customer.order_detail', oid=oid))
 
-    # ── Support ───────────────────────────────────────────────────────────────
+    
 
     def support(self):
         return render_template('customer/support.html')
 
-    # ── US 1.5  Edit Profile ──────────────────────────────────────────────────
+
 
     def profile(self):
         user = self._q("SELECT * FROM users WHERE id = %s",
@@ -471,7 +469,7 @@ class CustomerController(BaseController):
             return redirect(url_for('customer.profile'))
         return render_template('customer/profile.html', user=user)
 
-    # ── Notifications ─────────────────────────────────────────────────────────
+ 
 
     def notifications(self):
         notifs = self._q(
