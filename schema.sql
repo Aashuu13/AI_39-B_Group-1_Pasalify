@@ -264,7 +264,7 @@ ALTER TABLE stores ADD COLUMN primary_color VARCHAR(20) DEFAULT '#6C3FC8';
 ALTER TABLE stores ADD COLUMN banner_text VARCHAR(255);
 
 
--- US 5.2 Content Control: admin can flag/remove reviews & products
+
 CREATE TABLE IF NOT EXISTS content_flags (
     id INT AUTO_INCREMENT PRIMARY KEY,
     entity_type ENUM('review','product','user') NOT NULL,
@@ -276,7 +276,7 @@ CREATE TABLE IF NOT EXISTS content_flags (
     FOREIGN KEY (flagged_by) REFERENCES users(id) ON DELETE SET NULL
 );
 
--- US 3.5 Track which promo was used per order (already in orders.promo_code_id)
+
 -- Add applied_promo tracking column to orders if not exists
 ALTER TABLE orders ADD COLUMN promo_code VARCHAR(50) DEFAULT NULL;
 
