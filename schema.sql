@@ -263,20 +263,6 @@ FROM users WHERE email='seller@pasalify.com' LIMIT 1;
 ALTER TABLE stores ADD COLUMN primary_color VARCHAR(20) DEFAULT '#6C3FC8';
 ALTER TABLE stores ADD COLUMN banner_text VARCHAR(255);
 
--- ═══════════════════════════════════════════════════════════════════
--- Sprint 3 Schema additions
--- US 1.4 Change Password (uses existing users table - already done in auth)
--- US 1.5 Edit Profile   (users table already supports this)
--- US 2.4 Wishlist       (wishlists already exists — renamed from wishlist)
--- US 2.5 Product Reviews (reviews already exists)
--- US 2.6 Seller Chat    (chats + chat_messages already exists)
--- US 3.2 Track Orders   (orders table already supports status tracking)
--- US 3.5 Apply Promo Code (promo_codes already exists, adding apply support)
--- US 4.5 Manage Inventory (products table already supports stock)
--- US 4.6 Manage Orders  (orders + order_items already exist)
--- US 5.2 Content Control (new: content_flags table)
--- US 5.3 Track Transactions (payments + commissions already exist)
--- ═══════════════════════════════════════════════════════════════════
 
 -- US 5.2 Content Control: admin can flag/remove reviews & products
 CREATE TABLE IF NOT EXISTS content_flags (
