@@ -66,9 +66,9 @@ def init_db():
                     except pymysql.err.OperationalError as e:
                         
                         
-                        #        but ALTER TABLE MODIFY COLUMN on existing schema may fail)
+                        
                         if e.args[0] in (1060, 1061, 1062):
-                            pass  # already applied — safe to skip
+                            pass  
                         else:
                             raise
         conn.commit()
