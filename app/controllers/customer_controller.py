@@ -82,7 +82,7 @@ class CustomerController(BaseController):
             q=q, cat_slug=cat_slug, sort=sort,
         )
 
-    # ── US 2.2  View Product ──────────────────────────────────────────────────
+   
 
     def product_detail(self, pid: int):
         p = ProductModel.get_with_images(pid)
@@ -105,7 +105,6 @@ class CustomerController(BaseController):
             LIMIT  4
         """, (p['category_id'], pid))
 
-        # US 2.5 Product Reviews
         reviews = self._q("""
             SELECT r.*, u.name AS reviewer_name
             FROM   reviews r
@@ -114,7 +113,7 @@ class CustomerController(BaseController):
             ORDER  BY r.created_at DESC
         """, (pid,))
 
-        # Check if current user already reviewed
+        
         user_reviewed = False
         if self._is_logged_in():
             existing = self._q(
@@ -129,7 +128,6 @@ class CustomerController(BaseController):
             reviews=reviews, user_reviewed=user_reviewed,
         )
 
-    # ── US 4.1  Browse Stores ─────────────────────────────────────────────────
 
     def stores(self):
         stores = self._q("""
@@ -165,7 +163,7 @@ class CustomerController(BaseController):
 
         return render_template('customer/store_detail.html', store=store, products=products)
 
-    # ── US 2.4  Wishlist ──────────────────────────────────────────────────────
+    
 
     def wishlist(self):
         items = self._q("""
@@ -196,7 +194,6 @@ class CustomerController(BaseController):
             self._ok('Added to wishlist!')
         return redirect(request.referrer or url_for('customer.wishlist'))
 
-    # ── US 2.3  Manage Cart ───────────────────────────────────────────────────
 
     def cart(self):
         items = self._get_cart_items()
@@ -261,7 +258,6 @@ class CustomerController(BaseController):
         self._info('Item removed.')
         return redirect(url_for('customer.cart'))
 
-    # ── US 3.5 Apply Promo Code ───────────────────────────────────────────────
 
     def apply_promo(self):
         """AJAX endpoint: validate promo code and return discount info."""
@@ -301,7 +297,6 @@ class CustomerController(BaseController):
             'message':     f"Promo applied! You save Rs {discount:.2f}",
         })
 
-    # ── US 3.1 / 3.3  Checkout & Payment ─────────────────────────────────────
 
     def checkout(self):
         items = self._get_cart_items()
@@ -329,7 +324,6 @@ class CustomerController(BaseController):
         discount   = float(request.form.get('discount_amount', 0))
         final_total = subtotal - discount
 
-        # Mark promo as used
         if promo_id:
             self._run(
                 "UPDATE promo_codes SET used_count = used_count + 1 WHERE id = %s",
