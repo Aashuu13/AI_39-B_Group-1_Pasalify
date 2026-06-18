@@ -480,7 +480,7 @@ class CustomerController(BaseController):
                   (self._current_user_id(),))
         return render_template('customer/notifications.html', notifications=notifs)
 
-    # ── Payment History ───────────────────────────────────────────────────────
+
 
     def payment_history(self):
         payments = self._q("""
@@ -490,7 +490,6 @@ class CustomerController(BaseController):
         """, (self._current_user_id(),))
         return render_template('customer/payment_history.html', payments=payments)
 
-    # ── US 2.5  Product Reviews ───────────────────────────────────────────────
 
     def submit_review(self, pid: int):
         rating = int(request.form.get('rating', 5))
@@ -516,14 +515,13 @@ class CustomerController(BaseController):
             self._err('Could not submit review.')
         return redirect(url_for('customer.product_detail', pid=pid))
 
-    # ── US 2.6  Seller Chat ───────────────────────────────────────────────────
 
     def start_chat(self, seller_id: int):
         """Start or resume a chat with a seller."""
         uid    = self._current_user_id()
         pid    = request.args.get('product_id')
         
-        # Find existing chat or create new one
+       
         existing = self._q(
             "SELECT id FROM chats WHERE customer_id=%s AND seller_id=%s",
             (uid, seller_id), one=True
@@ -570,7 +568,6 @@ class CustomerController(BaseController):
             (chat_id,)
         )
 
-        # Mark messages as read
         self._run(
             "UPDATE chat_messages SET is_read=1 WHERE chat_id=%s AND sender_id != %s",
             (chat_id, uid)
@@ -587,11 +584,10 @@ class CustomerController(BaseController):
 
         return render_template('customer/chat_detail.html', chat=chat, messages=messages)
 
-    # ── Store page alias ──────────────────────────────────────────────────────
+   
 
     def store_page(self, slug: str):
         return self.store_detail(slug)
 
 
-# ── Singleton ─────────────────────────────────────────────────────────────────
 customer_controller = CustomerController()
