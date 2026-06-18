@@ -277,13 +277,11 @@ CREATE TABLE IF NOT EXISTS content_flags (
 );
 
 
--- Add applied_promo tracking column to orders if not exists
 ALTER TABLE orders ADD COLUMN promo_code VARCHAR(50) DEFAULT NULL;
 
--- Add avatar support to users (Sprint 3 - US 1.5 Edit Profile)
+
 ALTER TABLE orders MODIFY COLUMN status 
     ENUM('placed','confirmed','processing','shipped','out_for_delivery','delivered','cancelled') 
     DEFAULT 'placed';
 
--- Ensure wishlists uses standard name (sprint2 used 'wishlist' in queries; fix alias)
--- (No structural change needed — table is 'wishlists')
+
