@@ -1,12 +1,23 @@
 """
-==============================================================
-OOP Concept: INHERITANCE & ENCAPSULATION (Cart Model)
-==============================================================
-- Inheritance: CartModel extends BaseModel.
-- Encapsulation: add_item handles both INSERT and UPDATE
-  (upsert) so callers don't need to know whether the item
-  already exists in the cart.
-==============================================================
+app/models/cart_model.py
+================================================================
+OOP concepts on display: INHERITANCE + ENCAPSULATION
+
+    - Inheritance:   CartModel extends BaseModel.
+    - Encapsulation: add_item() hides the "insert vs. update"
+      (upsert) decision — callers don't need to check whether the
+      product is already in the cart before calling it.
+
+Represents a `cart` table — one row per (user, product) pair.
+
+NOTE: schema.sql actually names this table `cart_items`, and the
+live CustomerController writes its own raw SQL against
+`cart_items` directly rather than calling through this model
+(see CustomerController._cart_items / cart_add / cart_update /
+cart_remove in app/controllers/customer_controller.py). That
+means this class currently isn't used by any route — it's kept
+here, untouched, as it was found, since fixing app behaviour
+wasn't part of this comment-cleanup pass.
 """
 
 from app.models.basemodel import BaseModel
@@ -24,11 +35,11 @@ class CartModel(BaseModel):
     def table(self) -> str:
         return self.TABLE
 
-    # ── Cart Operations ───────────────────────────────────────────────────────
+    # ── Cart operations ───────────────────────────────────────────────────
 
     @classmethod
     def get_cart(cls, user_id: int) -> list[dict]:
-        """Return full cart for a user, joined with product details."""
+        """Return a user's full cart, joined with product/store details."""
         return Database.query("""
             SELECT c.*, p.name, p.price, p.stock_qty,
                    pi.image_path, s.name AS store_name, s.id AS store_id
@@ -42,8 +53,9 @@ class CartModel(BaseModel):
     @classmethod
     def add_item(cls, user_id: int, product_id: int, qty: int = 1) -> None:
         """
-        Add a product to the cart or increment its quantity.
-        Encapsulation: upsert logic is hidden from the controller.
+        Add a product to the cart, or increment its quantity if it's
+        already there. Encapsulation: this "upsert" decision is made
+        right here, so callers just call add_item() either way.
         """
         existing = cls.find_where(
             "user_id = %s AND product_id = %s", (user_id, product_id), one=True
@@ -58,7 +70,7 @@ class CartModel(BaseModel):
 
     @classmethod
     def update_qty(cls, user_id: int, product_id: int, qty: int) -> None:
-        """Set an exact quantity for a cart item."""
+        """Overwrite a cart row's quantity with an exact value."""
         Database.execute(
             "UPDATE cart SET quantity = %s WHERE user_id = %s AND product_id = %s",
             (qty, user_id, product_id)
@@ -66,7 +78,7 @@ class CartModel(BaseModel):
 
     @classmethod
     def remove_item(cls, user_id: int, product_id: int) -> None:
-        """Remove a single item from the cart."""
+        """Remove one product from a user's cart."""
         Database.execute(
             "DELETE FROM cart WHERE user_id = %s AND product_id = %s",
             (user_id, product_id)
@@ -74,12 +86,12 @@ class CartModel(BaseModel):
 
     @classmethod
     def clear(cls, user_id: int) -> None:
-        """Empty the entire cart for a user (called after checkout)."""
+        """Empty a user's entire cart (e.g. right after checkout)."""
         Database.execute("DELETE FROM cart WHERE user_id = %s", (user_id,))
 
     @classmethod
     def item_count(cls, user_id: int) -> int:
-        """Total number of distinct items in the cart."""
+        """Number of distinct product rows currently in the cart."""
         row = Database.query(
             "SELECT COUNT(*) AS c FROM cart WHERE user_id = %s", (user_id,), one=True
         )

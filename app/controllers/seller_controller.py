@@ -1,15 +1,22 @@
 """
-==============================================================
-OOP Concept: INHERITANCE & ENCAPSULATION (Seller Controller)
-==============================================================
-- Inheritance: SellerController extends BaseController and
-  gets _save_file, _ok/_err, _q/_run, _log, _notify for free.
-- Encapsulation: _get_store() hides the store lookup;
-  _require_store() encapsulates the redirect guard so every
-  seller action is protected with one line.
-- Polymorphism: product_add / product_edit share the same
-  _parse_product_form() helper — different outcomes, same input.
-==============================================================
+app/controllers/seller_controller.py
+================================================================
+OOP concepts on display: INHERITANCE + ENCAPSULATION + POLYMORPHISM
+
+    - Inheritance:   SellerController extends BaseController and
+      gets _save_file, _ok/_err, _q/_run, _log, _notify for free.
+    - Encapsulation: _get_store() hides the store lookup, and
+      _require_store() hides the "redirect to setup if no store
+      yet" guard, so every seller-only action is protected with
+      just one line instead of repeating the same check everywhere.
+    - Polymorphism:  product_add() and product_edit() both lean on
+      the same _parse_product_form() helper and produce a similar
+      shape of result, even though one inserts a new row and the
+      other updates an existing one.
+
+Handles all seller-facing pages: store setup, dashboard, store
+profile/customization, products, categories, inventory, orders,
+reviews, chat, and support tickets.
 """
 
 import uuid
@@ -29,22 +36,29 @@ class SellerController(BaseController):
     setup, dashboard, store profile, products, inventory,
     orders, reviews, chat.
 
-    Inherits from BaseController:
+    Inherited from BaseController:
         _save_file, _ok/_err/_warn/_info, _q/_run, _log, _notify,
         _current_user_id, _is_logged_in
     """
 
-    # ── Private Helpers (Encapsulation) ───────────────────────────────────────
+    # ── Private helpers (Encapsulation) ─────────────────────────────────────
 
     def _get_store(self) -> dict | None:
-        """Return the current seller's store row, or None."""
+        """Return the current seller's store row, or None if they
+        haven't created one yet."""
         return StoreModel.find_by_user(self._current_user_id())
 
     def _require_store(self):
         """
-        Return the store, or redirect to setup if it doesn't exist.
-        Encapsulation: every seller action calls this one method
-        instead of repeating the guard logic.
+        Look up the seller's store; if it doesn't exist yet, return a
+        redirect to the setup wizard instead. Every method below that
+        needs a store calls this exact same line:
+
+            store, redir = self._require_store()
+            if redir:
+                return redir
+
+        so the "no store yet" guard is written once, not in every method.
         """
         store = self._get_store()
         if not store:
@@ -53,8 +67,10 @@ class SellerController(BaseController):
 
     def _parse_product_form(self) -> dict:
         """
-        Extract and coerce product fields from the POST form.
-        Encapsulation: type casting and defaults live here.
+        Pull the product fields out of request.form and coerce them
+        to the right types (float price, int stock, etc.) with sane
+        defaults. Both product_add() and product_edit() call this so
+        the type-casting rules only live in one place.
         """
         return {
             'name':                request.form.get('name', ''),
@@ -68,7 +84,10 @@ class SellerController(BaseController):
         }
 
     def _save_product_images(self, product_id: int, files, first_is_primary: bool = True):
-        """Upload and persist product images."""
+        """Save every uploaded image file and insert a product_images
+        row for each one. The first image becomes the "primary" (cover)
+        image unless first_is_primary is explicitly turned off — used
+        when editing a product that already has a primary image set."""
         for i, f in enumerate(files):
             path = self._save_file(f, 'products')
             if path:
@@ -77,10 +96,11 @@ class SellerController(BaseController):
                     (product_id, path, 1 if (i == 0 and first_is_primary) else 0)
                 )
 
-    # ── Setup ─────────────────────────────────────────────────────────────────
+    # ── Setup ───────────────────────────────────────────────────────────────
 
     def setup(self):
-        """Create a new store for the logged-in seller."""
+        """One-time wizard: create the store for a brand-new seller.
+        Sellers who already have a store skip straight to the dashboard."""
         if self._get_store():
             return redirect(url_for('seller.dashboard'))
 
@@ -106,10 +126,12 @@ class SellerController(BaseController):
 
         return render_template('seller/setup.html')
 
-    # ── Dashboard ─────────────────────────────────────────────────────────────
+    # ── Dashboard ───────────────────────────────────────────────────────────
 
     def dashboard(self):
-        """Seller dashboard with key metrics."""
+        """Seller's home page: revenue/order/product totals, low-stock
+        warnings, recent orders, a 6-month revenue trend, and a top-5
+        best-selling products list."""
         store, redir = self._require_store()
         if redir:
             return redir
@@ -133,14 +155,16 @@ class SellerController(BaseController):
                                monthly=monthly,
                                top_products=top_products)
 
-    # ── Store Profile & Customization ─────────────────────────────────────────
+    # ── Store profile & customization ───────────────────────────────────────
 
     def store_profile(self):
+        """Edit basic store info (name, description, logo, banner)."""
         store, redir = self._require_store()
         if redir:
             return redir
 
         if request.method == 'POST':
+            # Keep the old logo/banner if no new file was chosen
             logo   = self._save_file(request.files.get('logo'), 'logos')   or store['logo']
             banner = self._save_file(request.files.get('banner'), 'banners') or store['banner']
             StoreModel.update(store['id'], {
@@ -156,6 +180,7 @@ class SellerController(BaseController):
         return render_template('seller/store_profile.html', store=store)
 
     def store_customize(self):
+        """Edit the storefront's look and feel: theme color and layout."""
         store, redir = self._require_store()
         if redir:
             return redir
@@ -170,9 +195,10 @@ class SellerController(BaseController):
 
         return render_template('seller/store_customize.html', store=store)
 
-    # ── Products ──────────────────────────────────────────────────────────────
+    # ── Products ────────────────────────────────────────────────────────────
 
     def products(self):
+        """List every product this seller's store has (active or not)."""
         store, redir = self._require_store()
         if redir:
             return redir
@@ -187,6 +213,11 @@ class SellerController(BaseController):
         return render_template('seller/products.html', products=prods, store=store)
 
     def product_add(self):
+        """
+        GET  -> show the empty product form.
+        POST -> create the product, save any uploaded images, and
+                go back to the product list.
+        """
         store, redir = self._require_store()
         if redir:
             return redir
@@ -218,6 +249,12 @@ class SellerController(BaseController):
                                cats=cats, product=None)
 
     def product_edit(self, pid: int):
+        """
+        GET  -> show the form pre-filled with the existing product's
+                data and any images already uploaded.
+        POST -> save the changes and add any newly uploaded images
+                (without overwriting the existing primary image).
+        """
         store, redir = self._require_store()
         if redir:
             return redir
@@ -253,6 +290,8 @@ class SellerController(BaseController):
                                cats=cats, product=prod, images=images)
 
     def product_delete(self, pid: int):
+        """Soft-delete: marks the product inactive instead of removing
+        the row, so past orders that reference it still display fine."""
         store, redir = self._require_store()
         if redir:
             return redir
@@ -260,15 +299,19 @@ class SellerController(BaseController):
         self._info('Product removed.')
         return redirect(url_for('seller.products'))
 
-    # ── Categories ────────────────────────────────────────────────────────────
+    # ── Categories ──────────────────────────────────────────────────────────
 
     def categories(self):
+        """Read-only category browser for sellers (categories are
+        managed by admins, see admin_controller.categories)."""
         cats = CategoryModel.find_all()
         return render_template('seller/categories.html', cats=cats)
 
-    # ── Inventory ─────────────────────────────────────────────────────────────
+    # ── Inventory ───────────────────────────────────────────────────────────
 
     def inventory(self):
+        """Stock-focused product list, sorted lowest-stock-first so
+        items that need restocking show up at the top."""
         store, redir = self._require_store()
         if redir:
             return redir
@@ -278,6 +321,8 @@ class SellerController(BaseController):
         return render_template('seller/inventory.html', products=prods, store=store)
 
     def inventory_update(self, pid: int):
+        """Manually set a product's stock count (e.g. after a physical
+        recount). Never allows a negative quantity."""
         store, redir = self._require_store()
         if redir:
             return redir
@@ -289,9 +334,11 @@ class SellerController(BaseController):
         self._ok('Stock updated!')
         return redirect(url_for('seller.inventory'))
 
-    # ── Orders ────────────────────────────────────────────────────────────────
+    # ── Orders ──────────────────────────────────────────────────────────────
 
     def orders(self):
+        """All orders that include at least one item from this store,
+        with the items concatenated into one readable string per row."""
         store, redir = self._require_store()
         if redir:
             return redir
@@ -304,6 +351,8 @@ class SellerController(BaseController):
         return render_template('seller/orders.html', orders=ords, store=store)
 
     def order_update(self, oid: int):
+        """Move an order to its next status (confirmed -> processing ->
+        shipped -> delivered, or cancelled) and notify the buyer."""
         status = request.form.get('status')
         valid  = ('confirmed', 'processing', 'shipped', 'delivered', 'cancelled')
         if status in valid:
@@ -318,9 +367,10 @@ class SellerController(BaseController):
             self._ok('Order status updated.')
         return redirect(url_for('seller.orders'))
 
-    # ── Reviews ───────────────────────────────────────────────────────────────
+    # ── Reviews ─────────────────────────────────────────────────────────────
 
     def reviews(self):
+        """Every review left on any product from this store."""
         store, redir = self._require_store()
         if redir:
             return redir
@@ -333,9 +383,11 @@ class SellerController(BaseController):
         """, (store['id'],))
         return render_template('seller/reviews.html', reviews=revs, store=store)
 
-    # ── Chat ──────────────────────────────────────────────────────────────────
+    # ── Chat (seller side of customer<->seller messaging) ──────────────────
 
     def chats(self):
+        """List of this seller's conversations with customers, each with
+        a message preview and unread count."""
         store, redir = self._require_store()
         if redir:
             return redir
@@ -351,6 +403,11 @@ class SellerController(BaseController):
         return render_template('seller/chats.html', convs=convs, store=store)
 
     def chat_detail(self, cid: int):
+        """
+        GET  -> show the full thread with one customer and mark their
+                messages as read.
+        POST -> send a new message into the conversation.
+        """
         chat = self._q(
             "SELECT * FROM chats WHERE id = %s AND seller_id = %s",
             (cid, self._current_user_id()), one=True
@@ -383,15 +440,25 @@ class SellerController(BaseController):
         return render_template('seller/chat_detail.html', chat=chat,
                                msgs=msgs, customer=customer, store=store)
 
-
-    # ── Support Tickets ───────────────────────────────────────────────────────
+    # ── Support tickets (customers asking the chatbot, escalated here) ─────
 
     def support_tickets(self):
+        """
+        Build one "ticket" per customer who has both (a) messaged the
+        support chatbot, and (b) ordered something from this store —
+        sellers should only see support threads relevant to their own
+        buyers, not the whole platform's support inbox (that's the
+        admin view in admin_controller.support_tickets).
+
+        Encapsulation: the grouping-by-customer logic lives entirely
+        here; the template just loops over the finished `tickets` list.
+        """
         store, redir = self._require_store()
         if redir:
             return redir
-        tickets = self._q("""
-            SELECT sm.*, u.name AS customer_name, u.email AS customer_email
+        users = self._q("""
+            SELECT DISTINCT sm.user_id, u.name AS customer_name, u.email AS customer_email,
+                   MAX(sm.created_at) AS last_message
             FROM support_messages sm
             LEFT JOIN users u ON u.id = sm.user_id
             WHERE sm.role = 'user'
@@ -401,12 +468,32 @@ class SellerController(BaseController):
                 JOIN products p ON p.id = oi.product_id
                 WHERE o.user_id = sm.user_id AND p.store_id = %s
             )
-            ORDER BY sm.created_at DESC
+            GROUP BY sm.user_id, u.name, u.email
+            ORDER BY last_message DESC
         """, (store['id'],))
+        tickets = []
+        for user in users:
+            messages = self._q("""
+                SELECT * FROM support_messages
+                WHERE user_id = %s
+                ORDER BY created_at ASC
+            """, (user['user_id'],))
+            tickets.append({
+                'user_id':        user['user_id'],
+                'customer_name':  user['customer_name'],
+                'customer_email': user['customer_email'],
+                'last_message':   user['last_message'],
+                'messages':       messages,
+            })
         return render_template('seller/support.html', tickets=tickets, store=store)
 
     def support_reply(self):
-        """Start or continue a chat with the customer from a support ticket."""
+        """
+        Reply to a customer's support thread from the seller side.
+        Finds (or starts) a direct chat with that customer and drops
+        the reply in there, so the conversation continues in the
+        regular chat UI rather than a separate "support" inbox.
+        """
         store, redir = self._require_store()
         if redir:
             return redir
@@ -415,7 +502,6 @@ class SellerController(BaseController):
         if not message or not customer_id:
             self._err('Reply cannot be empty.')
             return redirect(url_for('seller.support_tickets'))
-        # Find or create a chat between this seller and the customer
         chat = self._q(
             "SELECT * FROM chats WHERE customer_id = %s AND seller_id = %s",
             (customer_id, self._current_user_id()), one=True
@@ -434,5 +520,5 @@ class SellerController(BaseController):
         return redirect(url_for('seller.chat_detail', cid=cid))
 
 
-# ── Singleton instance ────────────────────────────────────────────────────────
+# ── Singleton instance imported by app/controllers/__init__.py and routes ──
 seller_controller = SellerController()

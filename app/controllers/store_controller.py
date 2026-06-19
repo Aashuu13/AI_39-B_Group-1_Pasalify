@@ -1,11 +1,16 @@
 """
-==============================================================
-OOP Concept: INHERITANCE & ENCAPSULATION (Store Controller)
-==============================================================
-- Inheritance: StoreController extends BaseController.
-- Encapsulation: _get_or_create_chat() hides the chat upsert
-  logic so the route never writes raw SQL.
-==============================================================
+app/controllers/store_controller.py
+================================================================
+OOP concepts on display: INHERITANCE + ENCAPSULATION
+
+    - Inheritance:   StoreController extends BaseController.
+    - Encapsulation: _get_or_create_chat() hides the "look it up,
+      otherwise insert it" logic so start_chat() never writes raw
+      SQL itself — it just asks for a chat id.
+
+Handles public store storefronts (browsing one seller's catalogue
+without being logged in) and the chat flow that starts from a
+store page.
 """
 
 from flask import render_template, request, redirect, url_for, session, flash
@@ -19,18 +24,19 @@ class StoreController(BaseController):
     Handles public store pages and customer-seller chat
     initiated from the store page.
 
-    Inherits from BaseController:
+    Inherited from BaseController:
         _ok/_err/_warn/_info, _q/_run, _log, _notify,
         _current_user_id, _is_logged_in
     """
 
-    # ── Private Helpers (Encapsulation) ───────────────────────────────────────
+    # ── Private helpers (Encapsulation) ─────────────────────────────────────
 
     def _get_or_create_chat(self, customer_id: int, seller_id: int,
                             product_id: int | None = None) -> int:
         """
-        Return existing chat id, or create and return a new one.
-        Encapsulation: callers get a chat id; they never write SQL.
+        Return the id of an existing chat between this customer and
+        seller, or create a new one and return its id. Callers always
+        just get an int back — they never see the SELECT/INSERT logic.
         """
         existing = self._q(
             "SELECT id FROM chats WHERE customer_id = %s AND seller_id = %s",
@@ -43,9 +49,14 @@ class StoreController(BaseController):
             (customer_id, seller_id, product_id)
         )
 
-    # ── Public Store Page ─────────────────────────────────────────────────────
+    # ── Public store page ────────────────────────────────────────────────
 
     def public_store(self, slug: str):
+        """
+        Storefront for one seller, reached via /store/<slug>. Supports
+        the same search/category/sort filters as the main product
+        catalogue, but scoped to just this store's products.
+        """
         store = self._q(
             "SELECT * FROM stores WHERE slug = %s AND is_approved = 1 AND is_active = 1",
             (slug,), one=True
@@ -58,6 +69,8 @@ class StoreController(BaseController):
         cat  = request.args.get('cat', '')
         sort = request.args.get('sort', 'newest')
 
+        # Built dynamically because the WHERE clause grows depending on
+        # which filters the visitor actually used.
         sql  = """
             SELECT p.*, pi.image_path, c.name AS cat_name
             FROM products p
@@ -97,11 +110,15 @@ class StoreController(BaseController):
                                reviews_avg=reviews_avg)
 
     def store_product(self, slug: str, pid: int):
+        """A store-scoped product URL just forwards to the main product
+        detail page — kept simple rather than duplicating that view."""
         return redirect(url_for('customer.product_detail', pid=pid))
 
-    # ── Chat ─────────────────────────────────────────────────────────────────
+    # ── Chat (started from a public store page, before login is required) ─
 
     def start_chat(self, seller_id: int):
+        """Begin a chat with a seller from their storefront. Guests are
+        sent to log in first since a chat needs a real user_id."""
         if not self._is_logged_in():
             self._warn('Login to chat with seller.')
             return redirect(url_for('auth.login'))
@@ -114,6 +131,11 @@ class StoreController(BaseController):
         return redirect(url_for('store.chat_view', cid=cid))
 
     def chat_view(self, cid: int):
+        """
+        GET  -> show the conversation and mark the seller's messages
+                as read.
+        POST -> send a new message into the conversation.
+        """
         if not self._is_logged_in():
             return redirect(url_for('auth.login'))
 
@@ -152,5 +174,5 @@ class StoreController(BaseController):
                                msgs=msgs, seller=seller)
 
 
-# ── Singleton instance ────────────────────────────────────────────────────────
+# ── Singleton instance imported by app/controllers/__init__.py and routes ──
 store_controller = StoreController()

@@ -1,11 +1,15 @@
 """
-==============================================================
-OOP Concept: INHERITANCE (Store Model)
-==============================================================
-- Inheritance: StoreModel inherits all CRUD from BaseModel.
-- Encapsulation: Slug generation and approval state changes
-  are encapsulated here.
-==============================================================
+app/models/store_model.py
+================================================================
+OOP concept on display: INHERITANCE + ENCAPSULATION
+
+    - Inheritance:   StoreModel inherits all CRUD methods from
+      BaseModel (find_by_id, create, update, ...).
+    - Encapsulation: slug generation and approval-state changes
+      are handled entirely inside this class — callers never
+      build a slug or write an UPDATE statement themselves.
+
+Represents the `stores` table.
 """
 
 import uuid
@@ -17,7 +21,7 @@ class StoreModel(BaseModel):
     """
     Represents the `stores` table.
 
-    Inherits from BaseModel:
+    Inherited from BaseModel:
         find_by_id, find_all, find_where, create, update, delete, count
     """
 
@@ -27,21 +31,22 @@ class StoreModel(BaseModel):
     def table(self) -> str:
         return self.TABLE
 
-    # ── Lookups ───────────────────────────────────────────────────────────────
+    # ── Lookups ─────────────────────────────────────────────────────────
 
     @classmethod
     def find_by_user(cls, user_id: int) -> dict | None:
-        """Return the store owned by a given seller user."""
+        """Return the store owned by a given seller's user account."""
         return cls.find_where("user_id = %s", (user_id,), one=True)
 
     @classmethod
     def find_by_slug(cls, slug: str) -> dict | None:
-        """Return a store by its URL slug."""
+        """Return an approved store by its public URL slug."""
         return cls.find_where("slug = %s AND is_approved = 1", (slug,), one=True)
 
     @classmethod
     def all_with_owner(cls) -> list[dict]:
-        """Return all stores joined with the owner user."""
+        """Every store joined with its owner's name/email — used on
+        the admin seller-moderation page."""
         return Database.query("""
             SELECT s.*, u.name AS owner, u.email
             FROM stores s
@@ -49,14 +54,15 @@ class StoreModel(BaseModel):
             ORDER BY s.created_at DESC
         """)
 
-    # ── Creation Helper ───────────────────────────────────────────────────────
+    # ── Creation helper ─────────────────────────────────────────────────
 
     @classmethod
     def make_unique_slug(cls, name: str) -> str:
         """
-        Generate a URL-safe slug from the store name.
-        Appends a short UUID suffix if the slug already exists.
-        Encapsulation: slug logic stays here.
+        Turn a store name into a URL-safe slug, and append a short
+        random suffix if that exact slug is already taken by another
+        store. Encapsulation: every caller just gets back a slug
+        that's guaranteed unique, without worrying about collisions.
         """
         slug = name.lower().replace(' ', '-').replace("'", '')
         slug = ''.join(c for c in slug if c.isalnum() or c == '-')
@@ -64,23 +70,34 @@ class StoreModel(BaseModel):
             slug += '-' + str(uuid.uuid4())[:4]
         return slug
 
-    # ── Moderation ────────────────────────────────────────────────────────────
+    # ── Moderation ──────────────────────────────────────────────────────
 
     @classmethod
     def approve(cls, store_id: int) -> None:
+        """Admin approves a pending store."""
         cls.update(store_id, {'is_approved': 1})
 
     @classmethod
     def reject(cls, store_id: int) -> None:
+        """Admin rejects a store — unapproves it AND deactivates it."""
         cls.update(store_id, {'is_approved': 0, 'is_active': 0})
 
-    # ── Stats ─────────────────────────────────────────────────────────────────
+    @classmethod
+    def set_commission(cls, store_id: int, rate: float) -> None:
+        """Admin updates the platform commission rate (%) charged on
+        this store's future sales. Clamped to a sane 0–100 range."""
+        rate = max(0, min(100, rate))
+        cls.update(store_id, {'commission_rate': rate})
+
+    # ── Stats ───────────────────────────────────────────────────────────
 
     @classmethod
     def stats(cls, store_id: int) -> dict:
         """
-        Return key dashboard stats for a store.
-        Encapsulation: multiple queries bundled into one call.
+        Bundle the three key seller-dashboard numbers (total sales,
+        total orders, total active products) into one dict, so the
+        dashboard view makes a single call instead of three separate
+        queries scattered through the controller.
         """
         total_sales = Database.query(
             "SELECT COALESCE(SUM(subtotal), 0) AS t FROM order_items WHERE store_id = %s",
