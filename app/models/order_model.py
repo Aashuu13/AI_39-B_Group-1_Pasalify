@@ -1,12 +1,16 @@
 """
-==============================================================
-OOP Concept: INHERITANCE & ENCAPSULATION (Order Model)
-==============================================================
-- Inheritance: OrderModel extends BaseModel for all CRUD.
-- Encapsulation: Status transition rules (place, cancel,
-  ship, complete) are hidden inside this class so controllers
-  never write raw UPDATE queries for orders.
-==============================================================
+app/models/order_model.py
+================================================================
+OOP concepts on display: INHERITANCE + ENCAPSULATION
+
+    - Inheritance:   OrderModel extends BaseModel and gets every
+      CRUD method (find_by_id, create, update, ...) for free.
+    - Encapsulation: every status change (cancel/ship/complete/
+      mark_paid) goes through its own small method instead of
+      controllers writing raw "UPDATE orders SET status=..."
+      statements scattered across the codebase.
+
+Represents the `orders` table.
 """
 
 from app.models.basemodel import BaseModel
@@ -17,12 +21,12 @@ class OrderModel(BaseModel):
     """
     Represents the `orders` table.
 
-    Inherits from BaseModel:
+    Inherited from BaseModel:
         find_by_id, find_all, find_where, create, update, delete, count
 
     Adds order-specific methods:
-        find_by_user, find_by_store, place_order,
-        cancel, ship, complete, get_items
+        find_by_user, find_by_store, get_items, recent_all,
+        cancel, ship, complete, mark_paid, monthly_revenue
     """
 
     TABLE = 'orders'
@@ -31,11 +35,12 @@ class OrderModel(BaseModel):
     def table(self) -> str:
         return self.TABLE
 
-    # ── Lookups ───────────────────────────────────────────────────────────────
+    # ── Lookups ─────────────────────────────────────────────────────────
 
     @classmethod
     def find_by_user(cls, user_id: int) -> list[dict]:
-        """All orders placed by a customer (newest first)."""
+        """All orders placed by one customer, newest first, with each
+        order's line items concatenated into a single readable string."""
         return Database.query("""
             SELECT o.*, GROUP_CONCAT(oi.product_name SEPARATOR ', ') AS items
             FROM orders o
@@ -47,7 +52,8 @@ class OrderModel(BaseModel):
 
     @classmethod
     def find_by_store(cls, store_id: int, limit: int = 50) -> list[dict]:
-        """Recent orders containing items from a specific store."""
+        """Recent orders that include at least one item from a
+        specific store (used on the seller's order list/dashboard)."""
         return Database.query("""
             SELECT o.*, GROUP_CONCAT(oi.product_name SEPARATOR ', ') AS items
             FROM orders o
@@ -60,14 +66,15 @@ class OrderModel(BaseModel):
 
     @classmethod
     def get_items(cls, order_id: int) -> list[dict]:
-        """Return all line-items for an order."""
+        """Every line item that belongs to one order."""
         return Database.query(
             "SELECT * FROM order_items WHERE order_id = %s", (order_id,)
         )
 
     @classmethod
     def recent_all(cls, limit: int = 8) -> list[dict]:
-        """Admin dashboard: latest orders across the platform."""
+        """Latest orders across the entire platform — used on the
+        admin dashboard."""
         return Database.query("""
             SELECT o.*, u.name AS customer
             FROM orders o
@@ -76,35 +83,38 @@ class OrderModel(BaseModel):
             LIMIT %s
         """, (limit,))
 
-    # ── Status Transitions (Encapsulation) ────────────────────────────────────
+    # ── Status transitions (Encapsulation) ───────────────────────────────
 
     @classmethod
     def cancel(cls, order_id: int) -> None:
-        """Cancel a pending order."""
+        """Move an order to the 'cancelled' status."""
         cls.update(order_id, {'status': 'cancelled'})
 
     @classmethod
     def ship(cls, order_id: int) -> None:
-        """Mark order as shipped."""
+        """Move an order to the 'shipped' status."""
         cls.update(order_id, {'status': 'shipped'})
 
     @classmethod
     def complete(cls, order_id: int) -> None:
-        """Mark order as delivered / completed."""
+        """Move an order to the 'delivered' status."""
         cls.update(order_id, {'status': 'delivered'})
 
     @classmethod
     def mark_paid(cls, order_id: int) -> None:
-        """Update payment_status to paid."""
+        """Flip payment_status to 'paid', separate from the
+        shipping/delivery status above."""
         cls.update(order_id, {'payment_status': 'paid'})
 
-    # ── Revenue Stats ─────────────────────────────────────────────────────────
+    # ── Revenue stats ───────────────────────────────────────────────────
 
     @classmethod
     def monthly_revenue(cls, store_id: int | None = None, months: int = 6) -> list[dict]:
         """
-        Monthly revenue & order count for the last N months.
-        If store_id is given, scoped to that store; otherwise platform-wide.
+        Revenue and order count grouped by month for the last N
+        months — feeds the line chart on both the seller dashboard
+        (store_id given) and the admin dashboard (store_id=None,
+        meaning platform-wide).
         """
         if store_id:
             return Database.query("""
