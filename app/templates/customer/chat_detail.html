@@ -1,0 +1,56 @@
+{# 
+customer/chat_detail.html
+Rendered by: CustomerController.chat_detail()
+Context: chat, msgs (full thread), store (the seller's store info).
+#}
+{% extends "base.html" %}
+{% block title %}Chat with {{ store.name }}{% endblock %}
+{% block content %}
+<div class="container mt-4 mb-5" style="max-width:700px">
+  <a href="{{ url_for('customer.chats') }}" style="color:#E6EDF3;font-size:.88rem">
+    <i class="bi bi-arrow-left me-1"></i>Back to Messages
+  </a>
+  <div class="d-flex align-items-center gap-3 mt-3 mb-4">
+    {% if store.logo %}
+    <img src="{{ url_for('static', filename=store.logo) }}"
+         style="width:44px;height:44px;border-radius:10px;object-fit:cover">
+    {% else %}
+    <div style="width:44px;height:44px;border-radius:10px;background:var(--purple);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff">
+      {{ store.name[0]|upper }}
+    </div>
+    {% endif %}
+    <div>
+      <div style="font-weight:700">{{ store.name }}</div>
+      <div style="color:#E6EDF3;font-size:.8rem">Store Chat</div>
+    </div>
+  </div>
+
+  <div class="chat-box mb-3" id="chatBox">
+    {% for m in msgs %}
+    <div class="msg-bubble {% if m.sender_id == session.user_id %}msg-me{% else %}msg-other{% endif %}">
+      {{ m.message }}
+      <span class="msg-time">{{ m.created_at.strftime('%b %d, %I:%M %p') if m.created_at else '' }}</span>
+    </div>
+    {% else %}
+    <div style="text-align:center;color:#E6EDF3;font-size:.85rem;margin:auto">
+      Start the conversation!
+    </div>
+    {% endfor %}
+  </div>
+
+  <form method="post" class="d-flex gap-2">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="text" name="message" class="form-control" placeholder="Type a message..." autocomplete="off" required>
+    <button class="btn btn-purple" style="border-radius:8px;padding:.45rem 1.2rem">
+      <i class="bi bi-send"></i>
+    </button>
+  </form>
+</div>
+
+<script>
+  // Jump straight to the newest message on page load, rather than
+  // leaving the visitor scrolled to the top of a long conversation
+  const box = document.getElementById('chatBox');
+  box.scrollTop = box.scrollHeight;
+</script>
+{% endblock %}
