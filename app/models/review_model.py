@@ -72,3 +72,4 @@ class ReviewModel(BaseModel):
             WHERE r.is_approved = 0
             ORDER BY r.created_at DESC
         """)
+# Handles product reviews
