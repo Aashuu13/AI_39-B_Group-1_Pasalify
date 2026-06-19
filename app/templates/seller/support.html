@@ -1,0 +1,75 @@
+{# 
+seller/support.html
+Rendered by: SellerController.support_tickets()
+Context: tickets (support-chatbot conversations from customers
+who bought from this store, grouped one ticket per customer), store.
+#}
+{% extends "seller/base_seller.html" %}
+{% block title %}Support Tickets{% endblock %}
+{% block seller_content %}
+<div class="page-title">Customer Support Tickets</div>
+<div class="page-subtitle">Questions from customers who ordered from your store — reply to start a chat</div>
+
+{% if tickets %}
+{% for t in tickets %}
+<div class="card mb-3">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <div>
+      <i class="bi bi-person-circle me-2" style="color:var(--purple2)"></i>
+      <strong>{{ t.customer_name or 'Customer' }}</strong>
+      <span style="color:#E6EDF3;font-size:.8rem;margin-left:.5rem">{{ t.customer_email or '' }}</span>
+    </div>
+    <span style="color:#E6EDF3;font-size:.78rem">
+      {{ t.last_message.strftime('%b %d, %Y %H:%M') if t.last_message else '' }}
+    </span>
+  </div>
+  <div class="card-body">
+    <div style="max-height:260px;overflow-y:auto;margin-bottom:.8rem">
+      {% for m in t.messages %}
+        {% if m.role == 'user' %}
+        <div style="background:rgba(108,63,200,.07);border-radius:10px;padding:.7rem 1rem;margin-bottom:.5rem">
+          <div style="font-size:.75rem;color:var(--purple2);font-weight:600;margin-bottom:.2rem">
+            <i class="bi bi-person me-1"></i>{{ t.customer_name or 'Customer' }} · {{ m.created_at.strftime('%b %d, %H:%M') if m.created_at else '' }}
+          </div>
+          <div style="font-size:.9rem">{{ m.message }}</div>
+        </div>
+        {% elif m.role == 'bot' %}
+        <div style="background:rgba(100,100,100,.07);border-radius:10px;padding:.7rem 1rem;margin-bottom:.5rem;margin-left:1rem">
+          <div style="font-size:.75rem;color:#E6EDF3;font-weight:600;margin-bottom:.2rem">
+            <i class="bi bi-robot me-1"></i>Bot · {{ m.created_at.strftime('%b %d, %H:%M') if m.created_at else '' }}
+          </div>
+          <div style="font-size:.88rem">{{ m.message }}</div>
+        </div>
+        {% elif m.role == 'admin' %}
+        <div style="background:rgba(16,185,129,.08);border-radius:10px;padding:.7rem 1rem;margin-bottom:.5rem;margin-left:1.5rem">
+          <div style="font-size:.75rem;color:#10b981;font-weight:600;margin-bottom:.2rem">
+            <i class="bi bi-shield-check me-1"></i>Admin · {{ m.created_at.strftime('%b %d, %H:%M') if m.created_at else '' }}
+          </div>
+          <div style="font-size:.88rem">{{ m.message }}</div>
+        </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    <form method="post" action="{{ url_for('seller.support_reply') }}" class="d-flex gap-2 mt-2">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="customer_id" value="{{ t.user_id }}">
+      <input type="text" name="message" class="form-control form-control-sm"
+             placeholder="Reply to {{ t.customer_name or 'customer' }}... (opens a chat)" required
+             style="border-radius:8px">
+      <button class="btn btn-purple btn-sm" style="border-radius:8px;white-space:nowrap">
+        <i class="bi bi-send me-1"></i>Send
+      </button>
+    </form>
+  </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="card">
+  <div class="card-body text-center py-5" style="color:#E6EDF3">
+    <i class="bi bi-inbox" style="font-size:2.5rem;opacity:.4"></i>
+    <p class="mt-2">No support questions from your customers yet.</p>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,3 +1,8 @@
+{# 
+seller/chats.html
+Rendered by: SellerController.chats()
+Context: convs (conversations with customers), store.
+#}
 {% extends "seller/base_seller.html" %}
 {% block title %}Messages{% endblock %}
 {% block seller_content %}
@@ -14,12 +19,12 @@
             <i class="bi bi-person" style="color:var(--purple2)"></i>
           </div>
           <div>
-            <div style="font-weight:600;color:var(--text)">{{ c.customer_name }}</div>
-            <div style="color:var(--muted);font-size:.82rem">{{ (c.last_msg or 'No messages yet')[:50] }}</div>
+            <div style="font-weight:600;color:#E6EDF3">{{ c.customer_name }}</div>
+            <div style="color:#E6EDF3;font-size:.82rem">{{ (c.last_msg or 'No messages yet')[:50] }}</div>
           </div>
         </div>
         <div class="text-end">
-          <div style="color:var(--muted);font-size:.75rem">{{ c.created_at.strftime('%b %d') if c.created_at else '' }}</div>
+          <div style="color:#E6EDF3;font-size:.75rem">{{ c.created_at.strftime('%b %d') if c.created_at else '' }}</div>
           {% if c.unread %}<span class="badge-red" style="font-size:.7rem">{{ c.unread }} new</span>{% endif %}
         </div>
       </div>
@@ -28,7 +33,7 @@
 </a>
 {% endfor %}
 {% else %}
-<div class="text-center py-5" style="color:var(--muted)">
+<div class="text-center py-5" style="color:#E6EDF3">
   <i class="bi bi-chat-dots" style="font-size:3rem;opacity:.3"></i>
   <h4 class="mt-3">No conversations yet</h4>
 </div>
