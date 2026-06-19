@@ -1,7 +1,14 @@
+{# 
+customer/products.html
+Rendered by: CustomerController.products()
+Context: items (search results), cats, q, cat_slug, sort
+(the last three echo the current filters back into the form).
+#}
 {% extends "base.html" %}
 {% block title %}Products{% endblock %}
 {% block content %}
 <div class="container mt-4 mb-5">
+  <!-- Page heading + the search box (GET form, so search results are linkable) -->
   <div class="row g-2 mb-4 align-items-end">
     <div class="col-md-6">
       <h1 class="page-title">{% if q %}Results for "{{ q }}"{% else %}All Products{% endif %}</h1>
@@ -16,7 +23,8 @@
   </div>
 
   <div class="row g-3">
-    <!-- Filters sidebar -->
+    <!-- Sidebar filter form: category/price/rating/sort, auto-submits
+         on category change, otherwise needs the "Apply Filters" click -->
     <div class="col-md-3">
       <div class="card sticky-top" style="top:80px">
         <div class="card-header"><i class="bi bi-funnel me-1"></i> Filters</div>
@@ -57,13 +65,14 @@
               </select>
             </div>
             <button type="submit" class="btn btn-purple btn-sm w-100">Apply Filters</button>
-            <a href="{{ url_for('customer.products') }}" class="btn btn-sm w-100 mt-1" style="color:var(--muted)">Clear All</a>
+            <a href="{{ url_for('customer.products') }}" class="btn btn-sm w-100 mt-1" style="color:#E6EDF3">Clear All</a>
           </form>
         </div>
       </div>
     </div>
 
-    <!-- Products grid -->
+    <!-- Product grid; falls back to an empty-state message if the
+         search/filter combination returns nothing -->
     <div class="col-md-9">
       {% if items %}
       <div class="row g-3">
@@ -79,7 +88,7 @@
             </a>
             <div class="p-body">
               <div class="p-store"><i class="bi bi-shop me-1"></i>{{ p.store_name }}</div>
-              <a href="{{ url_for('customer.product_detail', pid=p.id) }}" style="color:var(--text)">
+              <a href="{{ url_for('customer.product_detail', pid=p.id) }}" style="color:#E6EDF3">
                 <div class="p-name">{{ p.name }}</div>
               </a>
               {% if p.cat_name %}
@@ -89,7 +98,7 @@
                 {% for i in range(5) %}
                 <i class="bi bi-star{% if i < p.avg_rating|int %}-fill{% endif %}"></i>
                 {% endfor %}
-                <span style="color:var(--muted);font-size:.75rem">({{ p.review_count }})</span>
+                <span style="color:#E6EDF3;font-size:.75rem">({{ p.review_count }})</span>
               </div>
               <div class="mt-1">
                 <span class="p-price">Rs. {{ "%.0f"|format(p.price) }}</span>
@@ -105,9 +114,20 @@
               {% elif p.stock_qty <= 5 %}
               <div style="color:#FCD34D;font-size:.78rem;margin-top:.2rem"><i class="bi bi-exclamation-circle me-1"></i>Only {{ p.stock_qty }} left</div>
               {% endif %}
-              <div class="p-actions mt-2">
-                <a href="{{ url_for('customer.product_detail', pid=p.id) }}" class="btn btn-purple btn-sm w-100">
-                  <i class="bi bi-eye me-1"></i> View Product
+              <div class="p-actions">
+                {% if p.stock_qty > 0 %}
+                <form method="post" action="{{ url_for('customer.cart_add', pid=p.id) }}" style="flex:1">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <input type="hidden" name="quantity" value="1">
+                  <button type="submit" class="btn btn-purple btn-sm w-100">
+                    <i class="bi bi-cart-plus"></i> Add
+                  </button>
+                </form>
+                {% else %}
+                <button class="btn btn-sm w-100" style="background:var(--navy3);color:#E6EDF3" disabled>Out of Stock</button>
+                {% endif %}
+                <a href="{{ url_for('customer.wishlist_toggle', pid=p.id) }}" class="btn btn-outline-purple btn-sm">
+                  <i class="bi bi-heart"></i>
                 </a>
               </div>
             </div>
@@ -116,7 +136,7 @@
         {% endfor %}
       </div>
       {% else %}
-      <div class="text-center py-5" style="color:var(--muted)">
+      <div class="text-center py-5" style="color:#E6EDF3">
         <i class="bi bi-search" style="font-size:3.5rem;opacity:.4"></i>
         <h4 class="mt-3">No products found</h4>
         <p>Try different keywords or remove filters.</p>

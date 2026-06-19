@@ -1,3 +1,8 @@
+{# 
+customer/profile.html
+Rendered by: CustomerController.profile()
+Context: user, orders_count, wish_count.
+#}
 {% extends "base.html" %}
 {% block title %}My Profile{% endblock %}
 {% block content %}
@@ -39,7 +44,7 @@
             <input type="text" class="form-control" name="phone" value="{{ user.phone or '' }}">
           </div>
           <div class="col-md-6">
-            <label class="form-label">Email <small style="color:var(--muted)">(read-only)</small></label>
+            <label class="form-label">Email <small style="color:#E6EDF3">(read-only)</small></label>
             <input type="email" class="form-control" value="{{ user.email }}" disabled style="opacity:.6">
           </div>
           <div class="col-md-6">
@@ -59,20 +64,9 @@
     </div>
   </div>
 
-  <!-- Quick links to available features only -->
   <div class="row g-2 mt-3">
-    <div class="col-6">
-      <a href="{{ url_for('customer.chats') }}" class="card text-center p-3" style="display:block;text-decoration:none">
-        <i class="bi bi-chat-dots" style="font-size:1.5rem;color:var(--purple2)"></i>
-        <div style="font-size:.85rem;margin-top:.3rem">My Chats</div>
-      </a>
-    </div>
-    <div class="col-6">
-      <a href="{{ url_for('customer.products') }}" class="card text-center p-3" style="display:block;text-decoration:none">
-        <i class="bi bi-grid" style="font-size:1.5rem;color:var(--purple2)"></i>
-        <div style="font-size:.85rem;margin-top:.3rem">Browse Products</div>
-      </a>
-    </div>
+    <div class="col-6"><a href="{{ url_for('customer.orders') }}" class="card text-center p-3" style="display:block;text-decoration:none"><i class="bi bi-box-seam" style="font-size:1.5rem;color:var(--purple2)"></i><div style="font-size:.85rem;margin-top:.3rem">My Orders</div></a></div>
+    <div class="col-6"><a href="{{ url_for('customer.payment_history') }}" class="card text-center p-3" style="display:block;text-decoration:none"><i class="bi bi-credit-card" style="font-size:1.5rem;color:var(--purple2)"></i><div style="font-size:.85rem;margin-top:.3rem">Payment History</div></a></div>
   </div>
 </div>
 {% endblock %}
