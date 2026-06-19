@@ -170,3 +170,4 @@ class AuthController(BaseController):
 
 # ── Singleton instance (used by routes) ──────────────────────────────────────
 auth_controller = AuthController()
+# Manages authentication and registration
