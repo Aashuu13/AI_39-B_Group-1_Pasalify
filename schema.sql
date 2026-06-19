@@ -245,41 +245,25 @@ INSERT IGNORE INTO users (name,email,phone,password_hash,role,is_active) VALUES
 ('Pasalify Admin','admin@pasalify.com','9800000000',
  '3ac179c671a66c06af031954e0ed311f35e567477c6cd8b1bdabd09796d267d1:f913dd1eaabbb9cc573a44502cdf9ac90254b8d47a0db0a64082a823da3fa2f7','admin',1);
 
--- Demo customer account (password: customer123)
+
 INSERT IGNORE INTO users (name,email,phone,password_hash,role,is_active) VALUES
 ('Demo Customer','customer@pasalify.com','9811111111',
  'aabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccdd:4fb3cbbc86b04c8c3cdd5a2f566f10a7e041ccf0105ea90813ee519c68def446','customer',1);
 
--- Demo seller account (password: seller123)
+
 INSERT IGNORE INTO users (name,email,phone,password_hash,role,is_active) VALUES
 ('Demo Seller','seller@pasalify.com','9822222222',
  '1122334455667788112233445566778811223344556677881122334455667788:2a5c34aa29be7f7a5b73b9a76556485e139a4776b1d763ab524f72143f0cd87b','seller',1);
 
--- Demo store for demo seller (resolves seller's actual user_id dynamically)
 INSERT IGNORE INTO stores (user_id,name,slug,description,is_approved,is_active)
 SELECT id,'Demo Store','demo-store','A demo store for testing.',1,1
 FROM users WHERE email='seller@pasalify.com' LIMIT 1;
 
--- Add store customization columns (MySQL 5.7+ compatible — ignore error if already exists)
+
 ALTER TABLE stores ADD COLUMN primary_color VARCHAR(20) DEFAULT '#6C3FC8';
 ALTER TABLE stores ADD COLUMN banner_text VARCHAR(255);
 
--- ═══════════════════════════════════════════════════════════════════
--- Sprint 3 Schema additions
--- US 1.4 Change Password (uses existing users table - already done in auth)
--- US 1.5 Edit Profile   (users table already supports this)
--- US 2.4 Wishlist       (wishlists already exists — renamed from wishlist)
--- US 2.5 Product Reviews (reviews already exists)
--- US 2.6 Seller Chat    (chats + chat_messages already exists)
--- US 3.2 Track Orders   (orders table already supports status tracking)
--- US 3.5 Apply Promo Code (promo_codes already exists, adding apply support)
--- US 4.5 Manage Inventory (products table already supports stock)
--- US 4.6 Manage Orders  (orders + order_items already exist)
--- US 5.2 Content Control (new: content_flags table)
--- US 5.3 Track Transactions (payments + commissions already exist)
--- ═══════════════════════════════════════════════════════════════════
 
--- US 5.2 Content Control: admin can flag/remove reviews & products
 CREATE TABLE IF NOT EXISTS content_flags (
     id INT AUTO_INCREMENT PRIMARY KEY,
     entity_type ENUM('review','product','user') NOT NULL,
@@ -291,14 +275,9 @@ CREATE TABLE IF NOT EXISTS content_flags (
     FOREIGN KEY (flagged_by) REFERENCES users(id) ON DELETE SET NULL
 );
 
--- US 3.5 Track which promo was used per order (already in orders.promo_code_id)
--- Add applied_promo tracking column to orders if not exists
+
 ALTER TABLE orders ADD COLUMN promo_code VARCHAR(50) DEFAULT NULL;
 
--- Add avatar support to users (Sprint 3 - US 1.5 Edit Profile)
 ALTER TABLE orders MODIFY COLUMN status 
     ENUM('placed','confirmed','processing','shipped','out_for_delivery','delivered','cancelled') 
     DEFAULT 'placed';
-
--- Ensure wishlists uses standard name (sprint2 used 'wishlist' in queries; fix alias)
--- (No structural change needed — table is 'wishlists')
