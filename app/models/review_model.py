@@ -1,11 +1,14 @@
 """
-==============================================================
-OOP Concept: INHERITANCE (Review Model)
-==============================================================
-- Inheritance: ReviewModel extends BaseModel.
-- Encapsulation: After approving a review, avg_rating is
-  updated automatically — callers don't need to remember.
-==============================================================
+app/models/review_model.py
+================================================================
+OOP concepts on display: INHERITANCE + ENCAPSULATION
+
+    - Inheritance:   ReviewModel extends BaseModel.
+    - Encapsulation: approve() recalculates the product's average
+      rating as part of the same call — whoever calls approve()
+      never has to remember to also refresh the rating themselves.
+
+Represents the `reviews` table.
 """
 
 from app.models.basemodel import BaseModel
@@ -23,11 +26,13 @@ class ReviewModel(BaseModel):
     def table(self) -> str:
         return self.TABLE
 
-   
+    # ── Lookups ─────────────────────────────────────────────────────────
 
     @classmethod
     def find_by_product(cls, product_id: int, approved_only: bool = True) -> list[dict]:
-        """Reviews for a product, joined with the reviewer's name."""
+        """All reviews for one product, joined with the reviewer's
+        name. Approved-only by default so unmoderated reviews don't
+        show on the public product page."""
         condition = "r.product_id = %s"
         if approved_only:
             condition += " AND r.is_approved = 1"
@@ -41,19 +46,23 @@ class ReviewModel(BaseModel):
 
     @classmethod
     def user_already_reviewed(cls, user_id: int, product_id: int) -> bool:
-        """Check if a user has already left a review for this product."""
+        """True if this user has already left a review on this product
+        (used to decide whether submit_review() should INSERT or UPDATE)."""
         row = cls.find_where(
             "user_id = %s AND product_id = %s", (user_id, product_id), one=True
         )
         return row is not None
 
-    
+    # ── Moderation ──────────────────────────────────────────────────────
 
     @classmethod
     def approve(cls, review_id: int) -> None:
         """
-        Approve a review and recalculate the product's avg_rating.
-        Encapsulation: side-effect (rating update) is handled internally.
+        Approve a review, then immediately recalculate the product's
+        avg_rating so the storefront always reflects the latest
+        approved reviews. Imported here (rather than at module level)
+        to avoid a circular import between review_model and
+        product_model.
         """
         from app.models.product_model import ProductModel
         cls.update(review_id, {'is_approved': 1})
@@ -63,7 +72,7 @@ class ReviewModel(BaseModel):
 
     @classmethod
     def pending(cls) -> list[dict]:
-        """All reviews awaiting moderation (admin view)."""
+        """Every review still awaiting moderation — the admin queue."""
         return Database.query("""
             SELECT r.*, u.name AS user_name, p.name AS product_name
             FROM reviews r
