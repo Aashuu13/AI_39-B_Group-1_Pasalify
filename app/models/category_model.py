@@ -1,10 +1,13 @@
 """
-==============================================================
-OOP Concept: INHERITANCE (Category Model)
-==============================================================
-- Inheritance: CategoryModel extends BaseModel.
-  find_all() is sufficient for most category operations.
-==============================================================
+app/models/category_model.py
+================================================================
+OOP concept on display: INHERITANCE
+
+CategoryModel extends BaseModel and barely needs anything of its
+own — find_all() (inherited) already covers most use cases, since
+categories are simple and rarely change.
+
+Represents the `categories` table.
 """
 
 from app.models.basemodel import BaseModel
@@ -14,7 +17,7 @@ from app.models.database import Database
 class CategoryModel(BaseModel):
     """
     Represents the `categories` table.
-    Simple model — categories don't change often.
+    A simple model — categories don't change often.
     """
 
     TABLE = 'categories'
@@ -25,11 +28,14 @@ class CategoryModel(BaseModel):
 
     @classmethod
     def find_by_slug(cls, slug: str) -> dict | None:
+        """Look up a category by its URL slug."""
         return cls.find_where("slug = %s", (slug,), one=True)
 
     @classmethod
     def all_with_product_count(cls) -> list[dict]:
-        """Return categories together with how many active products each has."""
+        """Every category along with how many active, approved
+        products currently sit in it — used for the category pills
+        on the homepage/product browser."""
         return Database.query("""
             SELECT c.*, COUNT(p.id) AS product_count
             FROM categories c
