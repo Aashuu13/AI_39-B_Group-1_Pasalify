@@ -3,7 +3,7 @@ load_dotenv()
 
 from flask import Flask, redirect, url_for
 from flask_wtf.csrf import CSRFProtect
-from config import Config
+from app.config import Config
 import os
 
 csrf = CSRFProtect()
