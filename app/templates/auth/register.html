@@ -1,3 +1,9 @@
+{# 
+auth/register.html
+Rendered by: AuthController.register()
+On a validation error, re-rendered with: name, email, phone, role
+(so the visitor doesn't have to retype the form).
+#}
 {% extends "base.html" %}
 {% block title %}Register{% endblock %}
 {% block content %}
@@ -6,7 +12,7 @@
     <div class="text-center mb-4">
       <i class="bi bi-bag-heart-fill" style="font-size:2.5rem;color:var(--purple2)"></i>
       <h2 style="font-family:'Playfair Display',serif;margin-top:.5rem">Create Account</h2>
-      <p style="color:var(--muted);font-size:.9rem">Join Nepal's fastest growing marketplace</p>
+      <p style="color:#E6EDF3;font-size:.9rem">Join Nepal's fastest growing marketplace</p>
     </div>
     <div class="card">
       <div class="card-body" style="padding:2rem">
@@ -14,7 +20,7 @@
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <div class="mb-3">
             <label class="form-label">Full Name</label>
-            <input type="text" class="form-control" name="name" value="{{ name or '' }}" placeholder="Aarav Sharma" required>
+            <input type="text" class="form-control" name="name" value="{{ name or '' }}" placeholder="Aashu ko pasal" required>
           </div>
           <div class="mb-3">
             <label class="form-label">Email</label>
@@ -35,7 +41,7 @@
                 <div class="role-card text-center" style="border:2px solid var(--border);border-radius:10px;padding:1rem;transition:.2s" data-role="customer">
                   <i class="bi bi-person-fill" style="font-size:1.8rem;color:var(--purple2)"></i>
                   <div style="font-weight:600;margin-top:.3rem">Customer</div>
-                  <div style="font-size:.75rem;color:var(--muted)">Shop & discover</div>
+                  <div style="font-size:.75rem;color:#E6EDF3">Shop & discover</div>
                 </div>
               </label>
               <label style="flex:1;cursor:pointer">
@@ -43,13 +49,13 @@
                 <div class="role-card text-center" style="border:2px solid var(--border);border-radius:10px;padding:1rem;transition:.2s" data-role="seller">
                   <i class="bi bi-shop" style="font-size:1.8rem;color:var(--purple2)"></i>
                   <div style="font-weight:600;margin-top:.3rem">Seller</div>
-                  <div style="font-size:.75rem;color:var(--muted)">Sell & grow</div>
+                  <div style="font-size:.75rem;color:#E6EDF3">Sell & grow</div>
                 </div>
               </label>
             </div>
           </div>
           <div class="mb-3">
-            <label class="form-label">Password <small style="color:var(--muted)">(min 8 chars)</small></label>
+            <label class="form-label">Password <small style="color:#E6EDF3">(min 8 chars)</small></label>
             <input type="password" class="form-control" name="password" id="pw" placeholder="••••••••" required>
             <div style="height:4px;background:var(--navy3);border-radius:2px;margin-top:.4rem">
               <div id="pw-strength" style="height:100%;border-radius:2px;transition:.3s;width:0%"></div>
@@ -63,7 +69,7 @@
             <i class="bi bi-person-plus me-1"></i> Create Account
           </button>
         </form>
-        <div class="text-center mt-3" style="color:var(--muted);font-size:.88rem">
+        <div class="text-center mt-3" style="color:#E6EDF3;font-size:.88rem">
           Already have an account? <a href="{{ url_for('auth.login') }}" style="color:var(--purple2)">Sign in</a>
         </div>
       </div>
