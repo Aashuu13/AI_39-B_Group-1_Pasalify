@@ -1,3 +1,9 @@
+{# 
+admin/system.html
+Rendered by: AdminController.system()
+Context: logs (latest 100 activity entries), db_size (MB on disk),
+table_counts (per-table row counts).
+#}
 {% extends "admin/base_admin.html" %}
 {% block title %}System Monitoring{% endblock %}
 {% block admin_content %}
@@ -11,7 +17,7 @@
   </a>
 </div>
 
-<!-- DB health -->
+<!-- Three quick diagnostic numbers: DB size, table count, recent log volume -->
 <div class="row g-3 mb-4">
   <div class="col-md-4">
     <div class="stat-card">
@@ -37,14 +43,14 @@
 </div>
 
 <div class="row g-3">
-  <!-- Table stats -->
+  <!-- Per-table row counts, straight from information_schema -->
   <div class="col-md-4">
     <div class="card">
       <div class="card-header">Table Row Counts</div>
       <div class="card-body p-0">
         {% for t in table_counts %}
         <div class="d-flex justify-content-between px-3 py-2 {% if not loop.last %}border-bottom{% endif %}" style="border-color:var(--border)">
-          <span style="font-size:.82rem;font-family:monospace;color:var(--text)">{{ t.table_name }}</span>
+          <span style="font-size:.82rem;font-family:monospace;color:#E6EDF3">{{ t.table_name }}</span>
           <span class="badge-purple" style="font-size:.72rem">{{ t.table_rows or 0 }}</span>
         </div>
         {% endfor %}
@@ -52,7 +58,8 @@
     </div>
   </div>
 
-  <!-- Activity logs -->
+  <!-- Scrollable activity log table; action text is color-coded by
+       keyword (delete/reject = red, approve/login = green, create/add = blue) -->
   <div class="col-md-8">
     <div class="card">
       <div class="card-header"><i class="bi bi-list-ul me-1"></i> Activity Logs (Last 100)</div>
@@ -65,7 +72,7 @@
             <tbody>
             {% for l in logs %}
             <tr>
-              <td style="color:var(--muted);font-size:.75rem;white-space:nowrap">{{ l.created_at.strftime('%m/%d %H:%M') if l.created_at else '' }}</td>
+              <td style="color:#E6EDF3;font-size:.75rem;white-space:nowrap">{{ l.created_at.strftime('%m/%d %H:%M') if l.created_at else '' }}</td>
               <td style="font-size:.82rem">{{ l.name or 'System' }}</td>
               <td>
                 <span style="font-family:monospace;font-size:.78rem;
@@ -76,13 +83,13 @@
                   {{ l.action }}
                 </span>
               </td>
-              <td style="color:var(--muted);font-size:.78rem">
+              <td style="color:#E6EDF3;font-size:.78rem">
                 {% if l.entity_type %}{{ l.entity_type }}:{{ l.entity_id }}{% else %}—{% endif %}
               </td>
-              <td style="color:var(--muted);font-size:.75rem">{{ l.ip_address or '—' }}</td>
+              <td style="color:#E6EDF3;font-size:.75rem">{{ l.ip_address or '—' }}</td>
             </tr>
             {% else %}
-            <tr><td colspan="5" class="text-center py-3" style="color:var(--muted)">No activity logs yet.</td></tr>
+            <tr><td colspan="5" class="text-center py-3" style="color:#E6EDF3">No activity logs yet.</td></tr>
             {% endfor %}
             </tbody>
           </table>
@@ -92,7 +99,8 @@
   </div>
 </div>
 
-<!-- Security info -->
+<!-- Static checklist describing the app's security posture — not
+     queried from anywhere, just a hardcoded list for the demo/presentation -->
 <div class="card mt-3">
   <div class="card-header"><i class="bi bi-shield-check me-1" style="color:#34D399"></i> Security Framework Status</div>
   <div class="card-body">

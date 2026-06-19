@@ -1,3 +1,9 @@
+{# 
+admin/finances.html
+Rendered by: AdminController.finances()
+Context: transactions (payments), commissions (recent platform
+cuts), total_rev. A CSV export link points at finance_export().
+#}
 {% extends "admin/base_admin.html" %}
 {% block title %}Financial Management{% endblock %}
 {% block admin_content %}
@@ -11,7 +17,6 @@
   </a>
 </div>
 
-<!-- Summary cards -->
 <div class="row g-3 mb-4">
   <div class="col-md-4">
     <div class="stat-card">
@@ -37,7 +42,6 @@
 </div>
 
 <div class="row g-3">
-  <!-- Transactions table -->
   <div class="col-lg-8">
     <div class="card">
       <div class="card-header">All Transactions</div>
@@ -50,7 +54,7 @@
             <tbody>
             {% for t in transactions %}
             <tr>
-              <td style="color:var(--muted);font-size:.8rem">{{ t.created_at.strftime('%b %d, %Y') if t.created_at else '' }}</td>
+              <td style="color:#E6EDF3;font-size:.8rem">{{ t.created_at.strftime('%b %d, %Y') if t.created_at else '' }}</td>
               <td style="color:var(--purple2);font-size:.85rem;font-weight:600">{{ t.order_number }}</td>
               <td style="font-size:.85rem">{{ t.customer }}</td>
               <td style="font-weight:700">Rs. {{ "%.0f"|format(t.amount) }}</td>
@@ -58,7 +62,7 @@
               <td><span class="status-badge s-{{ t.status }}">{{ t.status|title }}</span></td>
             </tr>
             {% else %}
-            <tr><td colspan="6" class="text-center py-3" style="color:var(--muted)">No transactions yet.</td></tr>
+            <tr><td colspan="6" class="text-center py-3" style="color:#E6EDF3">No transactions yet.</td></tr>
             {% endfor %}
             </tbody>
           </table>
@@ -67,7 +71,6 @@
     </div>
   </div>
 
-  <!-- Commissions -->
   <div class="col-lg-4">
     <div class="card">
       <div class="card-header">Commission Breakdown</div>
@@ -77,17 +80,17 @@
         <div class="p-3 {% if not loop.last %}border-bottom{% endif %}" style="border-color:var(--border)">
           <div style="font-weight:600;font-size:.85rem">{{ c.store_name }}</div>
           <div class="d-flex justify-content-between mt-1">
-            <span style="color:var(--muted);font-size:.78rem">Seller:</span>
+            <span style="color:#E6EDF3;font-size:.78rem">Seller:</span>
             <span style="color:#34D399;font-size:.82rem">Rs. {{ "%.0f"|format(c.seller_amount) }}</span>
           </div>
           <div class="d-flex justify-content-between">
-            <span style="color:var(--muted);font-size:.78rem">Platform:</span>
+            <span style="color:#E6EDF3;font-size:.78rem">Platform:</span>
             <span style="color:var(--purple2);font-size:.82rem">Rs. {{ "%.0f"|format(c.platform_amount) }}</span>
           </div>
           <span class="status-badge s-{{ c.status }}" style="font-size:.7rem;margin-top:.3rem;display:inline-block">{{ c.status|title }}</span>
         </div>
         {% else %}
-        <div class="p-3 text-center" style="color:var(--muted);font-size:.85rem">No commissions yet.</div>
+        <div class="p-3 text-center" style="color:#E6EDF3;font-size:.85rem">No commissions yet.</div>
         {% endfor %}
         </div>
       </div>

@@ -1,7 +1,13 @@
 """
-==============================================================
-OOP Concept: INHERITANCE (Notification Model)
-==============================================================
+app/models/notification_model.py
+================================================================
+OOP concept on display: INHERITANCE
+
+NotificationModel extends BaseModel, adding just the handful of
+methods that the in-app notification bell actually needs: fetch
+recent ones, count unread, mark them read, and send a new one.
+
+Represents the `notifications` table.
 """
 
 from app.models.basemodel import BaseModel
@@ -21,19 +27,21 @@ class NotificationModel(BaseModel):
 
     @classmethod
     def for_user(cls, user_id: int, limit: int = 20) -> list[dict]:
-        """Return recent notifications for a user."""
+        """Most recent notifications for a user, newest first."""
         return cls.find_where(
             f"user_id = %s ORDER BY created_at DESC LIMIT {limit}", (user_id,)
         )
 
     @classmethod
     def unread_count(cls, user_id: int) -> int:
-        """Count unread notifications."""
+        """How many of this user's notifications are still unread —
+        powers the little red badge on the notification bell."""
         return cls.count("user_id = %s AND is_read = 0", (user_id,))
 
     @classmethod
     def mark_all_read(cls, user_id: int) -> None:
-        """Mark every notification as read for a user."""
+        """Mark every notification as read for a user (called when
+        they open the notifications page)."""
         Database.execute(
             "UPDATE notifications SET is_read = 1 WHERE user_id = %s", (user_id,)
         )
@@ -42,8 +50,9 @@ class NotificationModel(BaseModel):
     def send(cls, user_id: int, title: str, message: str,
              notif_type: str = 'info') -> int:
         """
-        Create a new notification.
-        Encapsulation: wrapper around create() with defaults.
+        Create a new notification. Thin wrapper around create() that
+        just fills in sensible defaults (is_read=0) so callers don't
+        repeat that every time.
         """
         return cls.create({
             'user_id': user_id,

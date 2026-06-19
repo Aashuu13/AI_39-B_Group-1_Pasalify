@@ -1,29 +1,30 @@
 """
-==============================================================
-OOP Concept: ENCAPSULATION (Database Wrapper)
-==============================================================
-- Encapsulation: All raw pymysql connection logic is hidden
-  inside the Database class. Models never touch pymysql directly.
-- The Database class wraps app/db.py and exposes a clean, safe
-  interface (query / execute / last_insert_id) to all models.
-- Outside code never sees the connection details.
-==============================================================
+app/models/database.py
+================================================================
+OOP concept on display: ENCAPSULATION
+
+All the raw pymysql connection details live in app/db.py — this
+class just wraps those two functions (query/execute) behind a
+clean, model-friendly interface. Every model imports and calls
+``Database.query(...)`` / ``Database.execute(...)`` and never
+touches pymysql, or even app/db.py, directly.
 """
 
-from app.utils import db as _db
+from app import db as _db
 
 
 class Database:
     """
-    Singleton-style wrapper around app/db.py.
+    Thin wrapper around app/db.py, used the same way everywhere:
 
-    Models import and use ONE shared instance of this class
-    (``from app.models.database import Database``).
-    They call ``Database.query()``, ``Database.execute()``, etc.
-    — and never touch pymysql themselves (Encapsulation).
+        from app.models.database import Database
+        Database.query("SELECT * FROM users WHERE id = %s", (uid,), one=True)
+
+    Models never see a pymysql connection object — they only ever
+    see dicts (or lists of dicts) coming back from these two methods.
     """
 
-    
+    # ── Read ─────────────────────────────────────────────────────────────
 
     @staticmethod
     def query(sql: str, args: tuple = (), one: bool = False):
@@ -37,7 +38,8 @@ class Database:
         """
         return _db.query(sql, args, one)
 
-    
+    # ── Write ────────────────────────────────────────────────────────────
+
     @staticmethod
     def execute(sql: str, args: tuple = ()) -> int:
         """
@@ -45,6 +47,6 @@ class Database:
 
         :param sql:  SQL string with %s placeholders
         :param args: Tuple of values to bind
-        :return:     lastrowid (useful after INSERT)
+        :return:     lastrowid (useful right after an INSERT)
         """
         return _db.execute(sql, args)

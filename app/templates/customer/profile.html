@@ -1,3 +1,8 @@
+{# 
+customer/profile.html
+Rendered by: CustomerController.profile()
+Context: user, orders_count, wish_count.
+#}
 {% extends "base.html" %}
 {% block title %}My Profile{% endblock %}
 {% block content %}
@@ -39,7 +44,7 @@
             <input type="text" class="form-control" name="phone" value="{{ user.phone or '' }}">
           </div>
           <div class="col-md-6">
-            <label class="form-label">Email <small style="color:var(--muted)">(read-only)</small></label>
+            <label class="form-label">Email <small style="color:#E6EDF3">(read-only)</small></label>
             <input type="email" class="form-control" value="{{ user.email }}" disabled style="opacity:.6">
           </div>
           <div class="col-md-6">
@@ -52,14 +57,7 @@
           </div>
         </div>
         <div class="d-flex gap-2 mt-3">
-          <div class="mb-3">
-              <label class="form-label">Profile Photo</label>
-              {% if user.avatar %}
-              <div class="mb-2"><img src="{{ url_for('static', filename=user.avatar) }}" width="60" height="60" class="rounded-circle" style="object-fit:cover;border:2px solid var(--border)"></div>
-              {% endif %}
-              <input type="file" class="form-control" name="avatar" accept="image/*">
-            </div>
-            <button type="submit" class="btn btn-purple">Save Changes</button>
+          <button type="submit" class="btn btn-purple">Save Changes</button>
           <a href="{{ url_for('auth.change_password') }}" class="btn btn-outline-purple">Change Password</a>
         </div>
       </form>

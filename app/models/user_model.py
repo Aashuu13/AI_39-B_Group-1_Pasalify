@@ -1,14 +1,18 @@
 """
-==============================================================
-OOP Concept: INHERITANCE & ENCAPSULATION (User Model)
-==============================================================
-- Inheritance: UserModel extends BaseModel and gets find_by_id,
-  create, update, delete, etc. for FREE.
-- Encapsulation: Password hashing logic is hidden inside this
-  class. Controllers call UserModel.authenticate() and never
-  deal with raw hashes.
-- Polymorphism: UserModel overrides `table` (required by ABC).
-==============================================================
+app/models/user_model.py
+================================================================
+OOP concepts on display: INHERITANCE + ENCAPSULATION + POLYMORPHISM
+
+    - Inheritance:   UserModel extends BaseModel and gets find_by_id,
+      create, update, delete, count, etc. for free.
+    - Encapsulation: password hashing/verification is hidden inside
+      this class — controllers call UserModel.authenticate() and
+      never see a raw hash.
+    - Polymorphism:  UserModel overrides the abstract `table`
+      property required by BaseModel, the same way every other
+      model does, but each returns its own table name.
+
+Represents the `users` table.
 """
 
 from app.models.basemodel import BaseModel
@@ -20,7 +24,7 @@ class UserModel(BaseModel):
     """
     Represents the `users` table.
 
-    Inherits from BaseModel:
+    Inherited from BaseModel:
         find_by_id, find_all, find_where, create, update, delete, count
 
     Adds user-specific methods:
@@ -28,14 +32,14 @@ class UserModel(BaseModel):
         record_failed_login, update_last_login
     """
 
-     
+    # ── Required by BaseModel (ABC) ────────────────────────────────────────
     TABLE = 'users'
 
     @property
-    def table(self) -> str:          
+    def table(self) -> str:          # satisfies the @abstractmethod in BaseModel
         return self.TABLE
 
-    
+    # ── User-specific class methods ─────────────────────────────────────────
 
     @classmethod
     def find_by_email(cls, email: str) -> dict | None:
@@ -44,7 +48,8 @@ class UserModel(BaseModel):
 
     @classmethod
     def find_by_email_or_phone(cls, email: str, phone: str) -> dict | None:
-        """Check if email OR phone already exists (used in registration)."""
+        """Used during registration to check whether the email OR
+        the phone number is already taken by someone else."""
         return cls.find_where(
             "email = %s OR phone = %s", (email.lower(), phone), one=True
         )
@@ -53,11 +58,10 @@ class UserModel(BaseModel):
     def register(cls, name: str, email: str, phone: str,
                  password: str, role: str = 'customer') -> int:
         """
-        Create a new user with a hashed password.
+        Create a new user. The caller passes a plain-text password;
+        hashing happens invisibly inside this method, so nowhere else
+        in the codebase needs to know how passwords are hashed.
         Returns the new user's id.
-
-        Encapsulation: callers pass the plain password;
-        hashing happens inside this method, invisibly.
         """
         return cls.create({
             'name':          name,
@@ -70,10 +74,9 @@ class UserModel(BaseModel):
     @classmethod
     def authenticate(cls, email: str, password: str) -> dict | None:
         """
-        Verify email + password.
-        Returns the user dict on success, None on failure.
-
-        Encapsulation: raw hash comparison stays inside this method.
+        Verify an email + password combination.
+        Returns the user dict on success, or None on failure —
+        callers never see (or need to compare) a raw hash themselves.
         """
         user = cls.find_by_email(email)
         if user and check_password(password, user['password_hash']):
@@ -87,7 +90,7 @@ class UserModel(BaseModel):
 
     @classmethod
     def record_failed_login(cls, user_id: int) -> None:
-        """Increment the failed_logins counter."""
+        """Increment the failed_logins counter after a wrong password."""
         Database.execute(
             "UPDATE users SET failed_logins = failed_logins + 1 WHERE id = %s",
             (user_id,)
@@ -95,7 +98,8 @@ class UserModel(BaseModel):
 
     @classmethod
     def update_last_login(cls, user_id: int) -> None:
-        """Reset failed_logins and stamp last_login = NOW()."""
+        """Reset failed_logins back to 0 and stamp last_login = NOW()
+        after a successful login."""
         Database.execute(
             "UPDATE users SET failed_logins = 0, last_login = NOW() WHERE id = %s",
             (user_id,)
@@ -103,7 +107,7 @@ class UserModel(BaseModel):
 
     @classmethod
     def soft_delete(cls, user_id: int) -> None:
-        """Deactivate a user without removing the row."""
+        """Deactivate a user account without deleting the row."""
         cls.update(user_id, {'is_active': 0})
 
     @classmethod
@@ -113,5 +117,5 @@ class UserModel(BaseModel):
 
     @classmethod
     def all_by_role(cls, role: str) -> list[dict]:
-        """Return all users with a specific role."""
+        """Return all users that have a specific role (customer/seller/admin)."""
         return cls.find_where("role = %s ORDER BY created_at DESC", (role,))

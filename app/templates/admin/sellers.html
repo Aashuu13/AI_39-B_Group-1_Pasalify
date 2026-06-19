@@ -1,3 +1,8 @@
+{# 
+admin/sellers.html
+Rendered by: AdminController.sellers()
+Context: sellers (every store + its owner, for approve/reject).
+#}
 {% extends "admin/base_admin.html" %}
 {% block title %}Sellers{% endblock %}
 {% block admin_content %}
@@ -27,15 +32,23 @@
               {% endif %}
               <div>
                 <div style="font-weight:600;font-size:.88rem">{{ s.name }}</div>
-                <a href="{{ url_for('customer.store_detail', slug=s.slug) }}" target="_blank" style="font-size:.74rem;color:var(--purple2)">
-                  /store/{{ s.slug }} <i class="bi bi-box-arrow-up-right"></i>
-                </a>
+                <span style="font-size:.74rem;color:var(--purple2)">/store/{{ s.slug }}</span>
               </div>
             </div>
           </td>
           <td style="font-size:.88rem">{{ s.owner }}</td>
-          <td style="color:var(--muted);font-size:.82rem">{{ s.email }}</td>
-          <td style="font-size:.85rem">{{ s.commission_rate }}%</td>
+          <td style="color:#E6EDF3;font-size:.82rem">{{ s.email }}</td>
+          <td style="font-size:.85rem">
+            <form action="{{ url_for('admin.seller_commission', sid=s.id) }}" method="POST" class="d-flex align-items-center gap-1">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="number" name="commission_rate" value="{{ s.commission_rate }}" min="0" max="100" step="0.1"
+                     class="form-control form-control-sm" style="width:70px;padding:.25rem .4rem">
+              <span>%</span>
+              <button type="submit" class="btn btn-sm btn-outline-purple" title="Save commission rate">
+                <i class="bi bi-check2"></i>
+              </button>
+            </form>
+          </td>
           <td>
             {% if s.is_approved and s.is_active %}
               <span class="badge-green">Approved</span>
@@ -45,7 +58,7 @@
               <span class="badge-gold">Pending</span>
             {% endif %}
           </td>
-          <td style="color:var(--muted);font-size:.8rem">{{ s.created_at.strftime('%b %d, %Y') if s.created_at else '' }}</td>
+          <td style="color:#E6EDF3;font-size:.8rem">{{ s.created_at.strftime('%b %d, %Y') if s.created_at else '' }}</td>
           <td>
             <div class="d-flex gap-1">
               {% if not s.is_approved %}
@@ -63,7 +76,7 @@
           </td>
         </tr>
         {% else %}
-        <tr><td colspan="7" class="text-center py-4" style="color:var(--muted)">No sellers registered yet.</td></tr>
+        <tr><td colspan="7" class="text-center py-4" style="color:#E6EDF3">No sellers registered yet.</td></tr>
         {% endfor %}
         </tbody>
       </table>
