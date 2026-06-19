@@ -55,7 +55,9 @@ class CartModel(BaseModel):
 
     @classmethod
     def update_qty(cls, user_id: int, product_id: int, qty: int) -> None:
-        """Set an exact quantity for a cart item."""
+        """Set an exact quantity for a cart item. Quantity must be at least 1."""
+        if qty < 1:
+            raise ValueError("Quantity must be at least 1")
         Database.execute(
             "UPDATE cart SET quantity = %s WHERE user_id = %s AND product_id = %s",
             (qty, user_id, product_id)
