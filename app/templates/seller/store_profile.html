@@ -1,0 +1,74 @@
+{# 
+seller/store_profile.html
+Rendered by: SellerController.store_profile()
+Context: store. Extends seller/base_seller.html.
+#}
+{% extends "seller/base_seller.html" %}
+{% block title %}Store Profile{% endblock %}
+{% block seller_content %}
+<div class="page-title">Store Profile & Branding</div>
+<div class="page-subtitle">Customize how customers see your store</div>
+<form method="post" enctype="multipart/form-data">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="row g-3">
+    <div class="col-md-8">
+      <div class="card mb-3">
+        <div class="card-header">Store Information</div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="form-label">Store Name</label>
+            <input type="text" class="form-control" name="name" value="{{ store.name }}" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Description</label>
+            <textarea class="form-control" name="description" rows="4">{{ store.description or '' }}</textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Store URL (Slug)</label>
+            <div class="input-group">
+              <span class="input-group-text" style="font-size:.82rem">pasalify.com/store/</span>
+              <input type="text" class="form-control" value="{{ store.slug }}" disabled style="opacity:.6">
+            </div>
+            <div style="color:#E6EDF3;font-size:.75rem;margin-top:.3rem">Slug is auto-generated and cannot be changed.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card mb-3">
+        <div class="card-header">Logo</div>
+        <div class="card-body text-center">
+          {% if store.logo %}
+          <img src="{{ url_for('static', filename=store.logo) }}" id="logo-prev" style="width:100px;height:100px;object-fit:cover;border-radius:50%;border:3px solid var(--purple);margin-bottom:.75rem">
+          {% else %}
+          <div id="logo-prev-placeholder" style="width:100px;height:100px;background:var(--navy3);border-radius:50%;margin:0 auto .75rem;display:flex;align-items:center;justify-content:center;font-size:2rem;color:#E6EDF3"><i class="bi bi-shop"></i></div>
+          {% endif %}
+          <input type="file" class="form-control img-upload" name="logo" accept="image/*" data-preview="logo-prev">
+        </div>
+      </div>
+      <div class="card mb-3">
+        <div class="card-header">Banner</div>
+        <div class="card-body">
+          {% if store.banner %}
+          <img src="{{ url_for('static', filename=store.banner) }}" id="banner-prev" style="width:100%;height:80px;object-fit:cover;border-radius:8px;margin-bottom:.75rem">
+          {% endif %}
+          <input type="file" class="form-control img-upload" name="banner" accept="image/*" data-preview="banner-prev">
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">Brand Color</div>
+        <div class="card-body">
+          <label class="form-label">Theme Color</label>
+          <div class="d-flex gap-2 align-items-center">
+            <input type="color" class="form-control form-control-sm" id="theme_color" name="theme_color" value="{{ store.theme_color }}" style="width:50px;height:40px;padding:2px;cursor:pointer">
+            <div id="color-preview" style="flex:1;height:40px;border-radius:8px;background:{{ store.theme_color }}"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12">
+      <button type="submit" class="btn btn-purple"><i class="bi bi-check-circle me-1"></i> Save Changes</button>
+    </div>
+  </div>
+</form>
+{% endblock %}
