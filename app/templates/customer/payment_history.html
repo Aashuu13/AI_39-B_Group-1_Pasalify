@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Payment History{% endblock %}
+{% block content %}
+<div class="container mt-4 mb-5">
+  <h1 class="page-title">Payment History</h1>
+  <p class="page-subtitle">All your transactions — read only</p>
+  {% if pays %}
+  <div class="card">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead><tr><th>Date</th><th>Order</th><th>Amount</th><th>Method</th><th>Status</th></tr></thead>
+          <tbody>
+          {% for p in pays %}
+          <tr>
+            <td style="color:var(--muted);font-size:.85rem">{{ p.created_at.strftime('%b %d, %Y') if p.created_at else '' }}</td>
+            <td><span style="color:var(--purple2)">{{ p.order_number }}</span></td>
+            <td><strong>Rs. {{ "%.0f"|format(p.amount) }}</strong></td>
+            <td><span class="badge-purple" style="font-size:.72rem">{{ p.method|upper }}</span></td>
+            <td><span class="status-badge s-{{ p.status }}">{{ p.status|title }}</span></td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="text-center py-5" style="color:var(--muted)">
+    <i class="bi bi-credit-card" style="font-size:3rem;opacity:.3"></i>
+    <h4 class="mt-3">No payment records yet</h4>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Support Tickets{% endblock %}
+{% block admin_content %}
+<div class="page-title">Support Tickets</div>
+<div class="page-subtitle">All customer support messages — reply directly from here</div>
+
+{% if tickets %}
+{% for t in tickets %}
+<div class="card mb-3">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <div>
+      <i class="bi bi-person-circle me-2" style="color:var(--purple2)"></i>
+      <strong>{{ t.customer_name or 'Guest' }}</strong>
+      <span style="color:var(--muted);font-size:.8rem;margin-left:.5rem">{{ t.customer_email or '' }}</span>
+    </div>
+    <span style="color:var(--muted);font-size:.78rem">
+      {{ t.created_at.strftime('%b %d, %Y %H:%M') if t.created_at else '' }}
+    </span>
+  </div>
+  <div class="card-body">
+    <!-- Customer message -->
+    <div style="background:rgba(108,63,200,.07);border-radius:10px;padding:.8rem 1rem;margin-bottom:.8rem">
+      <div style="font-size:.78rem;color:var(--purple2);font-weight:600;margin-bottom:.3rem">
+        <i class="bi bi-chat-left-text me-1"></i>Customer Message
+      </div>
+      <div style="font-size:.9rem">{{ t.message }}</div>
+    </div>
+
+    <!-- Existing admin replies -->
+    {% if t.replies %}
+    {% for r in t.replies %}
+    <div style="background:rgba(16,185,129,.08);border-radius:10px;padding:.7rem 1rem;margin-bottom:.6rem;margin-left:1.5rem">
+      <div style="font-size:.75rem;color:#10b981;font-weight:600;margin-bottom:.2rem">
+        <i class="bi bi-shield-check me-1"></i>Admin Reply · {{ r.created_at.strftime('%b %d, %H:%M') if r.created_at else '' }}
+      </div>
+      <div style="font-size:.88rem">{{ r.message }}</div>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- Reply form -->
+    <form method="post" action="{{ url_for('admin.support_reply') }}" class="d-flex gap-2 mt-2">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="parent_id" value="{{ t.id }}">
+      <input type="hidden" name="customer_id" value="{{ t.user_id }}">
+      <input type="text" name="message" class="form-control form-control-sm"
+             placeholder="Type a reply to {{ t.customer_name or 'customer' }}..." required
+             style="border-radius:8px">
+      <button class="btn btn-purple btn-sm" style="border-radius:8px;white-space:nowrap">
+        <i class="bi bi-send me-1"></i>Send
+      </button>
+    </form>
+  </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="card">
+  <div class="card-body text-center py-5" style="color:var(--muted)">
+    <i class="bi bi-inbox" style="font-size:2.5rem;opacity:.4"></i>
+    <p class="mt-2">No support tickets yet.</p>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

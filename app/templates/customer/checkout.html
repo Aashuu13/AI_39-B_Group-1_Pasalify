@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}Checkout{% endblock %}
+{% block content %}
+<div class="container mt-4 mb-5">
+  <h1 class="page-title">Checkout</h1>
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="row g-4">
+      <!-- Delivery info -->
+      <div class="col-md-7">
+        <div class="card mb-3">
+          <div class="card-header"><i class="bi bi-geo-alt me-1"></i> Delivery Details</div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">Full Name</label>
+                <input type="text" class="form-control" name="full_name" value="{{ user.name }}" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Phone</label>
+                <input type="text" class="form-control" name="phone" value="{{ user.phone or '' }}" placeholder="+977 98XXXXXXXX" required>
+              </div>
+              <div class="col-12">
+                <label class="form-label">Delivery Address</label>
+                <textarea class="form-control" name="address" rows="2" required>{{ user.address or '' }}</textarea>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">City</label>
+                <input type="text" class="form-control" name="city" value="{{ user.city or '' }}" placeholder="Kathmandu">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment method -->
+        <div class="card mb-3">
+          <div class="card-header"><i class="bi bi-credit-card me-1"></i> Payment Method</div>
+          <div class="card-body">
+            <div class="row g-2">
+              {% for method, label, icon, color in [('cod','Cash on Delivery','cash-coin','#10B981'),('esewa','eSewa','phone','#10B981'),('khalti','Khalti','phone-vibrate','#6C3FC8')] %}
+              <div class="col-4">
+                <label style="cursor:pointer;width:100%">
+                  <input type="radio" name="payment_method" value="{{ method }}" {% if method=='cod' %}checked{% endif %} style="display:none" class="pay-radio">
+                  <div class="pay-card text-center" style="border:2px solid var(--border);border-radius:10px;padding:1rem .5rem;transition:.2s">
+                    <i class="bi bi-{{ icon }}" style="font-size:1.6rem;color:{{ color }}"></i>
+                    <div style="font-size:.8rem;font-weight:600;margin-top:.3rem">{{ label }}</div>
+                  </div>
+                </label>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Promo code -->
+        <div class="card">
+          <div class="card-header"><i class="bi bi-tag me-1"></i> Promo Code</div>
+          <div class="card-body">
+            <div class="d-flex gap-2">
+              <input type="text" class="form-control" id="promo_code" name="promo_code" placeholder="Enter code e.g. SAVE10">
+              <input type="hidden" id="subtotal-val" value="{{ subtotal }}">
+              <button type="button" class="btn btn-outline-purple" id="apply-promo-btn">Apply</button>
+            </div>
+            <div id="promo-msg" style="display:none;margin-top:.5rem"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Order summary -->
+      <div class="col-md-5">
+        <div class="card sticky-top" style="top:80px">
+          <div class="card-header"><i class="bi bi-bag me-1"></i> Order Summary</div>
+          <div class="card-body">
+            {% for item in items %}
+            <div class="d-flex gap-2 mb-2 align-items-center">
+              {% if item.image_path %}
+              <img src="{{ url_for('static', filename=item.image_path) }}" style="width:40px;height:40px;object-fit:cover;border-radius:6px">
+              {% else %}
+              <div style="width:40px;height:40px;background:var(--navy3);border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--muted)"><i class="bi bi-image"></i></div>
+              {% endif %}
+              <div class="flex-grow-1">
+                <div style="font-size:.85rem;font-weight:500">{{ item.name[:30] }}</div>
+                <div style="font-size:.78rem;color:var(--muted)">Qty: {{ item.quantity }}</div>
+              </div>
+              <div style="font-weight:600;font-size:.9rem">Rs. {{ "%.0f"|format(item.price * item.quantity) }}</div>
+            </div>
+            {% endfor %}
+            <div class="divider"></div>
+            <div class="d-flex justify-content-between mb-1" style="color:var(--muted);font-size:.88rem">
+              <span>Subtotal</span><span>Rs. {{ "%.0f"|format(subtotal) }}</span>
+            </div>
+            <div class="d-flex justify-content-between mb-1" style="color:var(--muted);font-size:.88rem" id="discount-row" style="display:none!important">
+              <span>Discount</span><span id="discount-val" style="color:#34D399"></span>
+            </div>
+            <div class="d-flex justify-content-between mb-1" style="color:var(--muted);font-size:.88rem">
+              <span>Delivery</span><span style="color:#34D399">FREE</span>
+            </div>
+            <div class="divider"></div>
+            <div class="d-flex justify-content-between mb-3">
+              <strong style="font-size:1.05rem">Total</strong>
+              <strong id="total-display" style="color:var(--purple2);font-size:1.2rem">Rs. {{ "%.0f"|format(subtotal) }}</strong>
+            </div>
+            <button type="submit" class="btn btn-purple w-100" style="padding:.7rem">
+              <i class="bi bi-bag-check me-1"></i> Place Order
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+<script>
+document.querySelectorAll('.pay-radio').forEach(r=>{
+  r.addEventListener('change',()=>{
+    document.querySelectorAll('.pay-card').forEach(c=>c.style.borderColor='var(--border)');
+    r.nextElementSibling.style.borderColor='var(--purple)';
+  });
+  if(r.checked) r.nextElementSibling.style.borderColor='var(--purple)';
+});
+</script>
+{% endblock %}

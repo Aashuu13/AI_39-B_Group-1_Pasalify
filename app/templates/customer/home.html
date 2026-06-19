@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="row align-items-center g-4">
+      <div class="col-lg-6">
+        <h1>Your Own <br><em>Multi-Vendor</em><br>Marketplace</h1>
+        <p style="color:var(--muted);font-size:1.05rem;margin:1.2rem 0">
+          Discover thousands of products from verified local sellers. Pay with eSewa, Khalti, or Cash on Delivery.
+        </p>
+        <div class="d-flex gap-2 flex-wrap">
+          <a href="{{ url_for('customer.products') }}" class="btn btn-purple" style="padding:.65rem 1.5rem">
+            <i class="bi bi-grid me-1"></i> Shop Now
+          </a>
+          <a href="{{ url_for('auth.register') }}" class="btn btn-outline-purple" style="padding:.65rem 1.5rem">
+            <i class="bi bi-shop me-1"></i> Start Selling
+          </a>
+        </div>
+        <div class="d-flex gap-4 mt-3">
+          <div><strong style="color:var(--purple2)">500+</strong><div style="color:var(--muted);font-size:.8rem">Products</div></div>
+          <div><strong style="color:var(--purple2)">50+</strong><div style="color:var(--muted);font-size:.8rem">Sellers</div></div>
+          <div><strong style="color:var(--purple2)">3</strong><div style="color:var(--muted);font-size:.8rem">Payment Options</div></div>
+        </div>
+      </div>
+      <div class="col-lg-6 text-center">
+        <div style="background:rgba(108,63,200,.08);border:1px solid rgba(108,63,200,.2);border-radius:20px;padding:2rem">
+          <i class="bi bi-bag-heart-fill" style="font-size:6rem;color:var(--purple);opacity:.7"></i>
+          <div style="display:flex;gap:.5rem;justify-content:center;margin-top:1rem;flex-wrap:wrap">
+            {% for cat in cats[:6] %}
+            <a href="{{ url_for('customer.products', cat=cat.slug) }}" class="cat-pill">
+              <i class="bi bi-{{ cat.icon }}"></i> {{ cat.name }}
+            </a>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CATEGORIES -->
+<section class="container mt-5">
+  <h2 class="section-title">Shop by Category</h2>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{{ url_for('customer.products') }}" class="cat-pill active-on-all"><i class="bi bi-grid"></i> All</a>
+    {% for cat in cats %}
+    <a href="{{ url_for('customer.products', cat=cat.slug) }}" class="cat-pill">
+      <i class="bi bi-{{ cat.icon }}"></i> {{ cat.name }}
+    </a>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- FEATURED PRODUCTS -->
+<section class="container mt-4 mb-5">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="section-title mb-0">Latest Products</h2>
+    <a href="{{ url_for('customer.products') }}" style="color:var(--purple2);font-size:.9rem">View all <i class="bi bi-arrow-right"></i></a>
+  </div>
+  {% if featured %}
+  <div class="row g-3">
+    {% for p in featured %}
+    <div class="col-6 col-md-4 col-lg-3">
+      <div class="product-card">
+        <a href="{{ url_for('customer.product_detail', pid=p.id) }}">
+          {% if p.image_path %}
+          <img src="{{ url_for('static', filename=p.image_path) }}" alt="{{ p.name }}" loading="lazy">
+          {% else %}
+          <div class="product-no-img"><i class="bi bi-image"></i></div>
+          {% endif %}
+        </a>
+        <div class="p-body">
+          <div class="p-store"><i class="bi bi-shop me-1"></i>{{ p.store_name }}</div>
+          <a href="{{ url_for('customer.product_detail', pid=p.id) }}" style="color:var(--text)">
+            <div class="p-name">{{ p.name }}</div>
+          </a>
+          <div class="p-rating">
+            {% for i in range(5) %}
+            <i class="bi bi-star{% if i < p.avg_rating|int %}-fill{% endif %}"></i>
+            {% endfor %}
+            <span style="color:var(--muted)">({{ p.review_count }})</span>
+          </div>
+          <div>
+            <span class="p-price">Rs. {{ "%.0f"|format(p.price) }}</span>
+            {% if p.compare_price and p.compare_price > p.price %}
+            <span class="p-compare">Rs. {{ "%.0f"|format(p.compare_price) }}</span>
+            {% endif %}
+          </div>
+          <div class="p-actions">
+            <form method="post" action="{{ url_for('customer.cart_add', pid=p.id) }}" style="flex:1">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" name="quantity" value="1">
+              <button type="submit" class="btn btn-purple btn-sm w-100">
+                <i class="bi bi-cart-plus"></i> Add
+              </button>
+            </form>
+            <a href="{{ url_for('customer.wishlist_toggle', pid=p.id) }}" class="btn btn-outline-purple btn-sm">
+              <i class="bi bi-heart"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="text-center py-5" style="color:var(--muted)">
+    <i class="bi bi-box-seam" style="font-size:3rem"></i>
+    <p class="mt-2">No products yet. Check back soon!</p>
+  </div>
+  {% endif %}
+</section>
+
+<!-- FEATURES BANNER -->
+<section style="background:var(--navy2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:2.5rem 0">
+  <div class="container">
+    <div class="row g-3 text-center">
+      <div class="col-6 col-md-3">
+        <i class="bi bi-truck" style="font-size:2rem;color:var(--purple2)"></i>
+        <div style="font-weight:600;margin-top:.5rem">Fast Delivery</div>
+        <div style="color:var(--muted);font-size:.8rem">Across Nepal</div>
+      </div>
+      <div class="col-6 col-md-3">
+        <i class="bi bi-shield-check" style="font-size:2rem;color:var(--purple2)"></i>
+        <div style="font-weight:600;margin-top:.5rem">Secure Payments</div>
+        <div style="color:var(--muted);font-size:.8rem">eSewa · Khalti · COD</div>
+      </div>
+      <div class="col-6 col-md-3">
+        <i class="bi bi-arrow-repeat" style="font-size:2rem;color:var(--purple2)"></i>
+        <div style="font-weight:600;margin-top:.5rem">Easy Returns</div>
+        <div style="color:var(--muted);font-size:.8rem">7-day return policy</div>
+      </div>
+      <div class="col-6 col-md-3">
+        <i class="bi bi-headset" style="font-size:2rem;color:var(--purple2)"></i>
+        <div style="font-weight:600;margin-top:.5rem">24/7 Support</div>
+        <div style="color:var(--muted);font-size:.8rem">Chat & email help</div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
