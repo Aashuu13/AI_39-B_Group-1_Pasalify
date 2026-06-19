@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex">
+  <div class="sidebar">
+    <div style="padding:1rem 1.25rem .5rem">
+      {% if store %}
+      <div style="font-size:.82rem;color:var(--muted)">Store</div>
+      <div style="font-weight:700;font-size:.95rem;color:var(--text)">{{ store.name }}</div>
+      <div class="mt-1">
+        {% if store.is_approved %}
+        <span class="badge-green" style="font-size:.7rem"><i class="bi bi-check-circle me-1"></i>Approved</span>
+        {% else %}
+        <span class="badge-gold" style="font-size:.7rem"><i class="bi bi-clock me-1"></i>Pending Approval</span>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+    <div class="divider" style="margin:.75rem 0"></div>
+    <div class="sidebar-section">Overview</div>
+    <a href="{{ url_for('seller.dashboard') }}" class="sidebar-link {% if request.endpoint=='seller.dashboard' %}active{% endif %}">
+      <i class="bi bi-speedometer2"></i> Dashboard
+    </a>
+    <a href="{{ url_for('seller.orders') }}" class="sidebar-link {% if request.endpoint=='seller.orders' %}active{% endif %}">
+      <i class="bi bi-box-seam"></i> Orders
+    </a>
+    <div class="sidebar-section">Catalog</div>
+    <a href="{{ url_for('seller.products') }}" class="sidebar-link {% if 'seller.product' in request.endpoint %}active{% endif %}">
+      <i class="bi bi-grid"></i> Products
+    </a>
+    <a href="{{ url_for('seller.product_add') }}" class="sidebar-link">
+      <i class="bi bi-plus-circle"></i> Add Product
+    </a>
+    <a href="{{ url_for('seller.categories') }}" class="sidebar-link {% if request.endpoint=='seller.categories' %}active{% endif %}">
+      <i class="bi bi-tags"></i> Categories
+    </a>
+    <a href="{{ url_for('seller.inventory') }}" class="sidebar-link {% if request.endpoint=='seller.inventory' %}active{% endif %}">
+      <i class="bi bi-boxes"></i> Inventory
+    </a>
+    <div class="sidebar-section">Customers</div>
+    <a href="{{ url_for('seller.chats') }}" class="sidebar-link {% if 'seller.chat' in request.endpoint %}active{% endif %}">
+      <i class="bi bi-chat-dots"></i> Messages
+    </a>
+    <a href="{{ url_for('seller.reviews') }}" class="sidebar-link {% if request.endpoint=='seller.reviews' %}active{% endif %}">
+      <i class="bi bi-star"></i> Reviews
+    </a>
+    <a href="{{ url_for('seller.support_tickets') }}" class="sidebar-link {% if request.endpoint=='seller.support_tickets' %}active{% endif %}">
+      <i class="bi bi-headset"></i> Support Tickets
+    </a>
+    <div class="sidebar-section">Store</div>
+    <a href="{{ url_for('seller.store_profile') }}" class="sidebar-link {% if request.endpoint=='seller.store_profile' %}active{% endif %}">
+      <i class="bi bi-person-vcard"></i> Store Profile
+    </a>
+    <a href="{{ url_for('seller.store_customize') }}" class="sidebar-link {% if request.endpoint=='seller.store_customize' %}active{% endif %}">
+      <i class="bi bi-palette"></i> Customize
+    </a>
+    {% if store %}
+    <a href="{{ url_for('store.public_store', slug=store.slug) }}" class="sidebar-link" target="_blank">
+      <i class="bi bi-box-arrow-up-right"></i> View Store
+    </a>
+    {% endif %}
+  </div>
+  <div class="main-content">
+    {% block seller_content %}{% endblock %}
+  </div>
+</div>
+{% endblock %}
