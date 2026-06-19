@@ -52,3 +52,4 @@ class NotificationModel(BaseModel):
             'type':    notif_type,
             'is_read': 0,
         })
+# Handles low stock and system notifications
