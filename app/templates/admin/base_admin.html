@@ -1,0 +1,56 @@
+{# 
+admin/base_admin.html — admin layout wrapper
+Extended by every admin/*.html page (not rendered directly by
+any controller). Adds the admin sidebar on top of base.html.
+#}
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex">
+  <div class="sidebar">
+    <div style="padding:1rem 1.25rem .5rem">
+      <div style="font-size:.75rem;color:#E6EDF3;text-transform:uppercase;letter-spacing:.08em">Admin Panel</div>
+      <div style="font-weight:700;font-size:.95rem;color:#E6EDF3">Pasalify Admin</div>
+    </div>
+    <div style="border-top:1px solid var(--border);margin:.5rem 0"></div>
+    <div class="sidebar-section">Overview</div>
+    <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link {% if request.endpoint=='admin.dashboard' %}active{% endif %}">
+      <i class="bi bi-speedometer2"></i> Dashboard
+    </a>
+    <div class="sidebar-section">Users</div>
+    <a href="{{ url_for('admin.users') }}" class="sidebar-link {% if request.endpoint=='admin.users' %}active{% endif %}">
+      <i class="bi bi-people"></i> All Users
+    </a>
+    <a href="{{ url_for('admin.sellers') }}" class="sidebar-link {% if request.endpoint=='admin.sellers' %}active{% endif %}">
+      <i class="bi bi-shop"></i> Sellers & Stores
+    </a>
+    <div class="sidebar-section">Content</div>
+    <a href="{{ url_for('admin.products') }}" class="sidebar-link {% if request.endpoint=='admin.products' %}active{% endif %}">
+      <i class="bi bi-grid"></i> Products
+    </a>
+    <a href="{{ url_for('admin.categories') }}" class="sidebar-link {% if request.endpoint=='admin.categories' %}active{% endif %}">
+      <i class="bi bi-tags"></i> Categories
+    </a>
+    <div class="sidebar-section">Finance</div>
+    <a href="{{ url_for('admin.finances') }}" class="sidebar-link {% if request.endpoint=='admin.finances' %}active{% endif %}">
+      <i class="bi bi-cash-stack"></i> Transactions
+    </a>
+    <a href="{{ url_for('admin.promos') }}" class="sidebar-link {% if request.endpoint=='admin.promos' %}active{% endif %}">
+      <i class="bi bi-tag"></i> Promo Codes
+    </a>
+    <div class="sidebar-section">System</div>
+    <a href="{{ url_for('admin.system') }}" class="sidebar-link {% if request.endpoint=='admin.system' %}active{% endif %}">
+      <i class="bi bi-shield-check"></i> Monitoring & Logs
+    </a>
+    <a href="{{ url_for('admin.support_tickets') }}" class="sidebar-link {% if request.endpoint=='admin.support_tickets' %}active{% endif %}">
+      <i class="bi bi-headset"></i> Support Tickets
+    </a>
+    <div style="border-top:1px solid var(--border);margin:.75rem 0"></div>
+    <a href="{{ url_for('customer.home') }}" class="sidebar-link">
+      <i class="bi bi-box-arrow-left"></i> Back to Store
+    </a>
+  </div>
+  <div class="main-content">
+    {% block admin_content %}{% endblock %}
+  </div>
+</div>
+{% endblock %}

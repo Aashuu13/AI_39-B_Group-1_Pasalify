@@ -1,0 +1,93 @@
+{# 
+admin/promos.html
+Rendered by: AdminController.promos()
+Context: codes (every promo code ever created).
+#}
+{% extends "admin/base_admin.html" %}
+{% block title %}Promo Codes{% endblock %}
+{% block admin_content %}
+<div class="page-title">Promo Code Management</div>
+<div class="page-subtitle">Create and manage discount codes for customers</div>
+
+<div class="row g-3">
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-header"><i class="bi bi-plus-circle me-1"></i> Create Promo Code</div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('admin.promo_add') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="mb-2">
+            <label class="form-label">Code <small style="color:#E6EDF3">(uppercase)</small></label>
+            <input type="text" class="form-control form-control-sm" name="code" placeholder="e.g. SAVE10" required style="text-transform:uppercase">
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Discount Type</label>
+            <select class="form-select form-select-sm" name="discount_type">
+              <option value="percent">Percent (%)</option>
+              <option value="fixed">Fixed Amount (Rs.)</option>
+            </select>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Discount Value</label>
+            <input type="number" class="form-control form-control-sm" name="discount_value" min="0" step="0.01" required>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Min Order (Rs.)</label>
+            <input type="number" class="form-control form-control-sm" name="min_order" value="0" min="0">
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Max Uses <small style="color:#E6EDF3">(blank = unlimited)</small></label>
+            <input type="number" class="form-control form-control-sm" name="max_uses" min="1">
+          </div>
+          <div class="row g-1 mb-3">
+            <div class="col-6">
+              <label class="form-label">Valid From</label>
+              <input type="date" class="form-control form-control-sm" name="valid_from">
+            </div>
+            <div class="col-6">
+              <label class="form-label">Valid Until</label>
+              <input type="date" class="form-control form-control-sm" name="valid_until">
+            </div>
+          </div>
+          <button type="submit" class="btn btn-purple btn-sm w-100">Create Code</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header">All Promo Codes</div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table mb-0">
+            <thead><tr><th>Code</th><th>Discount</th><th>Min Order</th><th>Used</th><th>Valid Until</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+            {% for c in codes %}
+            <tr>
+              <td><strong style="color:var(--purple2);letter-spacing:.05em">{{ c.code }}</strong></td>
+              <td style="font-size:.88rem">
+                {% if c.discount_type == 'percent' %}{{ c.discount_value|int }}%
+                {% else %}Rs. {{ "%.0f"|format(c.discount_value) }}{% endif %}
+              </td>
+              <td style="color:#E6EDF3;font-size:.82rem">Rs. {{ "%.0f"|format(c.min_order) }}</td>
+              <td style="font-size:.82rem">{{ c.used_count }}{% if c.max_uses %} / {{ c.max_uses }}{% endif %}</td>
+              <td style="color:#E6EDF3;font-size:.8rem">{{ c.valid_until or '—' }}</td>
+              <td>{% if c.is_active %}<span class="badge-green">Active</span>{% else %}<span class="badge-red">Inactive</span>{% endif %}</td>
+              <td>
+                <a href="{{ url_for('admin.promo_toggle', pid=c.id) }}" class="btn btn-sm btn-outline-purple">
+                  {% if c.is_active %}Disable{% else %}Enable{% endif %}
+                </a>
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="7" class="text-center py-3" style="color:#E6EDF3">No promo codes yet.</td></tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
