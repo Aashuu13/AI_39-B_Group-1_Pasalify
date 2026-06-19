@@ -502,3 +502,4 @@ class SellerController(BaseController):
 
 # ── Singleton ─────────────────────────────────────────────────────────────────
 seller_controller = SellerController()
+# Seller controller manages all seller-facing operations
