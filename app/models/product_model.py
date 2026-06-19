@@ -174,4 +174,4 @@ class ProductModel(BaseModel):
                 WHERE r.product_id = p.id AND r.is_approved = 1
             )
             WHERE p.id = %s
-        """, (product_id,))
+        """, (product_id,))# Handles product CRUD operations
