@@ -123,4 +123,4 @@ class OrderModel(BaseModel):
             WHERE created_at >= DATE_SUB(NOW(), INTERVAL %s MONTH)
             GROUP BY month
             ORDER BY month
-        """, (months,))
+        """, (months,))# Handles order status and tracking
