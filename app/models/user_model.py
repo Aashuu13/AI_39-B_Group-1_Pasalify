@@ -113,3 +113,4 @@ class UserModel(BaseModel):
     def all_by_role(cls, role: str) -> list[dict]:
         """Return all users with a specific role."""
         return cls.find_where("role = %s ORDER BY created_at DESC", (role,))# User model handles seller and customer registration
+# Handles seller and customer registration
