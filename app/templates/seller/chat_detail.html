@@ -1,0 +1,28 @@
+{% extends "seller/base_seller.html" %}
+{% block title %}Chat{% endblock %}
+{% block seller_content %}
+<div class="d-flex align-items-center gap-2 mb-3">
+  <a href="{{ url_for('seller.chats') }}" style="color:var(--muted)"><i class="bi bi-arrow-left"></i></a>
+  <div class="page-title mb-0">Chat with {{ customer.name }}</div>
+</div>
+<div class="card" style="max-width:700px">
+  <div class="card-header" style="font-size:.88rem;color:var(--muted)">
+    <i class="bi bi-person-circle me-1" style="color:var(--purple2)"></i>{{ customer.name }}
+  </div>
+  <div class="chat-box" id="chat-messages">
+    {% for m in msgs %}
+    <div class="msg-bubble {% if m.sender_id == session.user_id %}msg-me{% else %}msg-other{% endif %}">
+      <span>{{ m.message }}</span>
+      <span class="msg-time">{{ m.name }} · {{ m.created_at.strftime('%I:%M %p') if m.created_at else '' }}</span>
+    </div>
+    {% endfor %}
+  </div>
+  <div style="padding:1rem;border-top:1px solid var(--border)">
+    <form method="post" class="d-flex gap-2">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="text" class="form-control" name="message" placeholder="Type a message..." autocomplete="off" required>
+      <button type="submit" class="btn btn-purple"><i class="bi bi-send"></i></button>
+    </form>
+  </div>
+</div>
+{% endblock %}
