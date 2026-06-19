@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}Support{% endblock %}
+{% block content %}
+<div class="container mt-4 mb-5" style="max-width:700px">
+  <h1 class="page-title">Customer Support</h1>
+  <p class="page-subtitle">Get help instantly with our support bot or browse FAQs</p>
+
+  <div class="row g-3 mb-4">
+    {% for q, a in [('How do I track my order?','Go to Profile → My Orders to see live status.'),
+                    ('What payment methods are accepted?','eSewa, Khalti, and Cash on Delivery (COD).'),
+                    ('How do I return a product?','Contact the seller within 7 days via the chat feature.'),
+                    ('How do I become a seller?','Register and choose "Seller" account type!')] %}
+    <div class="col-md-6">
+      <div class="card" style="cursor:pointer" onclick="document.getElementById('chat-input').value='{{ q }}';document.getElementById('chat-input').focus()">
+        <div class="card-body" style="padding:.9rem">
+          <div style="font-weight:600;font-size:.88rem;color:var(--purple2)"><i class="bi bi-question-circle me-1"></i>{{ q }}</div>
+          <div style="font-size:.8rem;color:var(--muted);margin-top:.2rem">{{ a }}</div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="card">
+    <div class="card-header d-flex align-items-center gap-2">
+      <div style="width:8px;height:8px;background:#10B981;border-radius:50%"></div>
+      <span>Pasalify Support</span>
+      <span style="color:var(--muted);font-size:.78rem;margin-left:auto">Online 24/7</span>
+    </div>
+    <div class="card-body" style="padding:0">
+      <div class="chat-box" id="chat-messages" style="border:none;border-radius:0;height:360px">
+        <div class="msg-bubble msg-other">
+          <span>👋 Hi! I'm Pasalify's support bot. Ask me about orders, payments, returns, or anything else!</span>
+          <span class="msg-time">Now</span>
+        </div>
+
+        <!-- Previous conversation history from DB including admin replies -->
+        {% for m in history %}
+        {% if m.role == 'user' %}
+        <div class="msg-bubble msg-me">
+          <span>{{ m.message }}</span>
+          <span class="msg-time">{{ m.created_at.strftime('%b %d, %I:%M %p') if m.created_at else '' }}</span>
+        </div>
+        {% elif m.role == 'admin' %}
+        <div class="msg-bubble msg-other" style="border-left:3px solid #10b981">
+          <span style="font-size:.72rem;color:#10b981;font-weight:600;display:block;margin-bottom:.2rem">
+            <i class="bi bi-shield-check me-1"></i>Pasalify Admin
+          </span>
+          <span>{{ m.message }}</span>
+          <span class="msg-time">{{ m.created_at.strftime('%b %d, %I:%M %p') if m.created_at else '' }}</span>
+        </div>
+        {% else %}
+        <div class="msg-bubble msg-other">
+          <span>{{ m.message }}</span>
+          <span class="msg-time">{{ m.created_at.strftime('%b %d, %I:%M %p') if m.created_at else '' }}</span>
+        </div>
+        {% endif %}
+        {% endfor %}
+      </div>
+      <div style="padding:1rem;border-top:1px solid var(--border)">
+        <form id="chatbot-form" class="d-flex gap-2">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="text" class="form-control" id="chat-input" placeholder="Type your question..." autocomplete="off">
+          <button type="submit" class="btn btn-purple"><i class="bi bi-send"></i></button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mt-3">
+    <div class="card-body text-center" style="padding:1.5rem">
+      <p style="color:var(--muted);font-size:.88rem">Can't find what you need? Contact our team directly.</p>
+      <a href="mailto:support@pasalify.com" class="btn btn-outline-purple btn-sm">
+        <i class="bi bi-envelope me-1"></i> support@pasalify.com
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+  const chatMessages = document.getElementById('chat-messages');
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+
+  document.getElementById('chatbot-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const input = document.getElementById('chat-input');
+    const msg = input.value.trim();
+    if (!msg) return;
+
+    // Show user bubble
+    chatMessages.innerHTML += `
+      <div class="msg-bubble msg-me">
+        <span>${msg}</span>
+        <span class="msg-time">Now</span>
+      </div>`;
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    input.value = '';
+
+    const fd = new FormData(this);
+    fd.set('message', msg);
+    const res  = await fetch("{{ url_for('customer.support_chat') }}", { method:'POST', body: fd });
+    const data = await res.json();
+
+    chatMessages.innerHTML += `
+      <div class="msg-bubble msg-other">
+        <span>${data.reply}</span>
+        <span class="msg-time">Now</span>
+      </div>`;
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  });
+</script>
+{% endblock %}
