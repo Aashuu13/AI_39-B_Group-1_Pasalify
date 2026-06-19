@@ -1,3 +1,9 @@
+{# 
+customer/chats.html
+Rendered by: CustomerController.chats()
+Context: convs (this customer's conversations with sellers, each
+with a last-message preview and unread count).
+#}
 {% extends "base.html" %}
 {% block title %}My Messages{% endblock %}
 {% block content %}
@@ -21,8 +27,8 @@
       </div>
       {% endif %}
       <div style="flex:1;min-width:0">
-        <div style="font-weight:600;color:var(--text)">{{ c.store_name }}</div>
-        <div style="color:var(--muted);font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+        <div style="font-weight:600;color:#E6EDF3">{{ c.store_name }}</div>
+        <div style="color:#E6EDF3;font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
           {{ c.last_msg or 'No messages yet' }}
         </div>
       </div>
@@ -36,9 +42,9 @@
   </div>
 
   {% else %}
-  <div style="text-align:center;padding:4rem 0;color:var(--muted)">
+  <div style="text-align:center;padding:4rem 0;color:#E6EDF3">
     <i class="bi bi-chat" style="font-size:3rem;opacity:.2;display:block;margin-bottom:1rem"></i>
-    <h5 style="color:var(--text)">No messages yet</h5>
+    <h5 style="color:#E6EDF3">No messages yet</h5>
     <p style="font-size:.88rem">Visit a store and message the seller</p>
     <a href="{{ url_for('customer.stores') }}" class="btn btn-outline-purple btn-sm mt-2" style="border-radius:50px">
       Browse Stores

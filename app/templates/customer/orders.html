@@ -1,3 +1,8 @@
+{# 
+customer/orders.html
+Rendered by: CustomerController.orders()
+Context: orders (this customer's order history).
+#}
 {% extends "base.html" %}
 {% block title %}My Orders{% endblock %}
 {% block content %}
@@ -16,7 +21,7 @@
           {% for o in orders %}
           <tr>
             <td><span style="color:var(--purple2);font-weight:600">{{ o.order_number }}</span></td>
-            <td style="color:var(--muted);font-size:.85rem">{{ o.created_at.strftime('%b %d, %Y') if o.created_at else '' }}</td>
+            <td style="color:#E6EDF3;font-size:.85rem">{{ o.created_at.strftime('%b %d, %Y') if o.created_at else '' }}</td>
             <td style="font-size:.85rem">—</td>
             <td style="font-weight:600">Rs. {{ "%.0f"|format(o.total_amount) }}</td>
             <td><span class="badge-purple" style="font-size:.72rem">{{ o.payment_method|upper }}</span></td>
@@ -30,7 +35,7 @@
     </div>
   </div>
   {% else %}
-  <div class="text-center py-5" style="color:var(--muted)">
+  <div class="text-center py-5" style="color:#E6EDF3">
     <i class="bi bi-box-seam" style="font-size:4rem;opacity:.3"></i>
     <h4 class="mt-3">No orders yet</h4>
     <a href="{{ url_for('customer.products') }}" class="btn btn-purple mt-3">Shop Now</a>

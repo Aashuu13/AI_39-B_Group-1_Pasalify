@@ -1,3 +1,9 @@
+{# 
+seller/categories.html
+Rendered by: SellerController.categories()
+Context: cats. Read-only browser — categories themselves are
+managed on the admin side (see admin/categories.html).
+#}
 {% extends "seller/base_seller.html" %}
 {% block title %}Categories{% endblock %}
 {% block seller_content %}
@@ -13,7 +19,7 @@
         <tr>
           <td><i class="bi bi-{{ c.icon }}" style="color:var(--purple2)"></i></td>
           <td style="font-weight:500">{{ c.name }}</td>
-          <td style="color:var(--muted);font-size:.82rem">{{ c.slug }}</td>
+          <td style="color:#E6EDF3;font-size:.82rem">{{ c.slug }}</td>
         </tr>
         {% endfor %}
         </tbody>

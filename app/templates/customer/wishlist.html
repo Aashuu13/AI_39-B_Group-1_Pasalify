@@ -1,3 +1,8 @@
+{# 
+customer/wishlist.html
+Rendered by: CustomerController.wishlist()
+Context: items (wishlisted products).
+#}
 {% extends "base.html" %}
 {% block title %}My Wishlist{% endblock %}
 {% block content %}
@@ -30,7 +35,7 @@
     {% endfor %}
   </div>
   {% else %}
-  <div class="text-center py-5" style="color:var(--muted)">
+  <div class="text-center py-5" style="color:#E6EDF3">
     <i class="bi bi-heart" style="font-size:4rem;opacity:.3"></i>
     <h4 class="mt-3">Your wishlist is empty</h4>
     <a href="{{ url_for('customer.products') }}" class="btn btn-purple mt-3">Browse Products</a>

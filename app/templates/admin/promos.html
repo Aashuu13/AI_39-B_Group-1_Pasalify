@@ -1,3 +1,8 @@
+{# 
+admin/promos.html
+Rendered by: AdminController.promos()
+Context: codes (every promo code ever created).
+#}
 {% extends "admin/base_admin.html" %}
 {% block title %}Promo Codes{% endblock %}
 {% block admin_content %}
@@ -5,7 +10,6 @@
 <div class="page-subtitle">Create and manage discount codes for customers</div>
 
 <div class="row g-3">
-  <!-- Create form -->
   <div class="col-md-4">
     <div class="card">
       <div class="card-header"><i class="bi bi-plus-circle me-1"></i> Create Promo Code</div>
@@ -13,7 +17,7 @@
         <form method="post" action="{{ url_for('admin.promo_add') }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <div class="mb-2">
-            <label class="form-label">Code <small style="color:var(--muted)">(uppercase)</small></label>
+            <label class="form-label">Code <small style="color:#E6EDF3">(uppercase)</small></label>
             <input type="text" class="form-control form-control-sm" name="code" placeholder="e.g. SAVE10" required style="text-transform:uppercase">
           </div>
           <div class="mb-2">
@@ -32,7 +36,7 @@
             <input type="number" class="form-control form-control-sm" name="min_order" value="0" min="0">
           </div>
           <div class="mb-2">
-            <label class="form-label">Max Uses <small style="color:var(--muted)">(blank = unlimited)</small></label>
+            <label class="form-label">Max Uses <small style="color:#E6EDF3">(blank = unlimited)</small></label>
             <input type="number" class="form-control form-control-sm" name="max_uses" min="1">
           </div>
           <div class="row g-1 mb-3">
@@ -51,7 +55,6 @@
     </div>
   </div>
 
-  <!-- Codes list -->
   <div class="col-md-8">
     <div class="card">
       <div class="card-header">All Promo Codes</div>
@@ -67,9 +70,9 @@
                 {% if c.discount_type == 'percent' %}{{ c.discount_value|int }}%
                 {% else %}Rs. {{ "%.0f"|format(c.discount_value) }}{% endif %}
               </td>
-              <td style="color:var(--muted);font-size:.82rem">Rs. {{ "%.0f"|format(c.min_order) }}</td>
+              <td style="color:#E6EDF3;font-size:.82rem">Rs. {{ "%.0f"|format(c.min_order) }}</td>
               <td style="font-size:.82rem">{{ c.used_count }}{% if c.max_uses %} / {{ c.max_uses }}{% endif %}</td>
-              <td style="color:var(--muted);font-size:.8rem">{{ c.valid_until or '—' }}</td>
+              <td style="color:#E6EDF3;font-size:.8rem">{{ c.valid_until or '—' }}</td>
               <td>{% if c.is_active %}<span class="badge-green">Active</span>{% else %}<span class="badge-red">Inactive</span>{% endif %}</td>
               <td>
                 <a href="{{ url_for('admin.promo_toggle', pid=c.id) }}" class="btn btn-sm btn-outline-purple">
@@ -78,7 +81,7 @@
               </td>
             </tr>
             {% else %}
-            <tr><td colspan="7" class="text-center py-3" style="color:var(--muted)">No promo codes yet.</td></tr>
+            <tr><td colspan="7" class="text-center py-3" style="color:#E6EDF3">No promo codes yet.</td></tr>
             {% endfor %}
             </tbody>
           </table>

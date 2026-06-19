@@ -1,8 +1,12 @@
+{# 
+customer/store_page.html
+Rendered by: CustomerController.store_page()
+Context: store, products (that store's catalogue).
+#}
 {% extends "base.html" %}
 {% block title %}{{ store.name }}{% endblock %}
 {% block content %}
 
-<!-- Store Banner -->
 <div style="position:relative;height:150px;overflow:hidden;background:{{ store.theme_color }}">
   {% if store.banner %}
   <img src="{{ url_for('static', filename=store.banner) }}"
@@ -13,7 +17,6 @@
   <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(13,17,23,.9),transparent)"></div>
 </div>
 
-<!-- Store Header -->
 <div class="container" style="margin-top:16px;position:relative;z-index:2;margin-bottom:2rem">
   <div style="display:flex;align-items:flex-end;gap:1rem;flex-wrap:wrap">
     {% if store.logo %}
@@ -26,7 +29,7 @@
     {% endif %}
     <div style="padding-bottom:.5rem">
       <h2 style="font-family:'Playfair Display',serif;margin-bottom:.15rem">{{ store.name }}</h2>
-      <p style="color:var(--muted);font-size:.88rem;margin:0">{{ store.description or '' }}</p>
+      <p style="color:#E6EDF3;font-size:.88rem;margin:0">{{ store.description or '' }}</p>
     </div>
   </div>
 </div>
@@ -35,7 +38,6 @@
    style="border-radius:50px">
   <i class="bi bi-chat me-1"></i>Message Seller
 </a>
-<!-- Products -->
 <div class="container pb-5">
   <div class="page-title">Products</div>
   <div class="page-subtitle">{{ products|length }} item(s) available</div>
@@ -55,7 +57,7 @@
           <div class="p-rating">
             {% for i in range(p.avg_rating|int) %}★{% endfor %}
             {% for i in range(5 - p.avg_rating|int) %}☆{% endfor %}
-            <span style="color:var(--muted)">({{ p.review_count or 0 }})</span>
+            <span style="color:#E6EDF3">({{ p.review_count or 0 }})</span>
           </div>
           <div style="margin-top:auto">
             <span class="p-price">Rs. {{ "%.0f"|format(p.price) }}</span>
@@ -74,9 +76,9 @@
   </div>
 
   {% else %}
-  <div style="text-align:center;padding:4rem 0;color:var(--muted)">
+  <div style="text-align:center;padding:4rem 0;color:#E6EDF3">
     <i class="bi bi-box-seam" style="font-size:3rem;opacity:.2;display:block;margin-bottom:1rem"></i>
-    <h5 style="color:var(--text)">No products yet</h5>
+    <h5 style="color:#E6EDF3">No products yet</h5>
     <p style="font-size:.88rem">This store hasn't added any products</p>
   </div>
   {% endif %}
