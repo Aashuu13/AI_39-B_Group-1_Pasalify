@@ -295,4 +295,4 @@ class AdminController(BaseController):
         return redirect(url_for('admin.support_tickets'))
 
 
-admin_controller = AdminController()
+admin_controller = AdminController()# Manages admin operations and backup
