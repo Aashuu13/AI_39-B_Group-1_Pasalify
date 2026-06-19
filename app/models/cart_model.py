@@ -41,10 +41,23 @@ class CartModel(BaseModel):
         """
         Add a product to the cart or increment its quantity.
         Encapsulation: upsert logic is hidden from the controller.
+        Validates that requested quantity doesn't exceed available stock.
         """
+        product = Database.query(
+            "SELECT stock_qty FROM products WHERE id = %s", (product_id,), one=True
+        )
+        if not product:
+            raise ValueError("Product not found")
+
         existing = cls.find_where(
             "user_id = %s AND product_id = %s", (user_id, product_id), one=True
         )
+        current_qty = existing['quantity'] if existing else 0
+        new_qty = current_qty + qty
+
+        if new_qty > product['stock_qty']:
+            raise ValueError(f"Only {product['stock_qty']} item(s) in stock")
+
         if existing:
             Database.execute(
                 "UPDATE cart SET quantity = quantity + %s WHERE user_id = %s AND product_id = %s",
