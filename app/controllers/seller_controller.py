@@ -1,20 +1,20 @@
 """
-==============================================================
-MY FEATURES – Seller Controller
-Sprint 3: US 2.6 – Seller Chat (seller side)
-Sprint 4: US 4.4 – Organize Products (products CRUD + categories)
-==============================================================
+app/controllers/seller_controller.py
+Yubraj's features: organize product (Sprint 4), seller chat (Sprint 3).
 """
 
-from flask import render_template, request, redirect, url_for, session
+import uuid
+from flask import render_template, request, redirect, url_for, session, flash
 
 from app.controllers.base_controller import BaseController
-from app.models import StoreModel, ProductModel, CategoryModel, OrderModel
+from app.models import (
+    StoreModel, ProductModel, CategoryModel,
+    OrderModel, ReviewModel, NotificationModel
+)
+from app import db
 
 
 class SellerController(BaseController):
-
-    # ── Private Helpers ───────────────────────────────────────────────────────
 
     def _get_store(self):
         return StoreModel.find_by_user(self._current_user_id())
@@ -46,12 +46,11 @@ class SellerController(BaseController):
                     (product_id, path, 1 if (i == 0 and first_is_primary) else 0)
                 )
 
-    # ── Minimal setup / dashboard stubs ──────────────────────────────────────
+    # ── Setup (needed so sellers can create store) ───────────────────────────
 
     def setup(self):
-        """Create a store (needed before seller can use any seller features)."""
         if self._get_store():
-            return redirect(url_for('seller.products'))
+            return redirect(url_for('seller.dashboard'))
         if request.method == 'POST':
             name   = request.form.get('name', '').strip()
             desc   = request.form.get('description', '').strip()
@@ -68,26 +67,73 @@ class SellerController(BaseController):
                 'is_approved': 1,
             })
             self._log('store_created', 'store', sid)
-            self._ok('Store created!')
-            return redirect(url_for('seller.products'))
+            self._ok('Store created successfully!')
+            return redirect(url_for('seller.dashboard'))
         return render_template('seller/setup.html')
 
+    # ── Dashboard ────────────────────────────────────────────────────────────
+
     def dashboard(self):
-        """Minimal dashboard redirect to products."""
-        return redirect(url_for('seller.products'))
-
-    # ── Sprint 4: US 4.4 – Organize Products ─────────────────────────────────
-
-    def products(self):
-        """
-        Sprint 4 – US 4.4: Organize Products
-        Lists all seller's products with category and stock info.
-        Sellers can filter, sort, and navigate to add/edit/delete.
-        """
         store, redir = self._require_store()
         if redir:
             return redir
+        stats        = StoreModel.stats(store['id'])
+        low_stock    = ProductModel.low_stock(store['id'])
+        recent_orders = OrderModel.find_by_store(store['id'], limit=5)
+        monthly      = OrderModel.monthly_revenue(store['id'])
+        top_products = self._q("""
+            SELECT p.name, SUM(oi.quantity) AS sold, SUM(oi.subtotal) AS revenue
+            FROM order_items oi JOIN products p ON p.id = oi.product_id
+            WHERE oi.store_id = %s GROUP BY p.id ORDER BY sold DESC LIMIT 5
+        """, (store['id'],))
+        return render_template('seller/dashboard.html', store=store,
+                               total_sales=stats['total_sales'],
+                               total_orders=stats['total_orders'],
+                               total_products=stats['total_products'],
+                               low_stock=low_stock,
+                               recent_orders=recent_orders,
+                               monthly=monthly,
+                               top_products=top_products)
 
+    # ── Store profile (needed by base_seller template) ───────────────────────
+
+    def store_profile(self):
+        store, redir = self._require_store()
+        if redir:
+            return redir
+        if request.method == 'POST':
+            logo   = self._save_file(request.files.get('logo'), 'logos')   or store['logo']
+            banner = self._save_file(request.files.get('banner'), 'banners') or store['banner']
+            StoreModel.update(store['id'], {
+                'name':        request.form.get('name', ''),
+                'description': request.form.get('description', ''),
+                'theme_color': request.form.get('theme_color', '#6C3FC8'),
+                'logo':        logo,
+                'banner':      banner,
+            })
+            self._ok('Store profile updated!')
+            return redirect(url_for('seller.store_profile'))
+        return render_template('seller/store_profile.html', store=store)
+
+    def store_customize(self):
+        store, redir = self._require_store()
+        if redir:
+            return redir
+        if request.method == 'POST':
+            StoreModel.update(store['id'], {
+                'theme_color':  request.form.get('theme_color', '#6C3FC8'),
+                'theme_layout': request.form.get('theme_layout', 'grid'),
+            })
+            self._ok('Store design saved!')
+            return redirect(url_for('seller.store_customize'))
+        return render_template('seller/store_customize.html', store=store)
+
+    # ── Products (Sprint 4 - organize product) ───────────────────────────────
+
+    def products(self):
+        store, redir = self._require_store()
+        if redir:
+            return redir
         prods = self._q("""
             SELECT p.*, pi.image_path, c.name AS cat_name
             FROM products p
@@ -95,22 +141,15 @@ class SellerController(BaseController):
             LEFT JOIN categories c ON c.id = p.category_id
             WHERE p.store_id = %s ORDER BY p.created_at DESC
         """, (store['id'],))
-        cats = CategoryModel.find_all()
-        return render_template('seller/products.html', products=prods, store=store, cats=cats)
+        return render_template('seller/products.html', products=prods, store=store)
 
     def product_add(self):
-        """Sprint 4 – US 4.4: Add a new product to the store."""
         store, redir = self._require_store()
         if redir:
             return redir
         cats = CategoryModel.find_all()
-
         if request.method == 'POST':
             data = self._parse_product_form()
-            if not data['name']:
-                self._err('Product name is required.')
-                return render_template('seller/product_form.html', store=store, cats=cats, product=None)
-
             slug = data['name'].lower().replace(' ', '-')
             pid  = ProductModel.create({
                 'store_id':            store['id'],
@@ -130,30 +169,20 @@ class SellerController(BaseController):
             self._log('product_added', 'product', pid)
             self._ok('Product added successfully!')
             return redirect(url_for('seller.products'))
-
         return render_template('seller/product_form.html', store=store, cats=cats, product=None)
 
     def product_edit(self, pid: int):
-        """Sprint 4 – US 4.4: Edit an existing product (name, category, price, stock, etc.)."""
         store, redir = self._require_store()
         if redir:
             return redir
-
         prod = ProductModel.find_where("id = %s AND store_id = %s", (pid, store['id']), one=True)
         if not prod:
             self._err('Product not found.')
             return redirect(url_for('seller.products'))
-
         cats   = CategoryModel.find_all()
         images = self._q("SELECT * FROM product_images WHERE product_id = %s", (pid,))
-
         if request.method == 'POST':
             data = self._parse_product_form()
-            if not data['name']:
-                self._err('Product name is required.')
-                return render_template('seller/product_form.html', store=store, cats=cats,
-                                       product=prod, images=images)
-
             ProductModel.update(pid, {
                 'name':                data['name'],
                 'description':         data['description'],
@@ -167,12 +196,9 @@ class SellerController(BaseController):
             self._save_product_images(pid, request.files.getlist('images'), first_is_primary=False)
             self._ok('Product updated!')
             return redirect(url_for('seller.products'))
-
-        return render_template('seller/product_form.html', store=store,
-                               cats=cats, product=prod, images=images)
+        return render_template('seller/product_form.html', store=store, cats=cats, product=prod, images=images)
 
     def product_delete(self, pid: int):
-        """Sprint 4 – US 4.4: Soft-delete (deactivate) a product."""
         store, redir = self._require_store()
         if redir:
             return redir
@@ -181,18 +207,78 @@ class SellerController(BaseController):
         return redirect(url_for('seller.products'))
 
     def categories(self):
-        """Sprint 4 – US 4.4: View available categories for organizing products."""
         cats = CategoryModel.find_all()
         return render_template('seller/categories.html', cats=cats)
 
-    # ── Sprint 3: US 2.6 – Seller Chat (Seller side) ─────────────────────────
-
-    def chats(self):
-        """Sprint 3 – US 2.6: List all chat conversations from customers."""
+    def inventory(self):
         store, redir = self._require_store()
         if redir:
             return redir
+        prods = ProductModel.find_where(
+            "store_id = %s AND is_active = 1 ORDER BY stock_qty ASC", (store['id'],)
+        )
+        return render_template('seller/inventory.html', products=prods, store=store)
 
+    def inventory_update(self, pid: int):
+        store, redir = self._require_store()
+        if redir:
+            return redir
+        qty = max(0, int(request.form.get('stock_qty', 0)))
+        self._run(
+            "UPDATE products SET stock_qty = %s WHERE id = %s AND store_id = %s",
+            (qty, pid, store['id'])
+        )
+        self._ok('Stock updated!')
+        return redirect(url_for('seller.inventory'))
+
+    # ── Orders (needed for dashboard/notifications) ──────────────────────────
+
+    def orders(self):
+        store, redir = self._require_store()
+        if redir:
+            return redir
+        ords = self._q("""
+            SELECT o.*, GROUP_CONCAT(oi.product_name SEPARATOR ', ') AS items,
+                   SUM(oi.subtotal) AS store_total
+            FROM orders o JOIN order_items oi ON oi.order_id = o.id
+            WHERE oi.store_id = %s GROUP BY o.id ORDER BY o.created_at DESC
+        """, (store['id'],))
+        return render_template('seller/orders.html', orders=ords, store=store)
+
+    def order_update(self, oid: int):
+        status = request.form.get('status')
+        valid  = ('confirmed', 'processing', 'shipped', 'delivered', 'cancelled')
+        if status in valid:
+            OrderModel.update(oid, {'status': status})
+            order = OrderModel.find_by_id(oid)
+            if order:
+                self._notify(
+                    order['user_id'], 'Order Updated',
+                    f'Your order {order["order_number"]} is now: {status.upper()}',
+                    'order', url_for('customer.order_detail', oid=oid)
+                )
+            self._ok('Order status updated.')
+        return redirect(url_for('seller.orders'))
+
+    def reviews(self):
+        store, redir = self._require_store()
+        if redir:
+            return redir
+        revs = self._q("""
+            SELECT r.*, p.name AS product_name, u.name AS user_name
+            FROM reviews r
+            JOIN products p ON p.id = r.product_id
+            JOIN users u ON u.id = r.user_id
+            WHERE p.store_id = %s ORDER BY r.created_at DESC
+        """, (store['id'],))
+        return render_template('seller/reviews.html', reviews=revs, store=store)
+
+    # ── Chat (Sprint 3 - seller chat) ────────────────────────────────────────
+
+    def chats(self):
+        store, redir = self._require_store()
+        if redir:
+            return redir
         convs = self._q("""
             SELECT ch.*, u.name AS customer_name,
                    (SELECT message FROM chat_messages WHERE chat_id=ch.id
@@ -205,17 +291,12 @@ class SellerController(BaseController):
         return render_template('seller/chats.html', convs=convs, store=store)
 
     def chat_detail(self, cid: int):
-        """
-        Sprint 3 – US 2.6: View and reply to a customer chat.
-        GET  → show full message thread.
-        POST → send a reply.
-        """
         chat = self._q(
             "SELECT * FROM chats WHERE id = %s AND seller_id = %s",
             (cid, self._current_user_id()), one=True
         )
         if not chat:
-            self._err('Chat not found.')
+            self._err('Not found.')
             return redirect(url_for('seller.chats'))
 
         if request.method == 'POST':
@@ -232,9 +313,8 @@ class SellerController(BaseController):
             JOIN users u ON u.id = cm.sender_id
             WHERE cm.chat_id = %s ORDER BY cm.created_at
         """, (cid,))
-        customer = self._q(
-            "SELECT name FROM users WHERE id = %s", (chat['customer_id'],), one=True
-        )
+        customer = self._q("SELECT name FROM users WHERE id = %s",
+                            (chat['customer_id'],), one=True)
         self._run(
             "UPDATE chat_messages SET is_read=1 WHERE chat_id=%s AND sender_id!=%s",
             (cid, self._current_user_id())
@@ -243,6 +323,67 @@ class SellerController(BaseController):
         return render_template('seller/chat_detail.html', chat=chat,
                                msgs=msgs, customer=customer, store=store)
 
+    # ── Support stubs (needed by routes) ────────────────────────────────────
 
-# Singleton
+    def support_tickets(self):
+        store, redir = self._require_store()
+        if redir:
+            return redir
+        users = self._q("""
+            SELECT DISTINCT sm.user_id, u.name AS customer_name, u.email AS customer_email,
+                   MAX(sm.created_at) AS last_message
+            FROM support_messages sm
+            LEFT JOIN users u ON u.id = sm.user_id
+            WHERE sm.role = 'user'
+            AND EXISTS (
+                SELECT 1 FROM orders o
+                JOIN order_items oi ON oi.order_id = o.id
+                JOIN products p ON p.id = oi.product_id
+                WHERE o.user_id = sm.user_id AND p.store_id = %s
+            )
+            GROUP BY sm.user_id, u.name, u.email
+            ORDER BY last_message DESC
+        """, (store['id'],))
+        tickets = []
+        for user in users:
+            messages = self._q(
+                "SELECT * FROM support_messages WHERE user_id = %s ORDER BY created_at ASC",
+                (user['user_id'],)
+            )
+            tickets.append({
+                'user_id':        user['user_id'],
+                'customer_name':  user['customer_name'],
+                'customer_email': user['customer_email'],
+                'last_message':   user['last_message'],
+                'messages':       messages,
+            })
+        return render_template('seller/support.html', tickets=tickets, store=store)
+
+    def support_reply(self):
+        store, redir = self._require_store()
+        if redir:
+            return redir
+        customer_id = request.form.get('customer_id', type=int)
+        message     = request.form.get('message', '').strip()
+        if not message or not customer_id:
+            self._err('Reply cannot be empty.')
+            return redirect(url_for('seller.support_tickets'))
+        chat = self._q(
+            "SELECT * FROM chats WHERE customer_id = %s AND seller_id = %s",
+            (customer_id, self._current_user_id()), one=True
+        )
+        cid = chat['id'] if chat else self._run(
+            "INSERT INTO chats (customer_id, seller_id) VALUES (%s,%s)",
+            (customer_id, self._current_user_id())
+        )
+        self._run(
+            "INSERT INTO chat_messages (chat_id, sender_id, message) VALUES (%s,%s,%s)",
+            (cid, self._current_user_id(), message)
+        )
+        self._notify(customer_id, 'New message from seller',
+                     f'{store["name"]} replied to your support question.', 'system')
+        self._ok('Message sent to customer.')
+        return redirect(url_for('seller.chat_detail', cid=cid))
+
+
 seller_controller = SellerController()
