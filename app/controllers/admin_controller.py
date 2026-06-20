@@ -1,20 +1,3 @@
-"""
-app/controllers/admin_controller.py
-================================================================
-OOP concepts on display: INHERITANCE + ENCAPSULATION + POLYMORPHISM
-
-    - Inheritance:   AdminController extends BaseController.
-    - Encapsulation: CSV-export plumbing lives inside _export_csv(),
-      and every dashboard KPI is gathered inside _dashboard_stats() —
-      routes call one tidy method instead of seeing raw SQL.
-    - Polymorphism:  seller_approve() and seller_reject() both change
-      a store's moderation state through the same kind of call, but
-      cause very different outcomes (approve & notify vs. reject).
-
-Handles every admin-facing page: dashboard, seller moderation,
-product moderation, finances/CSV export, user management, promo
-codes, system monitoring, categories, and support tickets.
-"""
 
 import csv
 import io
@@ -23,7 +6,6 @@ from flask import render_template, request, redirect, url_for, session, flash, m
 
 from app.controllers.base_controller import BaseController
 from app.models import UserModel, ProductModel, StoreModel, CategoryModel
-
 
 class AdminController(BaseController):
     """
@@ -35,8 +17,6 @@ class AdminController(BaseController):
         _ok/_err/_warn/_info, _q/_run, _log, _notify,
         _current_user_id, _is_logged_in
     """
-
-    # ── Private helpers (Encapsulation) ─────────────────────────────────────
 
     def _dashboard_stats(self) -> dict:
         """
@@ -74,8 +54,6 @@ class AdminController(BaseController):
         out.headers['Content-Type'] = 'text/csv'
         return out
 
-    # ── Dashboard ───────────────────────────────────────────────────────────
-
     def dashboard(self):
         """Admin home page: platform-wide KPIs, recent orders across
         every store, a 6-month revenue trend, and the latest activity log."""
@@ -99,8 +77,6 @@ class AdminController(BaseController):
                                recent_orders=recent_orders,
                                monthly=monthly,
                                logs=logs)
-
-    # ── Seller moderation ──────────────────────────────────────────────────
 
     def sellers(self):
         """List every store along with its owner, for approve/reject actions."""
@@ -141,8 +117,6 @@ class AdminController(BaseController):
         self._ok('Commission rate updated.')
         return redirect(url_for('admin.sellers'))
 
-    # ── Product moderation ─────────────────────────────────────────────────
-
     def products(self):
         """All active products, unapproved ones listed first so the
         admin sees what's awaiting review at a glance."""
@@ -169,8 +143,6 @@ class AdminController(BaseController):
         self._log('product_removed', 'product', pid)
         self._warn('Product removed.')
         return redirect(url_for('admin.products'))
-
-    # ── Financial management ──────────────────────────────────────────────
 
     def finances(self):
         """Payment transactions, recent seller commissions, and total
@@ -211,8 +183,6 @@ class AdminController(BaseController):
             'pasalify_transactions.csv'
         )
 
-    # ── User management ─────────────────────────────────────────────────────
-
     def users(self):
         """List every registered user (customers, sellers, and admins)."""
         all_users = UserModel.find_all()
@@ -230,8 +200,6 @@ class AdminController(BaseController):
             self._log(f'user_{status}', 'user', uid)
             self._info(f'User {status}.')
         return redirect(url_for('admin.users'))
-
-    # ── Promo codes ─────────────────────────────────────────────────────────
 
     def promos(self):
         """List every promo code that has ever been created."""
@@ -265,8 +233,6 @@ class AdminController(BaseController):
                       (0 if p['is_active'] else 1, pid))
         return redirect(url_for('admin.promos'))
 
-    # ── System monitoring ───────────────────────────────────────────────────
-
     def system(self):
         """Diagnostics page: the latest 100 activity-log entries, the
         database's total size on disk, and a per-table row-count summary."""
@@ -292,8 +258,6 @@ class AdminController(BaseController):
         self._info('Backup initiated. In production, connect mysqldump here.')
         return redirect(url_for('admin.system'))
 
-    # ── Categories ──────────────────────────────────────────────────────────
-
     def categories(self):
         """List every product category."""
         cats = self._q("SELECT * FROM categories ORDER BY name")
@@ -307,8 +271,6 @@ class AdminController(BaseController):
         CategoryModel.create({'name': name, 'slug': slug, 'icon': icon})
         self._ok('Category added.')
         return redirect(url_for('admin.categories'))
-
-    # ── Support tickets (platform-wide) ─────────────────────────────────────
 
     def support_tickets(self):
         """
@@ -369,6 +331,4 @@ class AdminController(BaseController):
         self._ok('Reply sent.')
         return redirect(url_for('admin.support_tickets'))
 
-
-# ── Singleton instance imported by app/controllers/__init__.py and routes ──
 admin_controller = AdminController()
