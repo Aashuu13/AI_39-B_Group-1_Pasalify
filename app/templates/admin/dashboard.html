@@ -1,18 +1,11 @@
-{# 
-admin/dashboard.html
-Rendered by: AdminController.dashboard()
-Context: total_users, total_sellers, total_orders, total_revenue,
-pending_stores, pending_prods (spread in via **stats), plus
-recent_orders, monthly (6-month revenue trend), logs (recent
-activity log entries).
-#}
+
 {% extends "admin/base_admin.html" %}
 {% block title %}Admin Dashboard{% endblock %}
 {% block admin_content %}
 <div class="page-title">Admin Dashboard</div>
 <div class="page-subtitle">Platform overview — Pasalify</div>
 
-<!-- Four top-line KPI cards, fed by AdminController._dashboard_stats() -->
+
 <div class="row g-3 mb-4">
   <div class="col-6 col-md-3">
     <div class="stat-card">
@@ -44,7 +37,7 @@ activity log entries).
   </div>
 </div>
 
-<!-- Pending-approval nudges: only shown when something actually needs review -->
+
 {% if pending_stores > 0 or pending_prods > 0 %}
 <div class="row g-2 mb-4">
   {% if pending_stores > 0 %}
@@ -67,8 +60,7 @@ activity log entries).
 {% endif %}
 
 <div class="row g-3">
-  <!-- Revenue line chart, drawn by Chart.js using the 'monthly' data
-       passed down to the scripts block below -->
+  
   <div class="col-md-8">
     <div class="card">
       <div class="card-header">Platform Revenue — Last 6 Months</div>
@@ -78,7 +70,7 @@ activity log entries).
     </div>
   </div>
 
-  <!-- Shortcut links to the most common admin actions -->
+  
   <div class="col-md-4">
     <div class="card mb-3">
       <div class="card-header">Quick Actions</div>
@@ -102,7 +94,7 @@ activity log entries).
     </div>
   </div>
 
-  <!-- Recent orders table, platform-wide (not scoped to one store) -->
+  
   <div class="col-12">
     <div class="card">
       <div class="card-header d-flex justify-content-between align-items-center">
@@ -131,7 +123,7 @@ activity log entries).
     </div>
   </div>
 
-  <!-- Recent activity feed, sourced from activity_logs via log_action() -->
+  
   <div class="col-12">
     <div class="card">
       <div class="card-header d-flex justify-content-between">
@@ -157,8 +149,7 @@ activity log entries).
 </div>
 
 {% block scripts %}
-<!-- Chart.js line chart: revenue (left axis) + order count (right axis, y2),
-     fed from the 'monthly' list the controller computed server-side -->
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 const labels = {{ monthly|map(attribute='month')|list|tojson }};
