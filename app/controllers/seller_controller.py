@@ -1,23 +1,3 @@
-"""
-app/controllers/seller_controller.py
-================================================================
-OOP concepts on display: INHERITANCE + ENCAPSULATION + POLYMORPHISM
-
-    - Inheritance:   SellerController extends BaseController and
-      gets _save_file, _ok/_err, _q/_run, _log, _notify for free.
-    - Encapsulation: _get_store() hides the store lookup, and
-      _require_store() hides the "redirect to setup if no store
-      yet" guard, so every seller-only action is protected with
-      just one line instead of repeating the same check everywhere.
-    - Polymorphism:  product_add() and product_edit() both lean on
-      the same _parse_product_form() helper and produce a similar
-      shape of result, even though one inserts a new row and the
-      other updates an existing one.
-
-Handles all seller-facing pages: store setup, dashboard, store
-profile/customization, products, categories, inventory, orders,
-reviews, chat, and support tickets.
-"""
 
 import uuid
 from flask import render_template, request, redirect, url_for, session, flash
@@ -29,7 +9,6 @@ from app.models import (
 )
 from app import db
 
-
 class SellerController(BaseController):
     """
     Handles all seller-facing views:
@@ -40,8 +19,6 @@ class SellerController(BaseController):
         _save_file, _ok/_err/_warn/_info, _q/_run, _log, _notify,
         _current_user_id, _is_logged_in
     """
-
-    # ── Private helpers (Encapsulation) ─────────────────────────────────────
 
     def _get_store(self) -> dict | None:
         """Return the current seller's store row, or None if they
@@ -96,8 +73,6 @@ class SellerController(BaseController):
                     (product_id, path, 1 if (i == 0 and first_is_primary) else 0)
                 )
 
-    # ── Setup ───────────────────────────────────────────────────────────────
-
     def setup(self):
         """One-time wizard: create the store for a brand-new seller.
         Sellers who already have a store skip straight to the dashboard."""
@@ -126,8 +101,6 @@ class SellerController(BaseController):
 
         return render_template('seller/setup.html')
 
-    # ── Dashboard ───────────────────────────────────────────────────────────
-
     def dashboard(self):
         """Seller's home page: revenue/order/product totals, low-stock
         warnings, recent orders, a 6-month revenue trend, and a top-5
@@ -155,8 +128,6 @@ class SellerController(BaseController):
                                monthly=monthly,
                                top_products=top_products)
 
-    # ── Store profile & customization ───────────────────────────────────────
-
     def store_profile(self):
         """Edit basic store info (name, description, logo, banner)."""
         store, redir = self._require_store()
@@ -164,7 +135,7 @@ class SellerController(BaseController):
             return redir
 
         if request.method == 'POST':
-            # Keep the old logo/banner if no new file was chosen
+
             logo   = self._save_file(request.files.get('logo'), 'logos')   or store['logo']
             banner = self._save_file(request.files.get('banner'), 'banners') or store['banner']
             StoreModel.update(store['id'], {
@@ -194,8 +165,6 @@ class SellerController(BaseController):
             return redirect(url_for('seller.store_customize'))
 
         return render_template('seller/store_customize.html', store=store)
-
-    # ── Products ────────────────────────────────────────────────────────────
 
     def products(self):
         """List every product this seller's store has (active or not)."""
@@ -299,15 +268,11 @@ class SellerController(BaseController):
         self._info('Product removed.')
         return redirect(url_for('seller.products'))
 
-    # ── Categories ──────────────────────────────────────────────────────────
-
     def categories(self):
         """Read-only category browser for sellers (categories are
         managed by admins, see admin_controller.categories)."""
         cats = CategoryModel.find_all()
         return render_template('seller/categories.html', cats=cats)
-
-    # ── Inventory ───────────────────────────────────────────────────────────
 
     def inventory(self):
         """Stock-focused product list, sorted lowest-stock-first so
@@ -333,8 +298,6 @@ class SellerController(BaseController):
         )
         self._ok('Stock updated!')
         return redirect(url_for('seller.inventory'))
-
-    # ── Orders ──────────────────────────────────────────────────────────────
 
     def orders(self):
         """All orders that include at least one item from this store,
@@ -367,8 +330,6 @@ class SellerController(BaseController):
             self._ok('Order status updated.')
         return redirect(url_for('seller.orders'))
 
-    # ── Reviews ─────────────────────────────────────────────────────────────
-
     def reviews(self):
         """Every review left on any product from this store."""
         store, redir = self._require_store()
@@ -382,8 +343,6 @@ class SellerController(BaseController):
             WHERE p.store_id = %s ORDER BY r.created_at DESC
         """, (store['id'],))
         return render_template('seller/reviews.html', reviews=revs, store=store)
-
-    # ── Chat (seller side of customer<->seller messaging) ──────────────────
 
     def chats(self):
         """List of this seller's conversations with customers, each with
@@ -439,8 +398,6 @@ class SellerController(BaseController):
         store = self._get_store()
         return render_template('seller/chat_detail.html', chat=chat,
                                msgs=msgs, customer=customer, store=store)
-
-    # ── Support tickets (customers asking the chatbot, escalated here) ─────
 
     def support_tickets(self):
         """
@@ -519,6 +476,4 @@ class SellerController(BaseController):
         self._ok('Message sent to customer.')
         return redirect(url_for('seller.chat_detail', cid=cid))
 
-
-# ── Singleton instance imported by app/controllers/__init__.py and routes ──
 seller_controller = SellerController()
