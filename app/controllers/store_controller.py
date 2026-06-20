@@ -1,23 +1,8 @@
-"""
-app/controllers/store_controller.py
-================================================================
-OOP concepts on display: INHERITANCE + ENCAPSULATION
-
-    - Inheritance:   StoreController extends BaseController.
-    - Encapsulation: _get_or_create_chat() hides the "look it up,
-      otherwise insert it" logic so start_chat() never writes raw
-      SQL itself — it just asks for a chat id.
-
-Handles public store storefronts (browsing one seller's catalogue
-without being logged in) and the chat flow that starts from a
-store page.
-"""
 
 from flask import render_template, request, redirect, url_for, session, flash
 
 from app.controllers.base_controller import BaseController
 from app.models import StoreModel
-
 
 class StoreController(BaseController):
     """
@@ -28,8 +13,6 @@ class StoreController(BaseController):
         _ok/_err/_warn/_info, _q/_run, _log, _notify,
         _current_user_id, _is_logged_in
     """
-
-    # ── Private helpers (Encapsulation) ─────────────────────────────────────
 
     def _get_or_create_chat(self, customer_id: int, seller_id: int,
                             product_id: int | None = None) -> int:
@@ -49,8 +32,6 @@ class StoreController(BaseController):
             (customer_id, seller_id, product_id)
         )
 
-    # ── Public store page ────────────────────────────────────────────────
-
     def public_store(self, slug: str):
         """
         Storefront for one seller, reached via /store/<slug>. Supports
@@ -69,8 +50,6 @@ class StoreController(BaseController):
         cat  = request.args.get('cat', '')
         sort = request.args.get('sort', 'newest')
 
-        # Built dynamically because the WHERE clause grows depending on
-        # which filters the visitor actually used.
         sql  = """
             SELECT p.*, pi.image_path, c.name AS cat_name
             FROM products p
@@ -113,8 +92,6 @@ class StoreController(BaseController):
         """A store-scoped product URL just forwards to the main product
         detail page — kept simple rather than duplicating that view."""
         return redirect(url_for('customer.product_detail', pid=pid))
-
-    # ── Chat (started from a public store page, before login is required) ─
 
     def start_chat(self, seller_id: int):
         """Begin a chat with a seller from their storefront. Guests are
@@ -173,6 +150,4 @@ class StoreController(BaseController):
         return render_template('store/chat.html', chat=chat,
                                msgs=msgs, seller=seller)
 
-
-# ── Singleton instance imported by app/controllers/__init__.py and routes ──
 store_controller = StoreController()

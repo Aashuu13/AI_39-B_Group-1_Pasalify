@@ -1,18 +1,6 @@
-"""
-app/models/category_model.py
-================================================================
-OOP concept on display: INHERITANCE
-
-CategoryModel extends BaseModel and barely needs anything of its
-own — find_all() (inherited) already covers most use cases, since
-categories are simple and rarely change.
-
-Represents the `categories` table.
-"""
 
 from app.models.basemodel import BaseModel
 from app.models.database import Database
-
 
 class CategoryModel(BaseModel):
     """
