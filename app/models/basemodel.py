@@ -1,20 +1,6 @@
-"""
-app/models/basemodel.py
-================================================================
-OOP concepts on display: ABSTRACTION + INHERITANCE + ENCAPSULATION
-
-    - Abstraction:   defines WHAT every model can do (find, create,
-      update, delete, count) without any subclass repeating HOW.
-    - Inheritance:   every model below (UserModel, ProductModel,
-      OrderModel, ...) inherits these methods automatically.
-    - Encapsulation: database access goes through the Database
-      class, which itself wraps app/db.py — none of that is
-      visible from inside these methods.
-"""
 
 from abc import ABC, abstractmethod
 from app.models.database import Database
-
 
 class BaseModel(ABC):
     """
@@ -27,15 +13,11 @@ class BaseModel(ABC):
     - Every child class INHERITS all the CRUD helpers below for free.
     """
 
-    # ── Abstract property (every child MUST define this) ───────────────────
-
     @property
     @abstractmethod
     def table(self) -> str:
         """Each child model must specify its database table name."""
         pass
-
-    # ── Shared internals ─────────────────────────────────────────────────
 
     @classmethod
     def _get_table(cls) -> str:
@@ -45,9 +27,7 @@ class BaseModel(ABC):
         expose TABLE as a plain class attribute (simpler than
         instantiating just to read a property).
         """
-        return cls.TABLE  # every child class defines TABLE = 'tablename'
-
-    # ── CRUD helpers (inherited by every model) ─────────────────────────────
+        return cls.TABLE  
 
     @classmethod
     def find_by_id(cls, record_id: int) -> dict | None:
@@ -126,8 +106,6 @@ class BaseModel(ABC):
         sql = f"SELECT COUNT(*) AS c FROM {cls.TABLE} WHERE {condition}"
         row = Database.query(sql, args, one=True)
         return row['c'] if row else 0
-
-    # ── Representation ───────────────────────────────────────────────────
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} table='{self.TABLE}'>"

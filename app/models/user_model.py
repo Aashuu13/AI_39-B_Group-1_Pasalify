@@ -1,24 +1,7 @@
-"""
-app/models/user_model.py
-================================================================
-OOP concepts on display: INHERITANCE + ENCAPSULATION + POLYMORPHISM
-
-    - Inheritance:   UserModel extends BaseModel and gets find_by_id,
-      create, update, delete, count, etc. for free.
-    - Encapsulation: password hashing/verification is hidden inside
-      this class — controllers call UserModel.authenticate() and
-      never see a raw hash.
-    - Polymorphism:  UserModel overrides the abstract `table`
-      property required by BaseModel, the same way every other
-      model does, but each returns its own table name.
-
-Represents the `users` table.
-"""
 
 from app.models.basemodel import BaseModel
 from app.models.database import Database
 from app.utils.auth import hash_password, check_password
-
 
 class UserModel(BaseModel):
     """
@@ -32,14 +15,11 @@ class UserModel(BaseModel):
         record_failed_login, update_last_login
     """
 
-    # ── Required by BaseModel (ABC) ────────────────────────────────────────
     TABLE = 'users'
 
     @property
-    def table(self) -> str:          # satisfies the @abstractmethod in BaseModel
+    def table(self) -> str:          
         return self.TABLE
-
-    # ── User-specific class methods ─────────────────────────────────────────
 
     @classmethod
     def find_by_email(cls, email: str) -> dict | None:

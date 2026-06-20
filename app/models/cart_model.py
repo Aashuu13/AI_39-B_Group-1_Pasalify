@@ -1,28 +1,6 @@
-"""
-app/models/cart_model.py
-================================================================
-OOP concepts on display: INHERITANCE + ENCAPSULATION
-
-    - Inheritance:   CartModel extends BaseModel.
-    - Encapsulation: add_item() hides the "insert vs. update"
-      (upsert) decision — callers don't need to check whether the
-      product is already in the cart before calling it.
-
-Represents a `cart` table — one row per (user, product) pair.
-
-NOTE: schema.sql actually names this table `cart_items`, and the
-live CustomerController writes its own raw SQL against
-`cart_items` directly rather than calling through this model
-(see CustomerController._cart_items / cart_add / cart_update /
-cart_remove in app/controllers/customer_controller.py). That
-means this class currently isn't used by any route — it's kept
-here, untouched, as it was found, since fixing app behaviour
-wasn't part of this comment-cleanup pass.
-"""
 
 from app.models.basemodel import BaseModel
 from app.models.database import Database
-
 
 class CartModel(BaseModel):
     """
@@ -34,8 +12,6 @@ class CartModel(BaseModel):
     @property
     def table(self) -> str:
         return self.TABLE
-
-    # ── Cart operations ───────────────────────────────────────────────────
 
     @classmethod
     def get_cart(cls, user_id: int) -> list[dict]:

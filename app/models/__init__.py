@@ -1,16 +1,3 @@
-"""
-app/models/__init__.py
-================================================================
-OOP concept on display: PACKAGE ORGANISATION
-
-Exports every model class from one place so controllers never
-need to know which file a model lives in:
-
-    from app.models import UserModel, ProductModel, OrderModel
-
-Database and BaseModel are exported too, in case a future model
-needs to inherit from BaseModel directly.
-"""
 
 from app.models.database          import Database
 from app.models.basemodel         import BaseModel
