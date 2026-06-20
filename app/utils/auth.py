@@ -1,21 +1,3 @@
-"""
-app/utils/auth.py
-================================================================
-The auth utilities the LIVE app actually runs on.
-
-Every route file (app/routes/*.py) and every controller imports
-from this module. It bundles together everything authentication-
-related that the real app needs day to day:
-
-    - password hashing/verification   (hash_password, check_password)
-    - simple email format checking    (valid_email)
-    - route guards                    (login_required, role_required)
-    - audit logging & notifications   (log_action, notify)
-
-(app/auth.py and app/authcontrol.py are a separate, self-contained
-pair of modules used for isolated unit testing of the login_required
-/ role_required decorator pattern — see test/flask_test.py.)
-"""
 
 import hashlib
 import os
@@ -25,7 +7,6 @@ from functools import wraps
 from flask import session, redirect, url_for, flash, request
 
 from app import db
-
 
 def hash_password(pw):
     """
@@ -39,7 +20,6 @@ def hash_password(pw):
     salt = os.urandom(32)
     key  = hashlib.pbkdf2_hmac('sha256', pw.encode(), salt, 260000)
     return salt.hex() + ':' + key.hex()
-
 
 def check_password(pw, stored):
     """
@@ -55,12 +35,10 @@ def check_password(pw, stored):
     except Exception:
         return False
 
-
 def valid_email(e):
     """Quick sanity check that a string looks like an email address.
     Used during registration — not a full RFC validator."""
     return bool(re.match(r'^[\w.+-]+@[\w-]+\.[a-z]{2,}$', e, re.I))
-
 
 def login_required(f):
     """
@@ -75,7 +53,6 @@ def login_required(f):
             return redirect(url_for('auth.login'))
         return f(*args, **kwargs)
     return decorated
-
 
 def role_required(*roles):
     """
@@ -101,7 +78,6 @@ def role_required(*roles):
         return decorated
     return decorator
 
-
 def log_action(user_id, action, entity_type=None, entity_id=None):
     """
     Write one row to activity_logs — a lightweight audit trail of
@@ -113,7 +89,6 @@ def log_action(user_id, action, entity_type=None, entity_id=None):
         "INSERT INTO activity_logs (user_id,action,entity_type,entity_id,ip_address) VALUES (%s,%s,%s,%s,%s)",
         (user_id, action, entity_type, entity_id, request.remote_addr)
     )
-
 
 def notify(user_id, title, message, ntype='system', link=None):
     """
