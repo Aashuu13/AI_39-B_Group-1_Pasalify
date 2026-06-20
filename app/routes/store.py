@@ -1,10 +1,3 @@
-"""
-app/routes/store.py
-================================================================
-URL → controller-method wiring for public store pages and the
-chat flow a customer can start directly from a storefront.
-No role check needed here — these pages are public by design.
-"""
 
 from flask import Blueprint
 from app.controllers import store_controller
