@@ -43,13 +43,15 @@
     <a href="{{ url_for('seller.reviews') }}" class="sidebar-link {% if request.endpoint=='seller.reviews' %}active{% endif %}">
       <i class="bi bi-star"></i> Reviews
     </a>
+
+    <a href="{{ url_for('seller.store_customize') }}" class="sidebar-link {% if request.endpoint=='seller.store_customize' %}active{% endif %}">
+      <i class="bi bi-palette"></i> Customize
+    </a>
     <div class="sidebar-section">Store</div>
     <a href="{{ url_for('seller.store_profile') }}" class="sidebar-link {% if request.endpoint=='seller.store_profile' %}active{% endif %}">
       <i class="bi bi-person-vcard"></i> Store Profile
     </a>
-    <a href="{{ url_for('seller.store_customize') }}" class="sidebar-link {% if request.endpoint=='seller.store_customize' %}active{% endif %}">
-      <i class="bi bi-palette"></i> Customize
-    </a>
+    
     {% if store %}
     <a href="{{ url_for('customer.store_detail', slug=store.slug) }}" class="sidebar-link" target="_blank">
       <i class="bi bi-box-arrow-up-right"></i> View Store
