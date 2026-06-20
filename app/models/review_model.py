@@ -53,7 +53,7 @@ class ReviewModel(BaseModel):
         )
         return row is not None
 
-    
+    #call
 
     @classmethod
     def approve(cls, review_id: int) -> None:
