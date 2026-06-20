@@ -1,3 +1,21 @@
+-- ================================================================
+-- Pasalify database schema
+-- ================================================================
+-- 18 tables covering the full e-commerce flow: accounts & stores,
+-- the product catalogue, shopping (cart/wishlist/promo codes),
+-- orders & payments, reviews, notifications, the support chatbot,
+-- customer<->seller chat, an admin activity log, and seller
+-- commission tracking.
+--
+-- Run once via app/db.py's init_db() to create every table (and
+-- seed starter categories + one admin account) on a fresh database.
+-- ================================================================
+
+-- Every account on the platform: customers, sellers, and admins,
+-- distinguished by the `role` column. Sellers additionally get a
+-- row in `stores` once they finish the setup wizard.
+-- row in `stores` once they finish the setup wizard.
+
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(120) NOT NULL,
@@ -14,6 +32,9 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- One storefront per seller (user_id is unique in practice, enforced
+-- in code rather than a DB constraint). Needs admin approval
+-- (is_approved) before its products become publicly visible.
 CREATE TABLE IF NOT EXISTS stores (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -31,6 +52,9 @@ CREATE TABLE IF NOT EXISTS stores (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+-- Product categories (Electronics, Fashion, etc.). Supports an
+-- optional parent_id for a future subcategory tree, though the
+-- seed data below only uses top-level categories.
 CREATE TABLE IF NOT EXISTS categories (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -41,6 +65,9 @@ CREATE TABLE IF NOT EXISTS categories (
     FOREIGN KEY (parent_id) REFERENCES categories(id) ON DELETE SET NULL
 );
 
+-- The product catalogue itself. Each product belongs to exactly one
+-- store and (optionally) one category. is_approved gates visibility
+-- on the storefront, separate from is_active (a seller's own toggle).
 CREATE TABLE IF NOT EXISTS products (
     id INT AUTO_INCREMENT PRIMARY KEY,
     store_id INT NOT NULL,
@@ -62,6 +89,8 @@ CREATE TABLE IF NOT EXISTS products (
     FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
 );
 
+-- One row per uploaded product photo; is_primary marks which one
+-- shows as the cover image in listings.
 CREATE TABLE IF NOT EXISTS product_images (
     id INT AUTO_INCREMENT PRIMARY KEY,
     product_id INT NOT NULL,
@@ -70,6 +99,8 @@ CREATE TABLE IF NOT EXISTS product_images (
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 );
 
+-- A customer's saved-for-later products. uq_wish prevents the same
+-- product from being wishlisted twice by the same user.
 CREATE TABLE IF NOT EXISTS wishlists (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -80,6 +111,9 @@ CREATE TABLE IF NOT EXISTS wishlists (
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 );
 
+-- The live shopping cart. uq_cart means adding the same product
+-- twice just increments `quantity` instead of creating a new row
+-- (see CustomerController.cart_add's upsert logic).
 CREATE TABLE IF NOT EXISTS cart_items (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -90,6 +124,8 @@ CREATE TABLE IF NOT EXISTS cart_items (
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 );
 
+-- Discount codes applied at checkout. max_uses/used_count enforce a
+-- usage cap; min_order sets the minimum cart subtotal required.
 CREATE TABLE IF NOT EXISTS promo_codes (
     id INT AUTO_INCREMENT PRIMARY KEY,
     code VARCHAR(50) UNIQUE NOT NULL,
@@ -104,6 +140,10 @@ CREATE TABLE IF NOT EXISTS promo_codes (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- One row per checkout. Snapshots the buyer's shipping details at
+-- the time of purchase (rather than pointing at the live user
+-- profile, which could change later) and tracks both fulfillment
+-- (`status`) and money (`payment_status`) independently.
 CREATE TABLE IF NOT EXISTS orders (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -125,6 +165,9 @@ CREATE TABLE IF NOT EXISTS orders (
     FOREIGN KEY (promo_code_id) REFERENCES promo_codes(id) ON DELETE SET NULL
 );
 
+-- One row per product within an order. product_name/price are
+-- snapshotted here too, so an order's receipt stays accurate even
+-- if the product is later renamed, repriced, or deleted.
 CREATE TABLE IF NOT EXISTS order_items (
     id INT AUTO_INCREMENT PRIMARY KEY,
     order_id INT NOT NULL,
@@ -139,6 +182,8 @@ CREATE TABLE IF NOT EXISTS order_items (
     FOREIGN KEY (store_id) REFERENCES stores(id) ON DELETE CASCADE
 );
 
+-- The actual payment attempt behind an order (an order could in
+-- theory have more than one payment attempt, e.g. a retry).
 CREATE TABLE IF NOT EXISTS payments (
     id INT AUTO_INCREMENT PRIMARY KEY,
     order_id INT NOT NULL,
@@ -152,6 +197,9 @@ CREATE TABLE IF NOT EXISTS payments (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+-- Customer reviews. uq_review caps it at one review per customer
+-- per product (ReviewModel/CustomerController treat a second
+-- submission as an edit via ON DUPLICATE KEY UPDATE).
 CREATE TABLE IF NOT EXISTS reviews (
     id INT AUTO_INCREMENT PRIMARY KEY,
     product_id INT NOT NULL,
@@ -167,6 +215,8 @@ CREATE TABLE IF NOT EXISTS reviews (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+-- In-app notifications shown via the navbar bell (order updates,
+-- store approvals, support replies, etc).
 CREATE TABLE IF NOT EXISTS notifications (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -179,6 +229,11 @@ CREATE TABLE IF NOT EXISTS notifications (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+-- Transcript of every message exchanged with the support chatbot
+-- (role='user'/'bot'), plus any human replies from a seller or
+-- admin who escalates into the same thread (role='admin'). parent_id
+-- is available for future threaded replies, though nothing currently
+-- sets it.
 CREATE TABLE IF NOT EXISTS support_messages (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT,
@@ -190,6 +245,8 @@ CREATE TABLE IF NOT EXISTS support_messages (
     FOREIGN KEY (parent_id) REFERENCES support_messages(id) ON DELETE CASCADE
 );
 
+-- One direct-message thread between one customer and one seller.
+-- product_id optionally remembers which product the chat started from.
 CREATE TABLE IF NOT EXISTS chats (
     id INT AUTO_INCREMENT PRIMARY KEY,
     customer_id INT NOT NULL,
@@ -200,6 +257,8 @@ CREATE TABLE IF NOT EXISTS chats (
     FOREIGN KEY (seller_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+-- Individual messages within a chats thread; is_read tracks whether
+-- the recipient has seen it yet (drives the unread badge).
 CREATE TABLE IF NOT EXISTS chat_messages (
     id INT AUTO_INCREMENT PRIMARY KEY,
     chat_id INT NOT NULL,
@@ -211,6 +270,9 @@ CREATE TABLE IF NOT EXISTS chat_messages (
     FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+-- Append-only audit trail (logins, product changes, approvals, ...)
+-- written by app/utils/auth.py's log_action(), shown on both the
+-- admin dashboard and the admin system-monitoring page.
 CREATE TABLE IF NOT EXISTS activity_logs (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT,
@@ -221,6 +283,9 @@ CREATE TABLE IF NOT EXISTS activity_logs (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Revenue split for one order_item: seller_amount is what the
+-- seller keeps, platform_amount is Pasalify's commission cut,
+-- calculated from each store's commission_rate at checkout time.
 CREATE TABLE IF NOT EXISTS commissions (
     id INT AUTO_INCREMENT PRIMARY KEY,
     order_item_id INT NOT NULL,
@@ -233,6 +298,10 @@ CREATE TABLE IF NOT EXISTS commissions (
     FOREIGN KEY (store_id) REFERENCES stores(id) ON DELETE CASCADE
 );
 
+-- ── Seed data ────────────────────────────────────────────────────
+-- Starter categories so the homepage/category browser isn't empty
+-- on a fresh install. INSERT IGNORE means re-running this file is
+-- safe and won't create duplicates.
 INSERT IGNORE INTO categories (name, slug, icon) VALUES
 ('Electronics','electronics','cpu'),
 ('Fashion','fashion','shopping-bag'),
@@ -243,6 +312,9 @@ INSERT IGNORE INTO categories (name, slug, icon) VALUES
 ('Food & Grocery','food-grocery','package'),
 ('Toys & Kids','toys-kids','gift');
 
+-- A single default admin account so there's a way to log in and
+-- approve the first sellers/products on a brand-new install.
+-- (The long hex string is a PBKDF2-SHA256 hash, not the plain password.)
 INSERT IGNORE INTO users (name,email,phone,password_hash,role,is_active) VALUES
 ('Pasalify Admin','admin@pasalify.com','9800000000',
  '3ac179c671a66c06af031954e0ed311f35e567477c6cd8b1bdabd09796d267d1:f913dd1eaabbb9cc573a44502cdf9ac90254b8d47a0db0a64082a823da3fa2f7','admin',1);

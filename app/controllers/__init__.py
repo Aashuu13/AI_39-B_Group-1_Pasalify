@@ -1,24 +1,25 @@
 """
-==============================================================
-OOP Concept: PACKAGE ORGANISATION (Controllers __init__)
-==============================================================
-Exports one singleton instance of each controller class.
-Routes import from here:
+app/controllers/__init__.py
+================================================================
+OOP concept on display: PACKAGE ORGANISATION + INHERITANCE
+
+This file exports one ready-to-use SINGLETON instance of each
+controller class, so routes never have to instantiate a
+controller themselves — they just import the already-built
+object:
 
     from app.controllers import auth_controller, seller_controller
 
-Each instance is of a class that inherits from BaseController,
-so all shared helpers (_ok, _err, _save_file, _log, …) are
-available on every controller without repetition.
+Every controller class below inherits from BaseController, so
+they all share the same helper methods (_ok, _err, _save_file,
+_log, ...) without copying that code into each one.
 
-Inheritance hierarchy:
-    BaseController (ABC)
-    ├── AuthController      → auth_controller
-    ├── SellerController    → seller_controller
-    ├── CustomerController  → customer_controller
-    ├── AdminController     → admin_controller
-    └── StoreController     → store_controller
-==============================================================
+    BaseController (abstract)
+    +-- AuthController      -> auth_controller
+    +-- SellerController    -> seller_controller
+    +-- CustomerController  -> customer_controller
+    +-- AdminController     -> admin_controller
+    +-- StoreController     -> store_controller
 """
 
 from app.controllers.auth_controller     import auth_controller

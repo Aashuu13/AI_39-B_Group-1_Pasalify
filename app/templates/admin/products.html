@@ -1,10 +1,14 @@
+{# 
+admin/products.html
+Rendered by: AdminController.products()
+Context: products (unapproved ones listed first).
+#}
 {% extends "admin/base_admin.html" %}
 {% block title %}Product Moderation{% endblock %}
 {% block admin_content %}
 <div class="page-title">Product Moderation</div>
 <div class="page-subtitle">Approve or remove product listings</div>
 
-<!-- Filter tabs -->
 <div class="d-flex gap-2 mb-3">
   <a href="?filter=pending" class="cat-pill {% if request.args.get('filter')=='pending' %}active{% endif %}">
     Pending Approval
@@ -33,13 +37,13 @@
               {% if p.image_path %}
               <img src="{{ url_for('static', filename=p.image_path) }}" style="width:40px;height:40px;object-fit:cover;border-radius:6px">
               {% else %}
-              <div style="width:40px;height:40px;background:var(--navy3);border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--muted)"><i class="bi bi-image"></i></div>
+              <div style="width:40px;height:40px;background:var(--navy3);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#E6EDF3"><i class="bi bi-image"></i></div>
               {% endif %}
               <div style="font-weight:500;font-size:.88rem">{{ p.name[:35] }}</div>
             </div>
           </td>
-          <td style="font-size:.85rem;color:var(--muted)">{{ p.store_name }}</td>
-          <td style="font-size:.82rem;color:var(--muted)">{{ p.cat_name or '—' }}</td>
+          <td style="font-size:.85rem;color:#E6EDF3">{{ p.store_name }}</td>
+          <td style="font-size:.82rem;color:#E6EDF3">{{ p.cat_name or '—' }}</td>
           <td style="font-weight:600;color:var(--purple2)">Rs. {{ "%.0f"|format(p.price) }}</td>
           <td style="font-size:.85rem">{{ p.stock_qty }}</td>
           <td>
@@ -66,7 +70,7 @@
         </tr>
         {% endif %}
         {% else %}
-        <tr><td colspan="7" class="text-center py-4" style="color:var(--muted)">No products found.</td></tr>
+        <tr><td colspan="7" class="text-center py-4" style="color:#E6EDF3">No products found.</td></tr>
         {% endfor %}
         </tbody>
       </table>

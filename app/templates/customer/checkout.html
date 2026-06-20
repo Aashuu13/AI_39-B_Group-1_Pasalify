@@ -1,3 +1,9 @@
+{# 
+customer/checkout.html
+Rendered by: CustomerController.checkout()
+Context: items (cart contents), subtotal, user (for prefilling
+name/phone/address fields).
+#}
 {% extends "base.html" %}
 {% block title %}Checkout{% endblock %}
 {% block content %}
@@ -6,8 +12,8 @@
   <form method="post">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="row g-4">
-      <!-- Delivery info -->
       <div class="col-md-7">
+        <!-- Delivery details, pre-filled from the logged-in user's profile -->
         <div class="card mb-3">
           <div class="card-header"><i class="bi bi-geo-alt me-1"></i> Delivery Details</div>
           <div class="card-body">
@@ -32,7 +38,8 @@
           </div>
         </div>
 
-        <!-- Payment method -->
+        <!-- Payment method picker: radio inputs hidden, styled as cards
+             (see the highlight script at the bottom of this file) -->
         <div class="card mb-3">
           <div class="card-header"><i class="bi bi-credit-card me-1"></i> Payment Method</div>
           <div class="card-body">
@@ -52,7 +59,8 @@
           </div>
         </div>
 
-        <!-- Promo code -->
+        <!-- Promo code box: 'Apply' is AJAX (pasalify.js), not a form submit,
+             so it can update the total without leaving this page -->
         <div class="card">
           <div class="card-header"><i class="bi bi-tag me-1"></i> Promo Code</div>
           <div class="card-body">
@@ -66,8 +74,10 @@
         </div>
       </div>
 
-      <!-- Order summary -->
       <div class="col-md-5">
+        <!-- Order summary: line items + totals. The discount row and
+             total-display span are updated live by the promo-code AJAX
+             call in pasalify.js once a valid code is applied -->
         <div class="card sticky-top" style="top:80px">
           <div class="card-header"><i class="bi bi-bag me-1"></i> Order Summary</div>
           <div class="card-body">
@@ -76,23 +86,23 @@
               {% if item.image_path %}
               <img src="{{ url_for('static', filename=item.image_path) }}" style="width:40px;height:40px;object-fit:cover;border-radius:6px">
               {% else %}
-              <div style="width:40px;height:40px;background:var(--navy3);border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--muted)"><i class="bi bi-image"></i></div>
+              <div style="width:40px;height:40px;background:var(--navy3);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#E6EDF3"><i class="bi bi-image"></i></div>
               {% endif %}
               <div class="flex-grow-1">
                 <div style="font-size:.85rem;font-weight:500">{{ item.name[:30] }}</div>
-                <div style="font-size:.78rem;color:var(--muted)">Qty: {{ item.quantity }}</div>
+                <div style="font-size:.78rem;color:#E6EDF3">Qty: {{ item.quantity }}</div>
               </div>
               <div style="font-weight:600;font-size:.9rem">Rs. {{ "%.0f"|format(item.price * item.quantity) }}</div>
             </div>
             {% endfor %}
             <div class="divider"></div>
-            <div class="d-flex justify-content-between mb-1" style="color:var(--muted);font-size:.88rem">
+            <div class="d-flex justify-content-between mb-1" style="color:#E6EDF3;font-size:.88rem">
               <span>Subtotal</span><span>Rs. {{ "%.0f"|format(subtotal) }}</span>
             </div>
-            <div class="d-flex justify-content-between mb-1" style="color:var(--muted);font-size:.88rem" id="discount-row" style="display:none!important">
+            <div class="d-flex justify-content-between mb-1" style="color:#E6EDF3;font-size:.88rem" id="discount-row" style="display:none!important">
               <span>Discount</span><span id="discount-val" style="color:#34D399"></span>
             </div>
-            <div class="d-flex justify-content-between mb-1" style="color:var(--muted);font-size:.88rem">
+            <div class="d-flex justify-content-between mb-1" style="color:#E6EDF3;font-size:.88rem">
               <span>Delivery</span><span style="color:#34D399">FREE</span>
             </div>
             <div class="divider"></div>
@@ -109,6 +119,8 @@
     </div>
   </form>
 </div>
+<!-- Highlights whichever payment-method card is currently selected,
+     since the actual radio input is hidden -->
 <script>
 document.querySelectorAll('.pay-radio').forEach(r=>{
   r.addEventListener('change',()=>{

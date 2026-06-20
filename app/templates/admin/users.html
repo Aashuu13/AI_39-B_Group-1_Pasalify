@@ -1,3 +1,8 @@
+{# 
+admin/users.html
+Rendered by: AdminController.users()
+Context: users (every account, with an activate/deactivate toggle).
+#}
 {% extends "admin/base_admin.html" %}
 {% block title %}Users{% endblock %}
 {% block admin_content %}
@@ -15,19 +20,19 @@
         {% for u in users %}
         <tr>
           <td style="font-weight:500">{{ u.name }}</td>
-          <td style="color:var(--muted);font-size:.85rem">{{ u.email }}</td>
-          <td style="color:var(--muted);font-size:.85rem">{{ u.phone or '—' }}</td>
+          <td style="color:#E6EDF3;font-size:.85rem">{{ u.email }}</td>
+          <td style="color:#E6EDF3;font-size:.85rem">{{ u.phone or '—' }}</td>
           <td>
             {% if u.role == 'admin' %}<span class="badge-purple">Admin</span>
             {% elif u.role == 'seller' %}<span class="badge-gold">Seller</span>
-            {% else %}<span class="badge-muted" style="background:var(--navy3);color:var(--muted);border-radius:6px;padding:.2rem .55rem;font-size:.74rem">Customer</span>
+            {% else %}<span class="badge-muted" style="background:var(--navy3);color:#E6EDF3;border-radius:6px;padding:.2rem .55rem;font-size:.74rem">Customer</span>
             {% endif %}
           </td>
           <td>
             {% if u.is_active %}<span class="badge-green">Active</span>
             {% else %}<span class="badge-red">Inactive</span>{% endif %}
           </td>
-          <td style="color:var(--muted);font-size:.8rem">{{ u.created_at.strftime('%b %d, %Y') if u.created_at else '' }}</td>
+          <td style="color:#E6EDF3;font-size:.8rem">{{ u.created_at.strftime('%b %d, %Y') if u.created_at else '' }}</td>
           <td>
             {% if u.role != 'admin' %}
             <a href="{{ url_for('admin.user_toggle', uid=u.id) }}" class="btn btn-sm {% if u.is_active %}btn-sm{% endif %}"

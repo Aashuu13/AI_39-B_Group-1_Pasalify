@@ -1,16 +1,24 @@
+{# 
+seller/dashboard.html
+Rendered by: SellerController.dashboard()
+Context: store, total_sales, total_orders, total_products,
+low_stock, recent_orders, monthly (6-month revenue trend),
+top_products (best sellers).
+#}
 {% extends "seller/base_seller.html" %}
 {% block title %}Seller Dashboard{% endblock %}
 {% block seller_content %}
 <div class="page-title">Dashboard</div>
 <div class="page-subtitle">Welcome back, {{ session.name }}</div>
 
+<!-- Shown until an admin approves this store -->
 {% if not store.is_approved %}
 <div class="alert alert-warning mb-4">
   <i class="bi bi-clock me-1"></i> Your store is pending admin approval. You can add products but they won't be visible until approved.
 </div>
 {% endif %}
 
-<!-- Stats -->
+<!-- Four top-line KPI cards, fed by StoreModel.stats() + ProductModel.low_stock() -->
 <div class="row g-3 mb-4">
   <div class="col-6 col-md-3">
     <div class="stat-card">
@@ -43,7 +51,7 @@
 </div>
 
 <div class="row g-3">
-  <!-- Revenue chart -->
+  <!-- Revenue bar chart, drawn by Chart.js from the 'monthly' data below -->
   <div class="col-md-8">
     <div class="card">
       <div class="card-header">Monthly Revenue (Last 6 Months)</div>
@@ -53,7 +61,7 @@
     </div>
   </div>
 
-  <!-- Top products -->
+  <!-- Best-sellers list, ranked by units sold -->
   <div class="col-md-4">
     <div class="card">
       <div class="card-header">Top Products</div>
@@ -63,17 +71,17 @@
           <div style="font-size:.85rem;font-weight:500">{{ p.name[:22] }}</div>
           <div class="text-end">
             <div style="font-size:.8rem;color:var(--purple2)">{{ p.sold }} sold</div>
-            <div style="font-size:.75rem;color:var(--muted)">Rs.{{ "%.0f"|format(p.revenue) }}</div>
+            <div style="font-size:.75rem;color:#E6EDF3">Rs.{{ "%.0f"|format(p.revenue) }}</div>
           </div>
         </div>
         {% else %}
-        <div class="p-3 text-center" style="color:var(--muted);font-size:.85rem">No sales yet</div>
+        <div class="p-3 text-center" style="color:#E6EDF3;font-size:.85rem">No sales yet</div>
         {% endfor %}
       </div>
     </div>
   </div>
 
-  <!-- Low stock alerts -->
+  <!-- Low-stock warning card — only rendered when there's something to warn about -->
   {% if low_stock %}
   <div class="col-md-6">
     <div class="card">
@@ -93,7 +101,8 @@
   </div>
   {% endif %}
 
-  <!-- Recent orders -->
+  <!-- Recent orders for this store; takes the full row width if there's
+       no low-stock card next to it -->
   <div class="col-md-{% if low_stock %}6{% else %}12{% endif %}">
     <div class="card">
       <div class="card-header d-flex justify-content-between">
@@ -105,12 +114,12 @@
         <div class="d-flex justify-content-between align-items-center p-3 {% if not loop.last %}border-bottom{% endif %}" style="border-color:var(--border)">
           <div>
             <div style="font-size:.85rem;font-weight:600;color:var(--purple2)">{{ o.order_number }}</div>
-            <div style="font-size:.75rem;color:var(--muted)">{{ o.created_at.strftime('%b %d') if o.created_at else '' }}</div>
+            <div style="font-size:.75rem;color:#E6EDF3">{{ o.created_at.strftime('%b %d') if o.created_at else '' }}</div>
           </div>
           <span class="status-badge s-{{ o.status }}">{{ o.status|title }}</span>
         </div>
         {% else %}
-        <div class="p-3 text-center" style="color:var(--muted);font-size:.85rem">No orders yet</div>
+        <div class="p-3 text-center" style="color:#E6EDF3;font-size:.85rem">No orders yet</div>
         {% endfor %}
       </div>
     </div>
@@ -118,6 +127,7 @@
 </div>
 
 {% block scripts %}
+<!-- Chart.js bar chart of this store's monthly revenue -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 const ctx = document.getElementById('revenueChart');

@@ -1,3 +1,9 @@
+{# 
+seller/orders.html
+Rendered by: SellerController.orders()
+Context: orders (orders containing at least one of this store's
+products), store.
+#}
 {% extends "seller/base_seller.html" %}
 {% block title %}Orders{% endblock %}
 {% block seller_content %}
@@ -13,9 +19,9 @@
         {% for o in orders %}
         <tr>
           <td style="color:var(--purple2);font-weight:600">{{ o.order_number }}</td>
-          <td style="color:var(--muted);font-size:.82rem">{{ o.created_at.strftime('%b %d, %Y') if o.created_at else '' }}</td>
+          <td style="color:#E6EDF3;font-size:.82rem">{{ o.created_at.strftime('%b %d, %Y') if o.created_at else '' }}</td>
           <td style="font-size:.85rem">{{ o.full_name }}</td>
-          <td style="font-size:.78rem;color:var(--muted);max-width:150px">{{ (o['items'] or '')[:50] }}{% if (o['items'] or '')|length > 50 %}...{% endif %}}</td>
+          <td style="font-size:.78rem;color:#E6EDF3;max-width:150px">{{ (o['items'] or '')[:50] }}{% if (o['items'] or '')|length > 50 %}...{% endif %}}</td>
           <td style="font-weight:600">Rs. {{ "%.0f"|format(o.store_total) }}</td>
           <td><span class="status-badge s-{{ o.status }}">{{ o.status|title }}</span></td>
           <td>
@@ -37,7 +43,7 @@
   </div>
 </div>
 {% else %}
-<div class="text-center py-5" style="color:var(--muted)">
+<div class="text-center py-5" style="color:#E6EDF3">
   <i class="bi bi-box-seam" style="font-size:3rem;opacity:.3"></i>
   <h4 class="mt-3">No orders yet</h4>
 </div>

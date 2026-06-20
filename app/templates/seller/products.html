@@ -1,3 +1,8 @@
+{# 
+seller/products.html
+Rendered by: SellerController.products()
+Context: products (this store's catalogue, active or not), store.
+#}
 {% extends "seller/base_seller.html" %}
 {% block title %}My Products{% endblock %}
 {% block seller_content %}
@@ -23,15 +28,15 @@
               {% if p.image_path %}
               <img src="{{ url_for('static', filename=p.image_path) }}" style="width:40px;height:40px;object-fit:cover;border-radius:6px">
               {% else %}
-              <div style="width:40px;height:40px;background:var(--navy3);border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--muted)"><i class="bi bi-image"></i></div>
+              <div style="width:40px;height:40px;background:var(--navy3);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#E6EDF3"><i class="bi bi-image"></i></div>
               {% endif %}
               <div>
                 <div style="font-weight:600;font-size:.88rem">{{ p.name[:35] }}</div>
-                <div style="color:var(--muted);font-size:.75rem">{{ p.avg_rating|round(1) }}★ ({{ p.review_count }})</div>
+                <div style="color:#E6EDF3;font-size:.75rem">{{ p.avg_rating|round(1) }}★ ({{ p.review_count }})</div>
               </div>
             </div>
           </td>
-          <td style="color:var(--muted);font-size:.82rem">{{ p.cat_name or '—' }}</td>
+          <td style="color:#E6EDF3;font-size:.82rem">{{ p.cat_name or '—' }}</td>
           <td style="font-weight:600;color:var(--purple2)">Rs. {{ "%.0f"|format(p.price) }}</td>
           <td>
             {% if p.stock_qty == 0 %}
@@ -66,7 +71,7 @@
   </div>
 </div>
 {% else %}
-<div class="text-center py-5" style="color:var(--muted)">
+<div class="text-center py-5" style="color:#E6EDF3">
   <i class="bi bi-grid" style="font-size:3.5rem;opacity:.3"></i>
   <h4 class="mt-3">No products yet</h4>
   <a href="{{ url_for('seller.product_add') }}" class="btn btn-purple mt-3">Add First Product</a>

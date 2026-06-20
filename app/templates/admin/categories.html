@@ -1,3 +1,8 @@
+{# 
+admin/categories.html
+Rendered by: AdminController.categories()
+Context: cats.
+#}
 {% extends "admin/base_admin.html" %}
 {% block title %}Categories{% endblock %}
 {% block admin_content %}
@@ -16,7 +21,7 @@
             <input type="text" class="form-control form-control-sm" name="name" placeholder="e.g. Electronics" required>
           </div>
           <div class="mb-3">
-            <label class="form-label">Icon <small style="color:var(--muted)">(Bootstrap Icons name)</small></label>
+            <label class="form-label">Icon <small style="color:#E6EDF3">(Bootstrap Icons name)</small></label>
             <input type="text" class="form-control form-control-sm" name="icon" placeholder="e.g. cpu, bag, book" value="tag">
           </div>
           <button type="submit" class="btn btn-purple btn-sm w-100">Add Category</button>
@@ -36,7 +41,7 @@
             <tr>
               <td><i class="bi bi-{{ c.icon }}" style="color:var(--purple2);font-size:1.1rem"></i></td>
               <td style="font-weight:500">{{ c.name }}</td>
-              <td style="color:var(--muted);font-size:.82rem">{{ c.slug }}</td>
+              <td style="color:#E6EDF3;font-size:.82rem">{{ c.slug }}</td>
             </tr>
             {% endfor %}
             </tbody>

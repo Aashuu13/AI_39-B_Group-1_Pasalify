@@ -1,8 +1,14 @@
+{# 
+seller/product_form.html
+Rendered by: SellerController.product_add() and product_edit()
+Context: store, cats, product (None when adding a new product),
+images (only present when editing). Same form serves both flows.
+#}
 {% extends "seller/base_seller.html" %}
 {% block title %}{% if product %}Edit{% else %}Add{% endif %} Product{% endblock %}
 {% block seller_content %}
 <div class="d-flex align-items-center gap-3 mb-4">
-  <a href="{{ url_for('seller.products') }}" style="color:var(--muted)"><i class="bi bi-arrow-left"></i></a>
+  <a href="{{ url_for('seller.products') }}" style="color:#E6EDF3"><i class="bi bi-arrow-left"></i></a>
   <div class="page-title mb-0">{% if product %}Edit Product{% else %}Add New Product{% endif %}</div>
 </div>
 
@@ -51,7 +57,7 @@
               </div>
             </div>
             <div class="col-md-6">
-              <label class="form-label">Compare Price (Rs.) <small style="color:var(--muted)">Original/MRP</small></label>
+              <label class="form-label">Compare Price (Rs.) <small style="color:#E6EDF3">Original/MRP</small></label>
               <div class="input-group">
                 <span class="input-group-text">Rs.</span>
                 <input type="number" class="form-control" name="compare_price" value="{{ product.compare_price if product else '' }}" step="0.01" min="0">
@@ -89,9 +95,9 @@
             {% endfor %}
           </div>
           {% endif %}
-          <label class="form-label">Upload Images <small style="color:var(--muted)">(first = primary)</small></label>
+          <label class="form-label">Upload Images <small style="color:#E6EDF3">(first = primary)</small></label>
           <input type="file" class="form-control" name="images" accept="image/*" multiple>
-          <div style="color:var(--muted);font-size:.75rem;margin-top:.4rem">Supported: JPG, PNG, WebP. Max 16MB total.</div>
+          <div style="color:#E6EDF3;font-size:.75rem;margin-top:.4rem">Supported: JPG, PNG, WebP. Max 16MB total.</div>
         </div>
       </div>
 
@@ -100,7 +106,7 @@
           <button type="submit" class="btn btn-purple w-100 mb-2">
             <i class="bi bi-check-circle me-1"></i> {% if product %}Update Product{% else %}Add Product{% endif %}
           </button>
-          <a href="{{ url_for('seller.products') }}" class="btn w-100" style="color:var(--muted)">Cancel</a>
+          <a href="{{ url_for('seller.products') }}" class="btn w-100" style="color:#E6EDF3">Cancel</a>
         </div>
       </div>
     </div>

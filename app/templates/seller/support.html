@@ -1,3 +1,9 @@
+{# 
+seller/support.html
+Rendered by: SellerController.support_tickets()
+Context: tickets (support-chatbot conversations from customers
+who bought from this store, grouped one ticket per customer), store.
+#}
 {% extends "seller/base_seller.html" %}
 {% block title %}Support Tickets{% endblock %}
 {% block seller_content %}
@@ -11,22 +17,40 @@
     <div>
       <i class="bi bi-person-circle me-2" style="color:var(--purple2)"></i>
       <strong>{{ t.customer_name or 'Customer' }}</strong>
-      <span style="color:var(--muted);font-size:.8rem;margin-left:.5rem">{{ t.customer_email or '' }}</span>
+      <span style="color:#E6EDF3;font-size:.8rem;margin-left:.5rem">{{ t.customer_email or '' }}</span>
     </div>
-    <span style="color:var(--muted);font-size:.78rem">
-      {{ t.created_at.strftime('%b %d, %Y %H:%M') if t.created_at else '' }}
+    <span style="color:#E6EDF3;font-size:.78rem">
+      {{ t.last_message.strftime('%b %d, %Y %H:%M') if t.last_message else '' }}
     </span>
   </div>
   <div class="card-body">
-    <!-- Customer message -->
-    <div style="background:rgba(108,63,200,.07);border-radius:10px;padding:.8rem 1rem;margin-bottom:.8rem">
-      <div style="font-size:.78rem;color:var(--purple2);font-weight:600;margin-bottom:.3rem">
-        <i class="bi bi-chat-left-text me-1"></i>Customer Message
-      </div>
-      <div style="font-size:.9rem">{{ t.message }}</div>
+    <div style="max-height:260px;overflow-y:auto;margin-bottom:.8rem">
+      {% for m in t.messages %}
+        {% if m.role == 'user' %}
+        <div style="background:rgba(108,63,200,.07);border-radius:10px;padding:.7rem 1rem;margin-bottom:.5rem">
+          <div style="font-size:.75rem;color:var(--purple2);font-weight:600;margin-bottom:.2rem">
+            <i class="bi bi-person me-1"></i>{{ t.customer_name or 'Customer' }} · {{ m.created_at.strftime('%b %d, %H:%M') if m.created_at else '' }}
+          </div>
+          <div style="font-size:.9rem">{{ m.message }}</div>
+        </div>
+        {% elif m.role == 'bot' %}
+        <div style="background:rgba(100,100,100,.07);border-radius:10px;padding:.7rem 1rem;margin-bottom:.5rem;margin-left:1rem">
+          <div style="font-size:.75rem;color:#E6EDF3;font-weight:600;margin-bottom:.2rem">
+            <i class="bi bi-robot me-1"></i>Bot · {{ m.created_at.strftime('%b %d, %H:%M') if m.created_at else '' }}
+          </div>
+          <div style="font-size:.88rem">{{ m.message }}</div>
+        </div>
+        {% elif m.role == 'admin' %}
+        <div style="background:rgba(16,185,129,.08);border-radius:10px;padding:.7rem 1rem;margin-bottom:.5rem;margin-left:1.5rem">
+          <div style="font-size:.75rem;color:#10b981;font-weight:600;margin-bottom:.2rem">
+            <i class="bi bi-shield-check me-1"></i>Admin · {{ m.created_at.strftime('%b %d, %H:%M') if m.created_at else '' }}
+          </div>
+          <div style="font-size:.88rem">{{ m.message }}</div>
+        </div>
+        {% endif %}
+      {% endfor %}
     </div>
 
-    <!-- Reply form — opens a chat -->
     <form method="post" action="{{ url_for('seller.support_reply') }}" class="d-flex gap-2 mt-2">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <input type="hidden" name="customer_id" value="{{ t.user_id }}">
@@ -42,7 +66,7 @@
 {% endfor %}
 {% else %}
 <div class="card">
-  <div class="card-body text-center py-5" style="color:var(--muted)">
+  <div class="card-body text-center py-5" style="color:#E6EDF3">
     <i class="bi bi-inbox" style="font-size:2.5rem;opacity:.4"></i>
     <p class="mt-2">No support questions from your customers yet.</p>
   </div>
