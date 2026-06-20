@@ -1,24 +1,18 @@
-{# 
-seller/dashboard.html
-Rendered by: SellerController.dashboard()
-Context: store, total_sales, total_orders, total_products,
-low_stock, recent_orders, monthly (6-month revenue trend),
-top_products (best sellers).
-#}
+
 {% extends "seller/base_seller.html" %}
 {% block title %}Seller Dashboard{% endblock %}
 {% block seller_content %}
 <div class="page-title">Dashboard</div>
 <div class="page-subtitle">Welcome back, {{ session.name }}</div>
 
-<!-- Shown until an admin approves this store -->
+
 {% if not store.is_approved %}
 <div class="alert alert-warning mb-4">
   <i class="bi bi-clock me-1"></i> Your store is pending admin approval. You can add products but they won't be visible until approved.
 </div>
 {% endif %}
 
-<!-- Four top-line KPI cards, fed by StoreModel.stats() + ProductModel.low_stock() -->
+
 <div class="row g-3 mb-4">
   <div class="col-6 col-md-3">
     <div class="stat-card">
@@ -51,7 +45,7 @@ top_products (best sellers).
 </div>
 
 <div class="row g-3">
-  <!-- Revenue bar chart, drawn by Chart.js from the 'monthly' data below -->
+  
   <div class="col-md-8">
     <div class="card">
       <div class="card-header">Monthly Revenue (Last 6 Months)</div>
@@ -61,7 +55,7 @@ top_products (best sellers).
     </div>
   </div>
 
-  <!-- Best-sellers list, ranked by units sold -->
+  
   <div class="col-md-4">
     <div class="card">
       <div class="card-header">Top Products</div>
@@ -81,7 +75,7 @@ top_products (best sellers).
     </div>
   </div>
 
-  <!-- Low-stock warning card — only rendered when there's something to warn about -->
+  
   {% if low_stock %}
   <div class="col-md-6">
     <div class="card">
@@ -101,8 +95,7 @@ top_products (best sellers).
   </div>
   {% endif %}
 
-  <!-- Recent orders for this store; takes the full row width if there's
-       no low-stock card next to it -->
+  
   <div class="col-md-{% if low_stock %}6{% else %}12{% endif %}">
     <div class="card">
       <div class="card-header d-flex justify-content-between">
@@ -127,7 +120,7 @@ top_products (best sellers).
 </div>
 
 {% block scripts %}
-<!-- Chart.js bar chart of this store's monthly revenue -->
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 const ctx = document.getElementById('revenueChart');

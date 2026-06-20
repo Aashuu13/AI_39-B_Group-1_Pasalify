@@ -1,9 +1,4 @@
-{# 
-seller/product_form.html
-Rendered by: SellerController.product_add() and product_edit()
-Context: store, cats, product (None when adding a new product),
-images (only present when editing). Same form serves both flows.
-#}
+
 {% extends "seller/base_seller.html" %}
 {% block title %}{% if product %}Edit{% else %}Add{% endif %} Product{% endblock %}
 {% block seller_content %}
