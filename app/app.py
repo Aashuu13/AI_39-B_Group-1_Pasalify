@@ -11,15 +11,14 @@ production, and avoids import-order problems between blueprints.
 """
 
 from dotenv import load_dotenv
-load_dotenv()  # reads a local .env file (if present) into os.environ
+load_dotenv()  
 
 from flask import Flask, redirect, url_for
 from flask_wtf.csrf import CSRFProtect
 from app.config import Config
 import os
 
-# CSRFProtect is created once at module level, then bound to whichever
-# app instance create_app() builds via csrf.init_app(app).
+
 csrf = CSRFProtect()
 
 
@@ -28,16 +27,12 @@ def create_app():
     app = Flask(__name__, template_folder='templates', static_folder='static')
     app.config.from_object(Config)
 
-    # Adds a hidden CSRF token requirement to every form (see csrf_token()
-    # calls in the templates) and rejects POSTs that don't include it.
     csrf.init_app(app)
 
-    # Make sure the folder for uploaded images exists before any upload happens
+  
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-    # ── Register Blueprints ────────────────────────────────────────────
-    # Each blueprint is one "section" of the site: auth, customer-facing
-    # pages, seller dashboard, admin dashboard, and public store pages.
+
     from app.routes.auth     import auth_bp
     from app.routes.customer import customer_bp
     from app.routes.seller   import seller_bp
