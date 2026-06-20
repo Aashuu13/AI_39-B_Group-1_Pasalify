@@ -36,4 +36,4 @@ seller_bp.add_url_rule('/chats/<int:chat_id>',              'chat_detail',      
 seller_bp.add_url_rule('/chats/<int:chat_id>/send',         'send_message',       _seller(sc.send_message),       methods=['POST'])
 
 seller_bp.add_url_rule('/store/profile',                    'store_profile',      _seller(sc.store_profile),      methods=['GET', 'POST'])
-seller_bp.add_url_rule('/store/customize',                  'store_customize',    _seller(sc.store_customize),    methods=['GET', 'POST'])
+seller_bp.add_url_rule('/store/customize',                'store_customize',  _seller(sc.store_customize),  methods=['GET', 'POST'])
