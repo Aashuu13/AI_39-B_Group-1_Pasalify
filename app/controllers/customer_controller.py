@@ -42,7 +42,6 @@ class CustomerController(BaseController):
         _current_user_id, _is_logged_in
     """
 
-    # ── Private helpers (Encapsulation) ─────────────────────────────────────
 
     def _validate_promo(self, code: str, subtotal: float) -> dict:
         """
@@ -77,9 +76,7 @@ class CustomerController(BaseController):
         else:
             discount = float(pc['discount_value'])
 
-        # Counts this application of the code immediately, even though
-        # the order itself hasn't been created yet — keeps the logic
-        # in one place rather than splitting "validate" from "consume".
+       
         self._run("UPDATE promo_codes SET used_count = used_count + 1 WHERE id = %s",
                   (pc['id'],))
         return {'valid': True, 'discount': discount, 'promo_id': pc['id'],
@@ -99,7 +96,7 @@ class CustomerController(BaseController):
             WHERE ci.user_id = %s
         """, (self._current_user_id(),))
 
-    # ── Home / Discovery ─────────────────────────────────────────────────────
+  
 
     def home(self):
         """Landing page: category pills + the 12 newest approved products."""
@@ -156,7 +153,7 @@ class CustomerController(BaseController):
         return render_template('customer/product_detail.html', p=p, images=images,
                                reviews=reviews, related=related, in_wish=in_wish)
 
-    # ── Cart ────────────────────────────────────────────────────────────────
+  
 
     def cart(self):
         """Show the cart and its running total."""
@@ -206,7 +203,6 @@ class CustomerController(BaseController):
         self._info('Item removed.')
         return redirect(url_for('customer.cart'))
 
-    # ── Wishlist ────────────────────────────────────────────────────────────
 
     def wishlist(self):
         """Show every product the user has saved to their wishlist."""
@@ -236,7 +232,7 @@ class CustomerController(BaseController):
             self._ok('Added to wishlist!')
         return redirect(request.referrer or url_for('customer.wishlist'))
 
-    # ── Checkout ────────────────────────────────────────────────────────────
+  
 
     def checkout(self):
         """
@@ -261,9 +257,7 @@ class CustomerController(BaseController):
             city      = request.form.get('city', '')
             method    = request.form.get('payment_method', 'cod')
 
-            # Re-validate (and consume) any promo code at the moment
-            # of checkout, rather than trusting a value posted from
-            # an earlier page.
+         
             promo_code = request.form.get('promo_code', '').strip().upper()
             promo      = self._validate_promo(promo_code, subtotal)
             if promo_code and not promo['valid']:
@@ -292,11 +286,10 @@ class CustomerController(BaseController):
                 """, (oid, i['product_id'], i['store_id'], i['name'],
                       price, i['quantity'], price * i['quantity']))
 
-                # Stock never goes negative — ProductModel guards that.
+                
                 ProductModel.decrement_stock(i['product_id'], i['quantity'])
 
-                # Split this line item's revenue between the seller and
-                # the platform, based on that store's commission rate.
+            
                 store = self._q(
                     "SELECT id, commission_rate FROM stores WHERE id = %s",
                     (i['store_id'],), one=True
@@ -315,7 +308,7 @@ class CustomerController(BaseController):
                             VALUES (%s,%s,%s,%s)
                         """, (oi['id'], i['store_id'], seller_amt, comm))
 
-            # Order is fully recorded — now empty the cart and log the payment.
+            
             self._run("DELETE FROM cart_items WHERE user_id = %s", (uid,))
             pay_status = 'success' if method == 'cod' else 'pending'
             self._run(
@@ -341,7 +334,6 @@ class CustomerController(BaseController):
         return jsonify({'valid': result['valid'], 'discount': result['discount'],
                         'message': result['message']})
 
-    # ── Orders ──────────────────────────────────────────────────────────────
 
     def orders(self):
         """List every order this customer has placed."""
@@ -378,7 +370,7 @@ class CustomerController(BaseController):
         """, (self._current_user_id(),))
         return render_template('customer/payment_history.html', pays=pays)
 
-    # ── Reviews ─────────────────────────────────────────────────────────────
+    
 
     def submit_review(self, pid: int):
         """
@@ -399,7 +391,7 @@ class CustomerController(BaseController):
         self._ok('Review submitted!')
         return redirect(url_for('customer.product_detail', pid=pid))
 
-    # ── Profile ─────────────────────────────────────────────────────────────
+
 
     def profile(self):
         """
@@ -417,8 +409,7 @@ class CustomerController(BaseController):
                 'address': request.form.get('address', '').strip(),
                 'city':    request.form.get('city', '').strip(),
             })
-            # Keep the navbar's greeting in sync with the new name
-            # right away, without forcing the user to log in again.
+        
             session['name'] = request.form.get('name', '').strip()
             self._ok('Profile updated!')
             return redirect(url_for('customer.profile'))
@@ -433,7 +424,7 @@ class CustomerController(BaseController):
                                orders_count=orders_count['c'],
                                wish_count=wish_count['c'])
 
-    # ── Notifications ───────────────────────────────────────────────────────
+   
 
     def notifications(self):
         """Show the latest 50 notifications and mark them all as read
@@ -455,7 +446,7 @@ class CustomerController(BaseController):
         )
         return jsonify({'count': c['c']})
 
-    # ── Support Chatbot ─────────────────────────────────────────────────────
+
 
     def support(self):
         """Show the support chat page along with this user's previous
@@ -501,8 +492,7 @@ class CustomerController(BaseController):
         )
         return jsonify({'reply': reply})
 
-    # ── Stores ──────────────────────────────────────────────────────────────
-
+   
     def stores(self):
         """Directory of every approved store, with an optional name/
         description search."""
@@ -533,7 +523,6 @@ class CustomerController(BaseController):
         """, (store['id'],))
         return render_template('customer/store_page.html', store=store, products=prods)
 
-    # ── Chat (customer side of customer<->seller messaging) ────────────────
 
     def chats(self):
         """List of this customer's conversations, each with the store's
@@ -605,5 +594,4 @@ class CustomerController(BaseController):
                                msgs=msgs, store=store)
 
 
-# ── Singleton instance imported by app/controllers/__init__.py and routes ──
 customer_controller = CustomerController()
