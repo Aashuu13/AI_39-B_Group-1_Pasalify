@@ -456,22 +456,23 @@ class SellerController(BaseController):
             return redirect(url_for('seller.store_profile'))
         return render_template('seller/store_profile.html', store=store)
 
-    def store_customize(self):
-        store, redir = self._require_store()
-        if redir:
-            return redir
-        if request.method == 'POST':
-            primary_color = request.form.get('primary_color', '')
-            banner_text   = request.form.get('banner_text', '')
-            self._run(
-                "UPDATE stores SET primary_color=%s, banner_text=%s WHERE id=%s",
-                (primary_color, banner_text, store['id'])
-            )
-            self._ok('Store customized!')
-            return redirect(url_for('seller.store_customize'))
-        return render_template('seller/store_customize.html', store=store)
 
     def order_update(self, oid: int):
         return self.order_status(oid)
+    
+    def store_customize(self):
+       store, redir = self._require_store()
+       if redir:
+          return redir
+
+       if request.method == 'POST':
+          StoreModel.update(store['id'], {
+            'theme_color':  request.form.get('theme_color', '#6C3FC8'),
+            'theme_layout': request.form.get('theme_layout', 'grid'),
+          })
+          self._ok('Store design saved!')
+          return redirect(url_for('seller.store_customize'))
+
+       return render_template('seller/store_customize.html', store=store)
 
 seller_controller = SellerController()
