@@ -1,14 +1,9 @@
-{# 
-customer/products.html
-Rendered by: CustomerController.products()
-Context: items (search results), cats, q, cat_slug, sort
-(the last three echo the current filters back into the form).
-#}
+
 {% extends "base.html" %}
 {% block title %}Products{% endblock %}
 {% block content %}
 <div class="container mt-4 mb-5">
-  <!-- Page heading + the search box (GET form, so search results are linkable) -->
+  
   <div class="row g-2 mb-4 align-items-end">
     <div class="col-md-6">
       <h1 class="page-title">{% if q %}Results for "{{ q }}"{% else %}All Products{% endif %}</h1>
@@ -23,8 +18,7 @@ Context: items (search results), cats, q, cat_slug, sort
   </div>
 
   <div class="row g-3">
-    <!-- Sidebar filter form: category/price/rating/sort, auto-submits
-         on category change, otherwise needs the "Apply Filters" click -->
+    
     <div class="col-md-3">
       <div class="card sticky-top" style="top:80px">
         <div class="card-header"><i class="bi bi-funnel me-1"></i> Filters</div>
@@ -71,8 +65,7 @@ Context: items (search results), cats, q, cat_slug, sort
       </div>
     </div>
 
-    <!-- Product grid; falls back to an empty-state message if the
-         search/filter combination returns nothing -->
+    
     <div class="col-md-9">
       {% if items %}
       <div class="row g-3">

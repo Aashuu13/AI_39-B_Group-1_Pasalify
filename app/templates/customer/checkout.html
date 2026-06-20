@@ -1,9 +1,4 @@
-{# 
-customer/checkout.html
-Rendered by: CustomerController.checkout()
-Context: items (cart contents), subtotal, user (for prefilling
-name/phone/address fields).
-#}
+
 {% extends "base.html" %}
 {% block title %}Checkout{% endblock %}
 {% block content %}
@@ -13,7 +8,7 @@ name/phone/address fields).
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="row g-4">
       <div class="col-md-7">
-        <!-- Delivery details, pre-filled from the logged-in user's profile -->
+        
         <div class="card mb-3">
           <div class="card-header"><i class="bi bi-geo-alt me-1"></i> Delivery Details</div>
           <div class="card-body">
@@ -38,8 +33,7 @@ name/phone/address fields).
           </div>
         </div>
 
-        <!-- Payment method picker: radio inputs hidden, styled as cards
-             (see the highlight script at the bottom of this file) -->
+        
         <div class="card mb-3">
           <div class="card-header"><i class="bi bi-credit-card me-1"></i> Payment Method</div>
           <div class="card-body">
@@ -59,8 +53,7 @@ name/phone/address fields).
           </div>
         </div>
 
-        <!-- Promo code box: 'Apply' is AJAX (pasalify.js), not a form submit,
-             so it can update the total without leaving this page -->
+        
         <div class="card">
           <div class="card-header"><i class="bi bi-tag me-1"></i> Promo Code</div>
           <div class="card-body">
@@ -75,9 +68,7 @@ name/phone/address fields).
       </div>
 
       <div class="col-md-5">
-        <!-- Order summary: line items + totals. The discount row and
-             total-display span are updated live by the promo-code AJAX
-             call in pasalify.js once a valid code is applied -->
+        
         <div class="card sticky-top" style="top:80px">
           <div class="card-header"><i class="bi bi-bag me-1"></i> Order Summary</div>
           <div class="card-body">
@@ -119,8 +110,7 @@ name/phone/address fields).
     </div>
   </form>
 </div>
-<!-- Highlights whichever payment-method card is currently selected,
-     since the actual radio input is hidden -->
+
 <script>
 document.querySelectorAll('.pay-radio').forEach(r=>{
   r.addEventListener('change',()=>{
