@@ -1,21 +1,7 @@
-"""
-app/models/store_model.py
-================================================================
-OOP concept on display: INHERITANCE + ENCAPSULATION
-
-    - Inheritance:   StoreModel inherits all CRUD methods from
-      BaseModel (find_by_id, create, update, ...).
-    - Encapsulation: slug generation and approval-state changes
-      are handled entirely inside this class — callers never
-      build a slug or write an UPDATE statement themselves.
-
-Represents the `stores` table.
-"""
 
 import uuid
 from app.models.basemodel import BaseModel
 from app.models.database import Database
-
 
 class StoreModel(BaseModel):
     """
@@ -30,8 +16,6 @@ class StoreModel(BaseModel):
     @property
     def table(self) -> str:
         return self.TABLE
-
-    # ── Lookups ─────────────────────────────────────────────────────────
 
     @classmethod
     def find_by_user(cls, user_id: int) -> dict | None:
@@ -54,8 +38,6 @@ class StoreModel(BaseModel):
             ORDER BY s.created_at DESC
         """)
 
-    # ── Creation helper ─────────────────────────────────────────────────
-
     @classmethod
     def make_unique_slug(cls, name: str) -> str:
         """
@@ -69,8 +51,6 @@ class StoreModel(BaseModel):
         if cls.find_where("slug = %s", (slug,), one=True):
             slug += '-' + str(uuid.uuid4())[:4]
         return slug
-
-    # ── Moderation ──────────────────────────────────────────────────────
 
     @classmethod
     def approve(cls, store_id: int) -> None:
@@ -88,8 +68,6 @@ class StoreModel(BaseModel):
         this store's future sales. Clamped to a sane 0–100 range."""
         rate = max(0, min(100, rate))
         cls.update(store_id, {'commission_rate': rate})
-
-    # ── Stats ───────────────────────────────────────────────────────────
 
     @classmethod
     def stats(cls, store_id: int) -> dict:

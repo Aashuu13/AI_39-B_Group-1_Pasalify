@@ -1,22 +1,6 @@
-"""
-app/models/product_model.py
-================================================================
-OOP concepts on display: INHERITANCE + POLYMORPHISM + ENCAPSULATION
-
-    - Inheritance:   ProductModel extends BaseModel — every CRUD
-      method is inherited for free.
-    - Polymorphism:  on top of the shared CRUD interface, this class
-      adds its own product-specific behaviour (approve, reject,
-      update_rating, decrement_stock, search, ...).
-    - Encapsulation: stock-guarding logic (never goes below 0) and
-      rating recalculation are both hidden inside this class.
-
-Represents the `products` table.
-"""
 
 from app.models.basemodel import BaseModel
 from app.models.database import Database
-
 
 class ProductModel(BaseModel):
     """
@@ -36,8 +20,6 @@ class ProductModel(BaseModel):
     @property
     def table(self) -> str:
         return self.TABLE
-
-    # ── Catalogue queries ────────────────────────────────────────────────
 
     @classmethod
     def find_active(cls) -> list[dict]:
@@ -129,8 +111,6 @@ class ProductModel(BaseModel):
             (store_id,)
         )
 
-    # ── Moderation ──────────────────────────────────────────────────────
-
     @classmethod
     def approve(cls, product_id: int) -> None:
         """Admin approves a product, making it visible to customers."""
@@ -146,8 +126,6 @@ class ProductModel(BaseModel):
         """Seller removes a product, keeping the row so past orders
         that reference it still display correctly."""
         cls.update(product_id, {'is_active': 0})
-
-    # ── Stock management ───────────────────────────────────────────────
 
     @classmethod
     def decrement_stock(cls, product_id: int, qty: int) -> None:
@@ -167,8 +145,6 @@ class ProductModel(BaseModel):
             "UPDATE products SET stock_qty = stock_qty + %s WHERE id = %s",
             (qty, product_id)
         )
-
-    # ── Rating ──────────────────────────────────────────────────────────
 
     @classmethod
     def update_rating(cls, product_id: int) -> None:

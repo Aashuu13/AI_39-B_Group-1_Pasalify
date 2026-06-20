@@ -1,21 +1,6 @@
-"""
-app/models/order_model.py
-================================================================
-OOP concepts on display: INHERITANCE + ENCAPSULATION
-
-    - Inheritance:   OrderModel extends BaseModel and gets every
-      CRUD method (find_by_id, create, update, ...) for free.
-    - Encapsulation: every status change (cancel/ship/complete/
-      mark_paid) goes through its own small method instead of
-      controllers writing raw "UPDATE orders SET status=..."
-      statements scattered across the codebase.
-
-Represents the `orders` table.
-"""
 
 from app.models.basemodel import BaseModel
 from app.models.database import Database
-
 
 class OrderModel(BaseModel):
     """
@@ -34,8 +19,6 @@ class OrderModel(BaseModel):
     @property
     def table(self) -> str:
         return self.TABLE
-
-    # ── Lookups ─────────────────────────────────────────────────────────
 
     @classmethod
     def find_by_user(cls, user_id: int) -> list[dict]:
@@ -83,8 +66,6 @@ class OrderModel(BaseModel):
             LIMIT %s
         """, (limit,))
 
-    # ── Status transitions (Encapsulation) ───────────────────────────────
-
     @classmethod
     def cancel(cls, order_id: int) -> None:
         """Move an order to the 'cancelled' status."""
@@ -105,8 +86,6 @@ class OrderModel(BaseModel):
         """Flip payment_status to 'paid', separate from the
         shipping/delivery status above."""
         cls.update(order_id, {'payment_status': 'paid'})
-
-    # ── Revenue stats ───────────────────────────────────────────────────
 
     @classmethod
     def monthly_revenue(cls, store_id: int | None = None, months: int = 6) -> list[dict]:
