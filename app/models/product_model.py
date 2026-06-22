@@ -37,7 +37,7 @@ class ProductModel(BaseModel):
     def table(self) -> str:
         return self.TABLE
 
-    # ── Catalogue queries ────────────────────────────────────────────────
+    
 
     @classmethod
     def find_active(cls) -> list[dict]:

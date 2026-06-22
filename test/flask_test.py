@@ -112,7 +112,7 @@ def _make_minimal_app():
     @login_required
     def wishlist(): return "wishlist"
 
-    # ── seller blueprint ─────────────────────────────────────────────
+    
     seller_bp = Blueprint("seller", __name__)
 
     @seller_bp.route("/setup", methods=["GET", "POST"])

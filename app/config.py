@@ -19,7 +19,7 @@ class Config:
     """Flask reads every UPPERCASE attribute on this class as a
     config key via app.config.from_object(Config)."""
 
-    # Used by Flask to sign session cookies and CSRF tokens
+   
     SECRET_KEY         = os.environ.get('SECRET_KEY', 'pasalify-np-2026-secret')
 
     # Flask-WTF: enables CSRF protection on all forms

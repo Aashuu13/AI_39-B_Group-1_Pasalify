@@ -38,7 +38,7 @@ class BaseController(ABC):
       - DB shorthand       (_q, _run)
     """
 
-    # ── Allowed image extensions (Encapsulation: one place to edit this list) ──
+    
     _ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 
     # ── Session helpers ─────────────────────────────────────────────────────
