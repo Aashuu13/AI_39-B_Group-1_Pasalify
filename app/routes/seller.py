@@ -17,11 +17,7 @@ seller_bp = Blueprint('seller', __name__)
 sc      = seller_controller
 _seller = role_required('seller')
 
-# ── DEBUG ROUTE — NOT protected by role_required, REMOVE BEFORE PRODUCTION ──
-# Quick manual check that file uploads reach the configured UPLOAD_FOLDER
-# and pass the extension allow-list. Left in place (not removed) since
-# only commenting was requested here, but flagged clearly: this route
-# has no login/role check at all and should not ship to a live server.
+
 @seller_bp.route('/debug-upload', methods=['GET', 'POST'])
 def debug_upload():
     ALLOWED = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
