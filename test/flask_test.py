@@ -213,7 +213,7 @@ def _make_minimal_app():
     def chat_start(store_id):
         return f"chat started with store {store_id}"
 
-    # ── seller blueprint ─────────────────────────────────────────────
+    
     seller_bp = Blueprint("seller", __name__)
 
     @seller_bp.route("/setup", methods=["GET", "POST"])

@@ -74,7 +74,7 @@ class AdminController(BaseController):
         out.headers['Content-Type'] = 'text/csv'
         return out
 
-    # ── Dashboard ───────────────────────────────────────────────────────────
+   
 
     def dashboard(self):
         """Admin home page: platform-wide KPIs, recent orders across

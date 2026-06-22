@@ -39,8 +39,7 @@ class SellerController(BaseController):
         _save_file, _ok/_err/_warn/_info, _q/_run, _log, _notify,
         _current_user_id, _is_logged_in
     """
-
-    # ── Private helpers (Encapsulation) ─────────────────────────────────────
+# ── Private helpers (Encapsulation) ─────────────────────────────────────
 
     def _get_store(self) -> dict | None:
         """Return the current seller's store row, or None if they
