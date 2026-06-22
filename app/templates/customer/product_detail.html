@@ -44,7 +44,9 @@ products), in_wish (whether the viewer already wishlisted this).
 
     <div class="col-md-7">
       <div style="color:#E6EDF3;font-size:.85rem;margin-bottom:.5rem">
-        <span style="color:var(--purple2)"><i class="bi bi-shop me-1"></i>{{ p.store_name }}</span>
+        <a href="{{ url_for('store.public_store', slug=p.store_slug) }}" style="color:var(--purple2)">
+          <i class="bi bi-shop me-1"></i>{{ p.store_name }}
+        </a>
         {% if p.cat_name %} · <span class="badge-purple">{{ p.cat_name }}</span>{% endif %}
       </div>
       <h1 style="font-family:'Playfair Display',serif;font-size:1.8rem;line-height:1.3">{{ p.name }}</h1>

@@ -32,14 +32,14 @@ class UserModel(BaseModel):
         record_failed_login, update_last_login
     """
 
-    
+    # ── Required by BaseModel (ABC) ────────────────────────────────────────
     TABLE = 'users'
 
     @property
-    def table(self) -> str:          
+    def table(self) -> str:          # satisfies the @abstractmethod in BaseModel
         return self.TABLE
 
- 
+    # ── User-specific class methods ─────────────────────────────────────────
 
     @classmethod
     def find_by_email(cls, email: str) -> dict | None:

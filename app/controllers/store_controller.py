@@ -49,6 +49,71 @@ class StoreController(BaseController):
             (customer_id, seller_id, product_id)
         )
 
+    # ── Public store page ────────────────────────────────────────────────
+
+    def public_store(self, slug: str):
+        """
+        Storefront for one seller, reached via /store/<slug>. Supports
+        the same search/category/sort filters as the main product
+        catalogue, but scoped to just this store's products.
+        """
+        store = self._q(
+            "SELECT * FROM stores WHERE slug = %s AND is_approved = 1 AND is_active = 1",
+            (slug,), one=True
+        )
+        if not store:
+            self._warn('Store not found or not yet approved.')
+            return redirect(url_for('customer.home'))
+
+        q    = request.args.get('q', '')
+        cat  = request.args.get('cat', '')
+        sort = request.args.get('sort', 'newest')
+
+        # Built dynamically because the WHERE clause grows depending on
+        # which filters the visitor actually used.
+        sql  = """
+            SELECT p.*, pi.image_path, c.name AS cat_name
+            FROM products p
+            LEFT JOIN product_images pi ON pi.product_id = p.id AND pi.is_primary = 1
+            LEFT JOIN categories c ON c.id = p.category_id
+            WHERE p.store_id = %s AND p.is_active = 1 AND p.is_approved = 1
+        """
+        args = [store['id']]
+        if q:
+            sql += " AND p.name LIKE %s"; args.append(f'%{q}%')
+        if cat:
+            sql += " AND c.slug = %s"; args.append(cat)
+
+        order_map = {
+            'newest':     'p.created_at DESC',
+            'price_asc':  'p.price ASC',
+            'price_desc': 'p.price DESC',
+        }
+        sql += f" ORDER BY {order_map.get(sort, 'p.created_at DESC')}"
+
+        prods = self._q(sql, args)
+        cats  = self._q("""
+            SELECT DISTINCT c.* FROM categories c
+            JOIN products p ON p.category_id = c.id
+            WHERE p.store_id = %s AND p.is_active = 1
+        """, (store['id'],))
+        owner = self._q("SELECT name FROM users WHERE id = %s",
+                         (store['user_id'],), one=True)
+        reviews_avg = self._q("""
+            SELECT AVG(r.rating) AS avg, COUNT(*) AS cnt
+            FROM reviews r JOIN products p ON p.id = r.product_id
+            WHERE p.store_id = %s
+        """, (store['id'],), one=True)
+
+        return render_template('store/public.html', store=store, products=prods,
+                               cats=cats, owner=owner, q=q, sort=sort,
+                               reviews_avg=reviews_avg)
+
+    def store_product(self, slug: str, pid: int):
+        """A store-scoped product URL just forwards to the main product
+        detail page — kept simple rather than duplicating that view."""
+        return redirect(url_for('customer.product_detail', pid=pid))
+
     # ── Chat (started from a public store page, before login is required) ─
 
     def start_chat(self, seller_id: int):

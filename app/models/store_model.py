@@ -12,6 +12,7 @@ OOP concept on display: INHERITANCE + ENCAPSULATION
 Represents the `stores` table.
 """
 
+import uuid
 from app.models.basemodel import BaseModel
 from app.models.database import Database
 
@@ -30,11 +31,17 @@ class StoreModel(BaseModel):
     def table(self) -> str:
         return self.TABLE
 
+    # ── Lookups ─────────────────────────────────────────────────────────
 
     @classmethod
     def find_by_user(cls, user_id: int) -> dict | None:
         """Return the store owned by a given seller's user account."""
         return cls.find_where("user_id = %s", (user_id,), one=True)
+
+    @classmethod
+    def find_by_slug(cls, slug: str) -> dict | None:
+        """Return an approved store by its public URL slug."""
+        return cls.find_where("slug = %s AND is_approved = 1", (slug,), one=True)
 
     @classmethod
     def all_with_owner(cls) -> list[dict]:
@@ -47,7 +54,24 @@ class StoreModel(BaseModel):
             ORDER BY s.created_at DESC
         """)
 
-   
+    # ── Creation helper ─────────────────────────────────────────────────
+
+    @classmethod
+    def make_unique_slug(cls, name: str) -> str:
+        """
+        Turn a store name into a URL-safe slug, and append a short
+        random suffix if that exact slug is already taken by another
+        store. Encapsulation: every caller just gets back a slug
+        that's guaranteed unique, without worrying about collisions.
+        """
+        slug = name.lower().replace(' ', '-').replace("'", '')
+        slug = ''.join(c for c in slug if c.isalnum() or c == '-')
+        if cls.find_where("slug = %s", (slug,), one=True):
+            slug += '-' + str(uuid.uuid4())[:4]
+        return slug
+
+    # ── Moderation ──────────────────────────────────────────────────────
+
     @classmethod
     def approve(cls, store_id: int) -> None:
         """Admin approves a pending store."""
@@ -65,7 +89,7 @@ class StoreModel(BaseModel):
         rate = max(0, min(100, rate))
         cls.update(store_id, {'commission_rate': rate})
 
-   
+    # ── Stats ───────────────────────────────────────────────────────────
 
     @classmethod
     def stats(cls, store_id: int) -> dict:

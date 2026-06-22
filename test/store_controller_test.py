@@ -46,7 +46,62 @@ def make_controller():
 # =====================================================================
 #  PUBLIC STORE PAGE
 # =====================================================================
+class TestPublicStore(unittest.TestCase):
+    def setUp(self):
+        self.app = make_test_app()
+        self.controller = make_controller()
 
+    def test_unknown_store_redirects_home_with_warning(self):
+        """A slug that doesn't match any approved store bounces the
+        visitor back to the customer homepage."""
+        self.controller._q.return_value = None
+        with self.app.test_request_context("/store/missing-shop"):
+            response = self.controller.public_store("missing-shop")
+            self.assertEqual(response.status_code, 302)
+            self.assertTrue(response.location.endswith("/"))
+            flashes = get_flashed_messages(with_categories=True)
+            self.assertIn(("warning", "Store not found or not yet approved."), flashes)
+
+    @patch("app.controllers.store_controller.render_template")
+    def test_known_store_renders_storefront(self, mock_render):
+        """An approved store renders its public storefront with its
+        products, categories, owner, and review stats."""
+        mock_render.return_value = "store_page"
+        store_row = {"id": 1, "slug": "cool-shop", "user_id": 9}
+        products = [{"id": 10, "name": "Widget"}]
+        categories = [{"id": 1, "name": "Gadgets"}]
+        owner = {"name": "Sam"}
+        reviews_avg = {"avg": 4.5, "cnt": 3}
+
+        # _q is called in sequence: store lookup, products, categories,
+        # owner, reviews_avg.
+        self.controller._q.side_effect = [store_row, products, categories, owner, reviews_avg]
+
+        with self.app.test_request_context("/store/cool-shop?q=widget&sort=price_asc"):
+            result = self.controller.public_store("cool-shop")
+            self.assertEqual(result, "store_page")
+            mock_render.assert_called_once()
+            _, kwargs = mock_render.call_args
+            self.assertEqual(kwargs["store"], store_row)
+            self.assertEqual(kwargs["products"], products)
+            self.assertEqual(kwargs["cats"], categories)
+            self.assertEqual(kwargs["owner"], owner)
+            self.assertEqual(kwargs["reviews_avg"], reviews_avg)
+            self.assertEqual(kwargs["q"], "widget")
+            self.assertEqual(kwargs["sort"], "price_asc")
+
+    def test_store_product_redirects_to_product_detail(self):
+        """A store-scoped product URL just forwards to the main
+        product detail page."""
+        with self.app.test_request_context("/store/cool-shop/product/42"):
+            response = self.controller.store_product("cool-shop", 42)
+            self.assertEqual(response.status_code, 302)
+            self.assertTrue(response.location.endswith("/product/42"))
+
+
+# =====================================================================
+#  CHAT STARTED FROM A STORE PAGE
+# =====================================================================
 class TestStartChat(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()

@@ -1,10 +1,5 @@
-# Web framework — provides the app, routing, sessions, and templating
 Flask==3.1.0
-# MySQL driver used directly by app/db.py
 pymysql==1.1.1
-# Backs pymysql's secure connection support
 cryptography==44.0.0
-# Adds CSRF protection to every form (see csrf.init_app in app/app.py)
 Flask-WTF==1.2.2
-# Loads environment variables from a .env file
-python-dotenv==0.21.0
+python-dotenv==1.0.1

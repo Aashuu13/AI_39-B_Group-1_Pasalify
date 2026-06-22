@@ -38,9 +38,10 @@ class BaseController(ABC):
       - DB shorthand       (_q, _run)
     """
 
+    # ── Allowed image extensions (Encapsulation: one place to edit this list) ──
     _ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 
-
+    # ── Session helpers ─────────────────────────────────────────────────────
 
     @staticmethod
     def _current_user_id() -> int | None:
@@ -57,7 +58,10 @@ class BaseController(ABC):
         """True if the current visitor has an active session."""
         return 'user_id' in session
 
-  
+    # ── Flash message shortcuts ────────────────────────────────────────────
+    # Short names so controller methods read as: self._ok('Saved!')
+    # instead of: flash('Saved!', 'success')
+
     @staticmethod
     def _ok(msg: str):
         flash(msg, 'success')
@@ -74,7 +78,7 @@ class BaseController(ABC):
     def _info(msg: str):
         flash(msg, 'info')
 
-  
+    # ── Database shortcuts ─────────────────────────────────────────────────
 
     @staticmethod
     def _q(sql: str, args: tuple = (), one: bool = False):
@@ -86,6 +90,8 @@ class BaseController(ABC):
         """Shorthand for db.execute() — run an INSERT/UPDATE/DELETE.
         Returns lastrowid (handy right after an INSERT)."""
         return db.execute(sql, args)
+
+    # ── File upload (Encapsulation) ────────────────────────────────────────
 
     @classmethod
     def _allowed_file(cls, filename: str) -> bool:
@@ -118,6 +124,7 @@ class BaseController(ABC):
         file_obj.save(os.path.join(dest, name))
         return f'uploads/{folder}/{name}'
 
+    # ── Audit helpers ───────────────────────────────────────────────────────
 
     @staticmethod
     def _log(action: str, entity_type: str = None, entity_id: int = None):
@@ -130,6 +137,7 @@ class BaseController(ABC):
         """Send an in-app notification to a specific user."""
         _notify(user_id, title, message, ntype, link)
 
+    # ── Abstract hook (optional — subclasses may override) ──────────────────
 
     def handle(self, *args, **kwargs):
         """
@@ -140,6 +148,7 @@ class BaseController(ABC):
         """
         raise NotImplementedError
 
-   
+    # ── Representation ─────────────────────────────────────────────────────
+
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__}>"

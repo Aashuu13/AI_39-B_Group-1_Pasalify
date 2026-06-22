@@ -33,7 +33,7 @@ class AuthController(BaseController):
         _current_user_id, _is_logged_in
     """
 
-
+    # ── Private validation (Encapsulation) ──────────────────────────────────
 
     def _validate_registration(self, name, email, phone, pw, pw2, role) -> list[str]:
         """
@@ -58,7 +58,7 @@ class AuthController(BaseController):
             errors.append('Email or phone already registered.')
         return errors
 
-   
+    # ── Public actions (bound directly to routes) ───────────────────────────
 
     def register(self):
         """
@@ -84,7 +84,8 @@ class AuthController(BaseController):
 
             uid = UserModel.register(name, email, phone, pw, role)
             if role == 'seller':
-              
+                # Remembered so the seller can be nudged into the
+                # store-setup wizard right after their first login.
                 session['pending_store_setup'] = uid
             self._ok('Account created! Please log in.')
             return redirect(url_for('auth.login'))
@@ -101,7 +102,8 @@ class AuthController(BaseController):
             email = request.form.get('email', '').strip().lower()
             pw    = request.form.get('password', '')
 
-            
+            # Encapsulation: the hash comparison happens inside
+            # UserModel.authenticate(); this method never sees a raw hash.
             user = UserModel.find_by_email(email)
 
             if not user or not UserModel.authenticate(email, pw):
@@ -114,7 +116,9 @@ class AuthController(BaseController):
                 self._err('Your account has been deactivated.')
                 return render_template('auth/login.html')
 
-            
+            # Successful login: reset any old session data, then store
+            # just enough info in the session to avoid a DB lookup on
+            # every single request.
             UserModel.update_last_login(user['id'])
             session.clear()
             session['user_id'] = user['id']
@@ -123,7 +127,8 @@ class AuthController(BaseController):
             session['email']   = user['email']
             self._log('login')
 
-           
+            # Polymorphism in spirit: the same login() method produces a
+            # different redirect depending on the user's role.
             if user['role'] == 'admin':
                 return redirect(url_for('admin.dashboard'))
             elif user['role'] == 'seller':
@@ -182,5 +187,5 @@ class AuthController(BaseController):
         return render_template('auth/change_password.html')
 
 
-
+# ── Singleton instance imported by app/controllers/__init__.py and routes ──
 auth_controller = AuthController()

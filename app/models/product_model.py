@@ -44,7 +44,7 @@ class ProductModel(BaseModel):
         """Every approved, active product with its primary image and
         store/category names attached, newest first."""
         sql = """
-            SELECT p.*, pi.image_path, s.name AS store_name,
+            SELECT p.*, pi.image_path, s.name AS store_name, s.slug AS store_slug,
                    c.name AS cat_name
             FROM products p
             LEFT JOIN product_images pi ON pi.product_id = p.id AND pi.is_primary = 1
@@ -70,7 +70,7 @@ class ProductModel(BaseModel):
         ProductModel.search(**request.args) without writing any SQL.
         """
         sql = """
-            SELECT p.*, pi.image_path, s.name AS store_name,
+            SELECT p.*, pi.image_path, s.name AS store_name, s.slug AS store_slug,
                    c.name AS cat_name
             FROM products p
             LEFT JOIN product_images pi ON pi.product_id = p.id AND pi.is_primary = 1
@@ -110,8 +110,8 @@ class ProductModel(BaseModel):
         product detail page. Image rows themselves are fetched
         separately in the controller (a product can have many)."""
         product = Database.query("""
-            SELECT p.*, s.name AS store_name,
-                   s.user_id AS seller_user_id,
+            SELECT p.*, s.name AS store_name, s.slug AS store_slug,
+                   s.theme_color, s.user_id AS seller_user_id,
                    s.id AS store_id, c.name AS cat_name
             FROM products p
             JOIN stores s ON s.id = p.store_id

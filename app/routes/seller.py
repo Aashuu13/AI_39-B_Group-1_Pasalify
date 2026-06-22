@@ -43,6 +43,7 @@ seller_bp.add_url_rule('/dashboard',                      'dashboard',        _s
 
 # ── Store profile & customization ──────────────────────────────────────
 seller_bp.add_url_rule('/store/profile',                  'store_profile',    _seller(sc.store_profile),    methods=['GET', 'POST'])
+seller_bp.add_url_rule('/store/customize',                'store_customize',  _seller(sc.store_customize),  methods=['GET', 'POST'])
 
 # ── Products ────────────────────────────────────────────────────────────
 seller_bp.add_url_rule('/products',                       'products',         _seller(sc.products))

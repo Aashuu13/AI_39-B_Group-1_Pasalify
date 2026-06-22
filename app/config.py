@@ -28,8 +28,8 @@ class Config:
     # MySQL connection settings (see app/db.py)
     MYSQL_HOST         = os.environ.get('MYSQL_HOST', 'localhost')
     MYSQL_USER         = os.environ.get('MYSQL_USER', 'root')
-    MYSQL_PASSWORD     = os.environ.get('MYSQL_PASSWORD', 'admin@123')
-    MYSQL_DB           = os.environ.get('MYSQL_DB', 'sprint2')
+    MYSQL_PASSWORD     = os.environ.get('MYSQL_PASSWORD', 'yubrajreule2453')
+    MYSQL_DB           = os.environ.get('MYSQL_DB', 'pasalify3_db')
     MYSQL_PORT         = int(os.environ.get('MYSQL_PORT', 3306))
 
     # Where uploaded product/store images are saved on disk

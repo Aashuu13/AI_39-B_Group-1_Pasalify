@@ -26,7 +26,7 @@ class ReviewModel(BaseModel):
     def table(self) -> str:
         return self.TABLE
 
-    
+    # ── Lookups ─────────────────────────────────────────────────────────
 
     @classmethod
     def find_by_product(cls, product_id: int, approved_only: bool = True) -> list[dict]:
@@ -53,7 +53,7 @@ class ReviewModel(BaseModel):
         )
         return row is not None
 
-  
+    # ── Moderation ──────────────────────────────────────────────────────
 
     @classmethod
     def approve(cls, review_id: int) -> None:

@@ -1,3 +1,9 @@
+{# 
+seller/store_customize.html
+Rendered by: SellerController.store_customize()
+Context: store. Live color preview is wired up by pasalify.js's
+'theme_color' input listener.
+#}
 {% extends "seller/base_seller.html" %}
 {% block title %}Customize Store{% endblock %}
 {% block seller_content %}
@@ -37,7 +43,7 @@
             <i class="bi bi-{{ icon }}" style="font-size:1.3rem;color:var(--purple2)"></i>
             <div>
               <div style="font-weight:600;font-size:.88rem">{{ label }}</div>
-              <div style="color:var(--muted);font-size:.75rem">{{ desc }}</div>
+              <div style="color:#E6EDF3;font-size:.75rem">{{ desc }}</div>
             </div>
           </label>
           {% endfor %}
@@ -47,7 +53,7 @@
     <div class="col-12">
       <div class="card">
         <div class="card-header">Preview</div>
-        <div class="card-body text-center" style="color:var(--muted)">
+        <div class="card-body text-center" style="color:#E6EDF3">
           <p>Your store URL: <a href="{{ url_for('customer.store_page', slug=store.slug) }}" target="_blank" style="color:var(--purple2)">pasalify.com/store/{{ store.slug }}</a></p>
           <a href="{{ url_for('customer.store_page', slug=store.slug) }}" target="_blank" class="btn btn-outline-purple btn-sm">
             <i class="bi bi-eye me-1"></i> Preview Store
@@ -62,7 +68,8 @@
 </form>
 
 <script>
-  // Keep color preview in sync when typing hex manually
+  // pasalify.js only listens for the color-picker swatch; this also
+  // updates the preview live if the seller types a hex code by hand
   document.getElementById('theme_color').addEventListener('input', function() {
     document.getElementById('color-preview').style.background = this.value;
   });
