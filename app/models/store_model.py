@@ -94,3 +94,4 @@ class StoreModel(BaseModel):
             'total_orders':   total_orders['c'],
             'total_products': total_products['c'],
         }
+# Handles seller store data

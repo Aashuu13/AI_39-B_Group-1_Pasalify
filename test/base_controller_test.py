@@ -9,13 +9,19 @@ from flask import Flask, session, get_flashed_messages
 from app.controllers.base_controller import BaseController
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> origin/sandesh
 
 # A reusable helper that builds a tiny Flask app for every test.
 # BaseController doesn't redirect to any named routes itself, but its
 # session helpers and flash shortcuts need an active Flask request
 # context to work.
+<<<<<<< HEAD
 >>>>>>> origin/aayushma
+=======
+>>>>>>> origin/sandesh
 def make_test_app():
     app = Flask(__name__)
     app.secret_key = "test-secret-key"
@@ -23,12 +29,18 @@ def make_test_app():
     return app
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> origin/sandesh
 
 # =====================================================================
 #  SESSION HELPERS
 # =====================================================================
+<<<<<<< HEAD
 >>>>>>> origin/aayushma
+=======
+>>>>>>> origin/sandesh
 class TestSessionHelpers(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -62,12 +74,18 @@ class TestSessionHelpers(unittest.TestCase):
             self.assertTrue(self.controller._is_logged_in())
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> origin/sandesh
 
 # =====================================================================
 #  FLASH MESSAGE SHORTCUTS
 # =====================================================================
+<<<<<<< HEAD
 >>>>>>> origin/aayushma
+=======
+>>>>>>> origin/sandesh
 class TestFlashShortcuts(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -94,12 +112,18 @@ class TestFlashShortcuts(unittest.TestCase):
             self.assertIn(("info", "FYI"), get_flashed_messages(with_categories=True))
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> origin/sandesh
 
 # =====================================================================
 #  DATABASE SHORTHANDS
 # =====================================================================
+<<<<<<< HEAD
 >>>>>>> origin/aayushma
+=======
+>>>>>>> origin/sandesh
 class TestDatabaseShortcuts(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -124,12 +148,18 @@ class TestDatabaseShortcuts(unittest.TestCase):
             self.assertEqual(result, 99)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> origin/sandesh
 
 # =====================================================================
 #  FILE UPLOAD HELPERS
 # =====================================================================
+<<<<<<< HEAD
 >>>>>>> origin/aayushma
+=======
+>>>>>>> origin/sandesh
 class TestFileUploadHelpers(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -166,12 +196,18 @@ class TestFileUploadHelpers(unittest.TestCase):
             fake_file.save.assert_called_once()
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> origin/sandesh
 
 # =====================================================================
 #  AUDIT HELPERS
 # =====================================================================
+<<<<<<< HEAD
 >>>>>>> origin/aayushma
+=======
+>>>>>>> origin/sandesh
 class TestAuditHelpers(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -193,12 +229,18 @@ class TestAuditHelpers(unittest.TestCase):
             )
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> origin/sandesh
 
 # =====================================================================
 #  ABSTRACT HOOK / MISC
 # =====================================================================
+<<<<<<< HEAD
 >>>>>>> origin/aayushma
+=======
+>>>>>>> origin/sandesh
 class TestMisc(unittest.TestCase):
     def setUp(self):
         self.controller = BaseController()
@@ -211,8 +253,12 @@ class TestMisc(unittest.TestCase):
         self.assertEqual(repr(self.controller), "<BaseController>")
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> origin/aayushma
+=======
+
+>>>>>>> origin/sandesh
 if __name__ == "__main__":
     unittest.main()

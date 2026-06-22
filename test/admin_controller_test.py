@@ -5,14 +5,20 @@ from flask import Flask, Blueprint, session, get_flashed_messages
 from app.controllers.admin_controller import AdminController
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> origin/sandesh
 
 # A reusable helper that builds a tiny Flask app for every test.
 # define the route names the controller redirects to
 # (admin.sellers, admin.products, admin.users, admin.promos,
 # admin.system, admin.categories, admin.support_tickets) so that
 # url_for() inside the controller can build URLs successfully.
+<<<<<<< HEAD
 >>>>>>> origin/aayushma
+=======
+>>>>>>> origin/sandesh
 def make_test_app():
     app = Flask(__name__)
     app.secret_key = "test-secret-key"
@@ -30,9 +36,13 @@ def make_test_app():
     return app
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> origin/aayushma
+=======
+
+>>>>>>> origin/sandesh
 def make_controller():
     """
     Build an AdminController whose DB-touching helpers (_q/_run/_log/
@@ -47,12 +57,18 @@ def make_controller():
     return controller
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> origin/sandesh
 
 # =====================================================================
 #  DASHBOARD
 # =====================================================================
+<<<<<<< HEAD
 >>>>>>> origin/aayushma
+=======
+>>>>>>> origin/sandesh
 class TestDashboard(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -67,16 +83,22 @@ class TestDashboard(unittest.TestCase):
     ):
         mock_render.return_value = "dashboard_page"
 <<<<<<< HEAD
+<<<<<<< HEAD
         mock_user_model.count.side_effect = [10, 3]   
         mock_store_model.count.return_value = 2
         mock_product_model.count.return_value = 4
 
 =======
+=======
+>>>>>>> origin/sandesh
         mock_user_model.count.side_effect = [10, 3]   # customers, sellers
         mock_store_model.count.return_value = 2
         mock_product_model.count.return_value = 4
         # _q called for: total_orders, total_revenue, recent_orders, monthly, logs
+<<<<<<< HEAD
 >>>>>>> origin/aayushma
+=======
+>>>>>>> origin/sandesh
         self.controller._q.side_effect = [
             {"c": 50}, {"t": 1234.5}, [{"id": 1}], [{"month": "2026-05"}], [{"id": 1}]
         ]
@@ -97,12 +119,18 @@ class TestDashboard(unittest.TestCase):
             self.assertEqual(kwargs["logs"], [{"id": 1}])
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> origin/sandesh
 
 # =====================================================================
 #  SELLER MODERATION
 # =====================================================================
+<<<<<<< HEAD
 >>>>>>> origin/aayushma
+=======
+>>>>>>> origin/sandesh
 class TestSellerModeration(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -161,12 +189,18 @@ class TestSellerModeration(unittest.TestCase):
             self.assertIn(("danger", "Invalid commission rate."), flashes)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> origin/sandesh
 
 # =====================================================================
 #  PRODUCT MODERATION
 # =====================================================================
+<<<<<<< HEAD
 >>>>>>> origin/aayushma
+=======
+>>>>>>> origin/sandesh
 class TestProductModeration(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -191,12 +225,18 @@ class TestProductModeration(unittest.TestCase):
             self.assertIn(("warning", "Product removed."), flashes)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> origin/sandesh
 
 # =====================================================================
 #  FINANCES
 # =====================================================================
+<<<<<<< HEAD
 >>>>>>> origin/aayushma
+=======
+>>>>>>> origin/sandesh
 class TestFinances(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -207,6 +247,7 @@ class TestFinances(unittest.TestCase):
         mock_render.return_value = "finances_page"
         self.controller._q.side_effect = [
 <<<<<<< HEAD
+<<<<<<< HEAD
             [{"id": 1}],           
             [{"id": 1}],           
             {"t": 555.0},          
@@ -215,6 +256,11 @@ class TestFinances(unittest.TestCase):
             [{"id": 1}],           # commissions
             {"t": 555.0},          # total_rev
 >>>>>>> origin/aayushma
+=======
+            [{"id": 1}],           # transactions
+            [{"id": 1}],           # commissions
+            {"t": 555.0},          # total_rev
+>>>>>>> origin/sandesh
         ]
         with self.app.test_request_context():
             result = self.controller.finances()
@@ -235,12 +281,18 @@ class TestFinances(unittest.TestCase):
             self.assertIn("ID,Order,Name,Amount,Method,Status,Created_at", body)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> origin/sandesh
 
 # =====================================================================
 #  USER MANAGEMENT
 # =====================================================================
+<<<<<<< HEAD
 >>>>>>> origin/aayushma
+=======
+>>>>>>> origin/sandesh
 class TestUserManagement(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -284,12 +336,18 @@ class TestUserManagement(unittest.TestCase):
             self.assertEqual(response.status_code, 302)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> origin/sandesh
 
 # =====================================================================
 #  PROMO CODES
 # =====================================================================
+<<<<<<< HEAD
 >>>>>>> origin/aayushma
+=======
+>>>>>>> origin/sandesh
 class TestPromoCodes(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -308,10 +366,14 @@ class TestPromoCodes(unittest.TestCase):
             self.controller._run.assert_called_once()
             args = self.controller._run.call_args[0][1]
 <<<<<<< HEAD
+<<<<<<< HEAD
             self.assertEqual(args[0], "SAVE10")  
 =======
             self.assertEqual(args[0], "SAVE10")  # uppercased
 >>>>>>> origin/aayushma
+=======
+            self.assertEqual(args[0], "SAVE10")  # uppercased
+>>>>>>> origin/sandesh
             self.assertEqual(response.status_code, 302)
             flashes = get_flashed_messages(with_categories=True)
             self.assertIn(("success", "Promo code created!"), flashes)
@@ -332,12 +394,18 @@ class TestPromoCodes(unittest.TestCase):
             self.controller._run.assert_not_called()
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> origin/sandesh
 
 # =====================================================================
 #  SYSTEM MONITORING
 # =====================================================================
+<<<<<<< HEAD
 >>>>>>> origin/aayushma
+=======
+>>>>>>> origin/sandesh
 class TestSystemMonitoring(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -348,6 +416,7 @@ class TestSystemMonitoring(unittest.TestCase):
         mock_render.return_value = "system_page"
         self.controller._q.side_effect = [
 <<<<<<< HEAD
+<<<<<<< HEAD
             [{"id": 1}],          
             {"size": 12.3},       
             [{"table_name": "users", "table_rows": 5}],  
@@ -356,6 +425,11 @@ class TestSystemMonitoring(unittest.TestCase):
             {"size": 12.3},       # db_size
             [{"table_name": "users", "table_rows": 5}],  # table_counts
 >>>>>>> origin/aayushma
+=======
+            [{"id": 1}],          # logs
+            {"size": 12.3},       # db_size
+            [{"table_name": "users", "table_rows": 5}],  # table_counts
+>>>>>>> origin/sandesh
         ]
         with self.app.test_request_context():
             result = self.controller.system()
@@ -372,12 +446,18 @@ class TestSystemMonitoring(unittest.TestCase):
             )
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> origin/sandesh
 
 # =====================================================================
 #  CATEGORIES
 # =====================================================================
+<<<<<<< HEAD
 >>>>>>> origin/aayushma
+=======
+>>>>>>> origin/sandesh
 class TestCategories(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -405,12 +485,18 @@ class TestCategories(unittest.TestCase):
             self.assertIn(("success", "Category added."), flashes)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> origin/sandesh
 
 # =====================================================================
 #  SUPPORT TICKETS (PLATFORM-WIDE)
 # =====================================================================
+<<<<<<< HEAD
 >>>>>>> origin/aayushma
+=======
+>>>>>>> origin/sandesh
 class TestSupportTickets(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -453,8 +539,12 @@ class TestSupportTickets(unittest.TestCase):
             self.assertIn(("success", "Reply sent."), flashes)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> origin/aayushma
+=======
+
+>>>>>>> origin/sandesh
 if __name__ == "__main__":
     unittest.main()

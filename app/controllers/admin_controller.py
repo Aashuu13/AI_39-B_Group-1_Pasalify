@@ -1,13 +1,31 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+"""
+==============================================================
+OOP Concept: INHERITANCE & ENCAPSULATION (Admin Controller)
+==============================================================
+- Inheritance: AdminController extends BaseController.
+- Encapsulation: CSV export logic is hidden in _export_csv();
+  dashboard stats are gathered in _dashboard_stats().
+  Routes call one method; they never see the SQL.
+- Polymorphism: seller_approve / seller_reject both change
+  store state but produce different side-effects.
+==============================================================
+"""
+>>>>>>> origin/sandesh
 
 import csv
 import io
 
+<<<<<<< HEAD
 =======
 import csv
 import io
 
 >>>>>>> origin/aayushma
+=======
+>>>>>>> origin/sandesh
 from flask import render_template, request, redirect, url_for, session, flash, make_response
 
 from app.controllers.base_controller import BaseController
@@ -19,6 +37,7 @@ class AdminController(BaseController):
     dashboard, sellers, products, finances, users,
     promo codes, system monitoring, categories.
 
+<<<<<<< HEAD
     Inherited from BaseController:
         _ok/_err/_warn/_info, _q/_run, _log, _notify,
         _current_user_id, _is_logged_in
@@ -29,6 +48,19 @@ class AdminController(BaseController):
         Gather every dashboard KPI (user/seller/order counts, total
         revenue, pending approvals) in one method, so dashboard()
         itself never has to write a single SQL query.
+=======
+    Inherits from BaseController:
+        _ok/_err/_warn/_info, _q/_run, _log, _notify,
+        _current_user_id, _is_logged_in
+    """
+
+
+    def _dashboard_stats(self) -> dict:
+        """
+        Gather all dashboard KPIs in one method.
+        Encapsulation: the dashboard view calls this; it never
+        writes a single SQL query itself.
+>>>>>>> origin/sandesh
         """
         return {
             'total_users':    UserModel.count("role = 'customer'"),
@@ -45,10 +77,15 @@ class AdminController(BaseController):
     def _export_csv(self, rows: list[dict], headers: list[str],
                     filename: str):
         """
+<<<<<<< HEAD
         Turn a list of dict rows into a downloadable CSV response.
         Encapsulation: nothing outside this method needs to know
         about io.StringIO or response headers — finance_export()
         just calls this with its rows and a filename.
+=======
+        Build and return a CSV download response.
+        Encapsulation: CSV generation lives here, not in the route.
+>>>>>>> origin/sandesh
         """
         si = io.StringIO()
         w  = csv.writer(si)
@@ -59,10 +96,16 @@ class AdminController(BaseController):
         out.headers['Content-Disposition'] = f'attachment; filename={filename}'
         out.headers['Content-Type'] = 'text/csv'
         return out
+<<<<<<< HEAD
 
     def dashboard(self):
         """Admin home page: platform-wide KPIs, recent orders across
         every store, a 6-month revenue trend, and the latest activity log."""
+=======
+
+
+    def dashboard(self):
+>>>>>>> origin/sandesh
         stats         = self._dashboard_stats()
         recent_orders = self._q("""
             SELECT o.*, u.name AS customer FROM orders o
@@ -84,13 +127,18 @@ class AdminController(BaseController):
                                monthly=monthly,
                                logs=logs)
 
+
     def sellers(self):
         """List every store along with its owner, for approve/reject actions."""
         all_sellers = StoreModel.all_with_owner()
         return render_template('admin/sellers.html', sellers=all_sellers)
 
     def seller_approve(self, sid: int):
+<<<<<<< HEAD
         """Approve a pending store and notify its owner."""
+=======
+        """Approve a store and notify the owner."""
+>>>>>>> origin/sandesh
         StoreModel.approve(sid)
         store = StoreModel.find_by_id(sid)
         if store:
@@ -104,12 +152,17 @@ class AdminController(BaseController):
         return redirect(url_for('admin.sellers'))
 
     def seller_reject(self, sid: int):
+<<<<<<< HEAD
         """Reject a store — marks it unapproved/inactive rather than deleting it."""
+=======
+        """Reject (deactivate) a store."""
+>>>>>>> origin/sandesh
         StoreModel.reject(sid)
         self._log('seller_rejected', 'store', sid)
         self._warn('Seller rejected.')
         return redirect(url_for('admin.sellers'))
 
+<<<<<<< HEAD
     def seller_commission(self, sid: int):
         """Update a store's platform commission rate (%) from the
         sellers admin page."""
@@ -122,6 +175,8 @@ class AdminController(BaseController):
         self._log('commission_updated', 'store', sid)
         self._ok('Commission rate updated.')
         return redirect(url_for('admin.sellers'))
+=======
+>>>>>>> origin/sandesh
 
     def products(self):
         """All active products, unapproved ones listed first so the
@@ -150,9 +205,14 @@ class AdminController(BaseController):
         self._warn('Product removed.')
         return redirect(url_for('admin.products'))
 
+<<<<<<< HEAD
     def finances(self):
         """Payment transactions, recent seller commissions, and total
         platform revenue (the platform's cut of every commission)."""
+=======
+
+    def finances(self):
+>>>>>>> origin/sandesh
         transactions = self._q("""
             SELECT p.*, o.order_number, u.name AS customer
             FROM payments p
@@ -173,8 +233,12 @@ class AdminController(BaseController):
                                total_rev=total_rev['t'])
 
     def finance_export(self):
+<<<<<<< HEAD
         """Download every transaction as a CSV file (Encapsulation:
         _export_csv hides all the io/response plumbing)."""
+=======
+        """Export transactions as CSV. Encapsulation: _export_csv hides io logic."""
+>>>>>>> origin/sandesh
         rows = self._q("""
             SELECT p.id, o.order_number, u.name, p.amount,
                    p.method, p.status, p.created_at
@@ -189,15 +253,23 @@ class AdminController(BaseController):
             'pasalify_transactions.csv'
         )
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/sandesh
     def users(self):
         """List every registered user (customers, sellers, and admins)."""
         all_users = UserModel.find_all()
         return render_template('admin/users.html', users=all_users)
 
     def user_toggle(self, uid: int):
+<<<<<<< HEAD
         """Flip a user's active status with one click — same method
         produces either an activation or a deactivation depending on
         the user's current state (Polymorphism: one call, two outcomes)."""
+=======
+        """Toggle a user's active status (Polymorphism: same method, two outcomes)."""
+>>>>>>> origin/sandesh
         u = UserModel.find_by_id(uid)
         if u:
             new_status = 0 if u['is_active'] else 1
@@ -207,6 +279,7 @@ class AdminController(BaseController):
             self._info(f'User {status}.')
         return redirect(url_for('admin.users'))
 
+<<<<<<< HEAD
     def promos(self):
         """List every promo code that has ever been created."""
         codes = self._q("SELECT * FROM promo_codes ORDER BY created_at DESC")
@@ -238,6 +311,72 @@ class AdminController(BaseController):
             self._run("UPDATE promo_codes SET is_active = %s WHERE id = %s",
                       (0 if p['is_active'] else 1, pid))
         return redirect(url_for('admin.promos'))
+=======
+
+    def promos(self):
+        codes = self._q("SELECT * FROM promo_codes ORDER BY created_at DESC")
+        return render_template('admin/promos.html', codes=codes)
+
+    def promo_add(self):
+        self._run("""
+            INSERT INTO promo_codes
+              (code, discount_type, discount_value, min_order, max_uses,
+               valid_from, valid_until)
+            VALUES (%s,%s,%s,%s,%s,%s,%s)
+        """, (
+            request.form.get('code', '').strip().upper(),
+            request.form.get('discount_type', 'percent'),
+            float(request.form.get('discount_value', 0)),
+            float(request.form.get('min_order', 0)),
+            request.form.get('max_uses') or None,
+            request.form.get('valid_from') or None,
+            request.form.get('valid_until') or None,
+        ))
+        self._ok('Promo code created!')
+        return redirect(url_for('admin.promos'))
+
+    def promo_toggle(self, pid: int):
+        p = self._q("SELECT is_active FROM promo_codes WHERE id = %s", (pid,), one=True)
+        if p:
+            self._run("UPDATE promo_codes SET is_active = %s WHERE id = %s",
+                      (0 if p['is_active'] else 1, pid))
+        return redirect(url_for('admin.promos'))
+
+
+    def system(self):
+        logs = self._q("""
+            SELECT al.*, u.name FROM activity_logs al
+            LEFT JOIN users u ON u.id = al.user_id ORDER BY al.created_at DESC LIMIT 100
+        """)
+        db_size = self._q("""
+            SELECT ROUND(SUM(data_length + index_length)/1024/1024, 2) AS size
+            FROM information_schema.tables WHERE table_schema = 'pasalify'
+        """, one=True)
+        table_counts = self._q("""
+            SELECT table_name, table_rows FROM information_schema.tables
+            WHERE table_schema = 'pasalify' ORDER BY table_rows DESC
+        """)
+        return render_template('admin/system.html', logs=logs,
+                               db_size=db_size, table_counts=table_counts)
+
+    def backup(self):
+        self._log('manual_backup_triggered')
+        self._info('Backup initiated. In production, connect mysqldump here.')
+        return redirect(url_for('admin.system'))
+
+
+    def categories(self):
+        cats = self._q("SELECT * FROM categories ORDER BY name")
+        return render_template('admin/categories.html', cats=cats)
+
+    def category_add(self):
+        name = request.form.get('name', '').strip()
+        slug = name.lower().replace(' ', '-')
+        icon = request.form.get('icon', 'tag')
+        CategoryModel.create({'name': name, 'slug': slug, 'icon': icon})
+        self._ok('Category added.')
+        return redirect(url_for('admin.categories'))
+>>>>>>> origin/sandesh
 
     def system(self):
         """Diagnostics page: the latest 100 activity-log entries, the
@@ -258,6 +397,7 @@ class AdminController(BaseController):
                                db_size=db_size, table_counts=table_counts)
 <<<<<<< HEAD
 
+<<<<<<< HEAD
     def backup(self):
         """Placeholder for a manual backup trigger — in production this
         would shell out to mysqldump or call a managed backup API."""
@@ -421,3 +561,43 @@ class AdminController(BaseController):
         return redirect(url_for('admin.support_tickets'))
 
 admin_controller = AdminController()
+=======
+
+    def support_tickets(self):
+        tickets = self._q("""
+            SELECT sm.*, u.name AS customer_name, u.email AS customer_email
+            FROM support_messages sm
+            LEFT JOIN users u ON u.id = sm.user_id
+            WHERE sm.role = 'user'
+            ORDER BY sm.created_at DESC
+        """)
+        for t in tickets:
+            t['replies'] = self._q("""
+                SELECT sm.*, u.name AS sender_name
+                FROM support_messages sm
+                LEFT JOIN users u ON u.id = sm.user_id
+                WHERE sm.role = 'admin' AND sm.parent_id = %s
+                ORDER BY sm.created_at ASC
+            """, (t['id'],))
+        return render_template('admin/support.html', tickets=tickets)
+
+    def support_reply(self):
+        parent_id   = request.form.get('parent_id', type=int)
+        customer_id = request.form.get('customer_id', type=int)
+        message     = request.form.get('message', '').strip()
+        if not message or not parent_id:
+            self._err('Reply cannot be empty.')
+            return redirect(url_for('admin.support_tickets'))
+        self._run("""
+            INSERT INTO support_messages (user_id, role, message, parent_id)
+            VALUES (%s, 'admin', %s, %s)
+        """, (self._current_user_id(), message, parent_id))
+        if customer_id:
+            self._notify(customer_id, 'Support Reply',
+                         'Admin replied to your support message.', 'system')
+        self._ok('Reply sent.')
+        return redirect(url_for('admin.support_tickets'))
+
+
+admin_controller = AdminController()# Manages admin operations and backup
+>>>>>>> origin/sandesh

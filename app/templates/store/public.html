@@ -1,22 +1,33 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
+=======
+>>>>>>> origin/sandesh
 {# 
 store/public.html
 Rendered by: StoreController.public_store()
 Context: store, products, cats, owner, q, sort, reviews_avg.
 #}
+<<<<<<< HEAD
 >>>>>>> origin/aayushma
+=======
+>>>>>>> origin/sandesh
 {% extends "base.html" %}
 {% block title %}{{ store.name }}{% endblock %}
 {% block content %}
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 
 =======
 <!-- Store banner: logo, name, owner, description, and quick stats,
      tinted using the seller's own theme_color -->
 >>>>>>> origin/aayushma
+=======
+<!-- Store banner: logo, name, owner, description, and quick stats,
+     tinted using the seller's own theme_color -->
+>>>>>>> origin/sandesh
 <div style="position:relative;height:200px;background:linear-gradient(135deg, {{ store.theme_color }}22, {{ store.theme_color }}44);border-bottom:1px solid var(--border);overflow:hidden">
   {% if store.banner %}
   <img src="{{ url_for('static', filename=store.banner) }}" style="width:100%;height:100%;object-fit:cover;opacity:.4">
@@ -48,10 +59,14 @@ Context: store, products, cats, owner, q, sort, reviews_avg.
 <div class="container mt-4 mb-5">
   <div class="row g-3">
 <<<<<<< HEAD
+<<<<<<< HEAD
     
 =======
     <!-- In-store search/category/sort filters (scoped to this store only) -->
 >>>>>>> origin/aayushma
+=======
+    <!-- In-store search/category/sort filters (scoped to this store only) -->
+>>>>>>> origin/sandesh
     <div class="col-md-3">
       <div class="card sticky-top" style="top:80px">
         <div class="card-header"><i class="bi bi-funnel me-1"></i> Filter</div>
@@ -84,11 +99,16 @@ Context: store, products, cats, owner, q, sort, reviews_avg.
     </div>
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     
 =======
     <!-- Product grid; column count/image height adapt to the seller's
          chosen theme_layout (grid/list/masonry) -->
 >>>>>>> origin/aayushma
+=======
+    <!-- Product grid; column count/image height adapt to the seller's
+         chosen theme_layout (grid/list/masonry) -->
+>>>>>>> origin/sandesh
     <div class="col-md-9">
       {% if products %}
       <div class="row g-3 {% if store.theme_layout=='list' %}row-cols-1{% elif store.theme_layout=='masonry' %}row-cols-2{% else %}row-cols-2 row-cols-md-3{% endif %}">
@@ -145,10 +165,14 @@ Context: store, products, cats, owner, q, sort, reviews_avg.
   </div>
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   
 =======
   <!-- Floating "Chat with Seller" button, customers only -->
 >>>>>>> origin/aayushma
+=======
+  <!-- Floating "Chat with Seller" button, customers only -->
+>>>>>>> origin/sandesh
   {% if session.user_id and session.role == 'customer' %}
   <div style="position:fixed;bottom:2rem;right:2rem;z-index:500">
     <form method="post" action="{{ url_for('store.start_chat', seller_id=store.user_id) }}">

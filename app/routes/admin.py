@@ -1,7 +1,13 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
 >>>>>>> origin/aayushma
+=======
+"""
+Admin routes — all protected by role_required('admin').
+"""
+>>>>>>> origin/sandesh
 from flask import Blueprint
 from app.controllers import admin_controller
 from app.utils.auth import role_required
@@ -15,7 +21,10 @@ admin_bp.add_url_rule('/dashboard',                    'dashboard',       _admin
 admin_bp.add_url_rule('/sellers',                      'sellers',         _admin(ac.sellers))
 admin_bp.add_url_rule('/sellers/<int:sid>/approve',    'seller_approve',  _admin(ac.seller_approve))
 admin_bp.add_url_rule('/sellers/<int:sid>/reject',     'seller_reject',   _admin(ac.seller_reject))
+<<<<<<< HEAD
 admin_bp.add_url_rule('/sellers/<int:sid>/commission', 'seller_commission', _admin(ac.seller_commission), methods=['POST'])
+=======
+>>>>>>> origin/sandesh
 
 admin_bp.add_url_rule('/products',                     'products',        _admin(ac.products))
 admin_bp.add_url_rule('/products/<int:pid>/approve',   'product_approve', _admin(ac.product_approve))
@@ -39,7 +48,11 @@ admin_bp.add_url_rule('/categories/add',               'category_add',    _admin
 
 admin_bp.add_url_rule('/support',                      'support_tickets', _admin(ac.support_tickets))
 <<<<<<< HEAD
+<<<<<<< HEAD
 admin_bp.add_url_rule('/support/reply',                'support_reply',   _admin(ac.support_reply),   methods=['POST'])
 =======
 admin_bp.add_url_rule('/support/reply',                'support_reply',   _admin(ac.support_reply),   methods=['POST'])
 >>>>>>> origin/aayushma
+=======
+admin_bp.add_url_rule('/support/reply',                'support_reply',   _admin(ac.support_reply),   methods=['POST'])
+>>>>>>> origin/sandesh

@@ -20,6 +20,10 @@ class OrderModel(BaseModel):
     def table(self) -> str:
         return self.TABLE
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/sandesh
     @classmethod
     def find_by_user(cls, user_id: int) -> list[dict]:
         """All orders placed by one customer, newest first, with each
@@ -66,6 +70,10 @@ class OrderModel(BaseModel):
             LIMIT %s
         """, (limit,))
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/sandesh
     @classmethod
     def cancel(cls, order_id: int) -> None:
         """Move an order to the 'cancelled' status."""
@@ -87,6 +95,10 @@ class OrderModel(BaseModel):
         shipping/delivery status above."""
         cls.update(order_id, {'payment_status': 'paid'})
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/sandesh
     @classmethod
     def monthly_revenue(cls, store_id: int | None = None, months: int = 6) -> list[dict]:
         """
@@ -115,4 +127,4 @@ class OrderModel(BaseModel):
             WHERE created_at >= DATE_SUB(NOW(), INTERVAL %s MONTH)
             GROUP BY month
             ORDER BY month
-        """, (months,))
+        """, (months,))# Handles order status and tracking

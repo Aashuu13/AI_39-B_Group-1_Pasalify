@@ -1,10 +1,16 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
 """
 Store routes — public store pages and customer-seller chat.
 """
 >>>>>>> origin/aayushma
+=======
+"""
+Store routes — public store pages and customer-seller chat.
+"""
+>>>>>>> origin/sandesh
 from flask import Blueprint
 from app.controllers import store_controller
 

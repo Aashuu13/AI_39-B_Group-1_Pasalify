@@ -21,6 +21,10 @@ class UserModel(BaseModel):
     def table(self) -> str:          
         return self.TABLE
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/sandesh
     @classmethod
     def find_by_email(cls, email: str) -> dict | None:
         """Look up a user by email (case-insensitive)."""
@@ -97,5 +101,11 @@ class UserModel(BaseModel):
 
     @classmethod
     def all_by_role(cls, role: str) -> list[dict]:
+<<<<<<< HEAD
         """Return all users that have a specific role (customer/seller/admin)."""
         return cls.find_where("role = %s ORDER BY created_at DESC", (role,))
+=======
+        """Return all users with a specific role."""
+        return cls.find_where("role = %s ORDER BY created_at DESC", (role,))# User model handles seller and customer registration
+# Handles seller and customer registration
+>>>>>>> origin/sandesh

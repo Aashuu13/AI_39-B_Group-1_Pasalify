@@ -1,4 +1,12 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+"""
+Sprint 3 - Seller Controller
+US 4.5 Manage Inventory | US 4.6 Manage Orders | US 2.6 Seller Chat
+(Builds on Sprint 1+2: Store setup, Products, Reviews, Dashboard)
+"""
+>>>>>>> origin/sandesh
 
 import uuid
 =======
@@ -194,6 +202,7 @@ class SellerController(BaseController):
                                low_stock=low_stock,
                                recent_orders=recent_orders,
                                monthly=monthly,
+<<<<<<< HEAD
                                top_products=top_products)
 
     def store_profile(self):
@@ -233,6 +242,10 @@ class SellerController(BaseController):
             return redirect(url_for('seller.store_customize'))
 
         return render_template('seller/store_customize.html', store=store)
+=======
+                               recent_orders=recent_orders,
+                               pending_reviews=pending_reviews)
+>>>>>>> origin/sandesh
 
     # ── US 4.3 Manage Products ────────────────────────────────────────────────
 
@@ -339,6 +352,7 @@ class SellerController(BaseController):
         return redirect(url_for('seller.products'))
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     def categories(self):
         """Read-only category browser for sellers (categories are
         managed by admins, see admin_controller.categories)."""
@@ -347,6 +361,9 @@ class SellerController(BaseController):
 =======
     # ── US 4.5 Manage Inventory ───────────────────────────────────────────────
 >>>>>>> origin/aayushma
+=======
+    # ── US 4.5 Manage Inventory ───────────────────────────────────────────────
+>>>>>>> origin/sandesh
 
     def inventory(self):
         """Stock-focused product list, sorted lowest-stock-first so
@@ -355,11 +372,14 @@ class SellerController(BaseController):
         if redir:
             return redir
 <<<<<<< HEAD
+<<<<<<< HEAD
         prods = ProductModel.find_where(
             "store_id = %s AND is_active = 1 ORDER BY stock_qty ASC", (store['id'],)
         )
         return render_template('seller/inventory.html', products=prods, store=store)
 =======
+=======
+>>>>>>> origin/sandesh
         
         filter_by = request.args.get('filter', 'all')
         base_sql  = "SELECT * FROM products WHERE store_id = %s AND is_active = 1"
@@ -383,7 +403,10 @@ class SellerController(BaseController):
                                total_products=total_products,
                                low_stock_count=low_stock_count,
                                out_of_stock=out_of_stock)
+<<<<<<< HEAD
 >>>>>>> origin/aayushma
+=======
+>>>>>>> origin/sandesh
 
     def inventory_update(self, pid: int):
         """Manually set a product's stock count (e.g. after a physical
@@ -391,15 +414,20 @@ class SellerController(BaseController):
         store, redir = self._require_store()
         if redir:
             return redir
-        qty = max(0, int(request.form.get('stock_qty', 0)))
+        qty       = max(0, int(request.form.get('stock_qty', 0)))
+        threshold = max(1, int(request.form.get('low_stock_threshold', 5)))
         self._run(
-            "UPDATE products SET stock_qty = %s WHERE id = %s AND store_id = %s",
-            (qty, pid, store['id'])
+            "UPDATE products SET stock_qty=%s, low_stock_threshold=%s WHERE id=%s AND store_id=%s",
+            (qty, threshold, pid, store['id'])
         )
         self._ok('Stock updated!')
         return redirect(url_for('seller.inventory'))
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+    def inventory_bulk_update(self):
+        """US 4.5 - Bulk stock update from inventory page."""
 =======
     def inventory_bulk_update(self):
         """US 4.5 - Bulk stock update from inventory page."""
@@ -407,6 +435,28 @@ class SellerController(BaseController):
         if redir:
             return redir
         
+        product_ids = request.form.getlist('product_id')
+        for pid in product_ids:
+            qty = request.form.get(f'stock_{pid}', 0)
+            try:
+                self._run(
+                    "UPDATE products SET stock_qty=%s WHERE id=%s AND store_id=%s",
+                    (int(qty), int(pid), store['id'])
+                )
+            except Exception:
+                pass
+        self._ok('Inventory updated!')
+        return redirect(url_for('seller.inventory'))
+
+    # ── US 4.6 Manage Orders ──────────────────────────────────────────────────
+
+    def orders(self):
+>>>>>>> origin/sandesh
+        store, redir = self._require_store()
+        if redir:
+            return redir
+        
+<<<<<<< HEAD
         product_ids = request.form.getlist('product_id')
         for pid in product_ids:
             qty = request.form.get(f'stock_{pid}', 0)
@@ -456,6 +506,8 @@ class SellerController(BaseController):
         return redirect(url_for('seller.orders'))
 =======
         
+=======
+>>>>>>> origin/sandesh
         status_filter = request.args.get('status', '')
         
         sql = """
@@ -567,6 +619,7 @@ class SellerController(BaseController):
         store, redir = self._require_store()
         if redir:
             return redir
+<<<<<<< HEAD
         convs = self._q("""
             SELECT ch.*, u.name AS customer_name,
                    (SELECT message FROM chat_messages WHERE chat_id=ch.id
@@ -577,6 +630,62 @@ class SellerController(BaseController):
             WHERE ch.seller_id = %s ORDER BY ch.created_at DESC
         """, (self._current_user_id(),))
         return render_template('seller/chats.html', convs=convs, store=store)
+=======
+        uid   = self._current_user_id()
+        chats = self._q("""
+            SELECT c.*, u.name AS customer_name,
+                   (SELECT message FROM chat_messages WHERE chat_id=c.id ORDER BY created_at DESC LIMIT 1) AS last_message,
+                   (SELECT COUNT(*) FROM chat_messages WHERE chat_id=c.id AND sender_id != %s AND is_read=0) AS unread_count
+            FROM chats c
+            JOIN users u ON u.id = c.customer_id
+            WHERE c.seller_id = %s
+            ORDER BY c.created_at DESC
+        """, (uid, uid))
+        return render_template('seller/chats.html', chats=chats, store=store)
+
+    def chat_detail(self, chat_id: int):
+        store, redir = self._require_store()
+        if redir:
+            return redir
+        uid  = self._current_user_id()
+        chat = self._q(
+            """SELECT c.*, u.name AS customer_name FROM chats c
+               JOIN users u ON u.id=c.customer_id
+               WHERE c.id=%s AND c.seller_id=%s""",
+            (chat_id, uid), one=True
+        )
+        if not chat:
+            self._err('Chat not found.')
+            return redirect(url_for('seller.chats'))
+
+        messages = self._q(
+            """SELECT cm.*, u.name AS sender_name FROM chat_messages cm
+               JOIN users u ON u.id = cm.sender_id
+               WHERE cm.chat_id = %s ORDER BY cm.created_at""",
+            (chat_id,)
+        )
+        # Mark messages as read
+        self._run(
+            "UPDATE chat_messages SET is_read=1 WHERE chat_id=%s AND sender_id != %s",
+            (chat_id, uid)
+        )
+
+        if request.method == 'POST':
+            msg = request.form.get('message', '').strip()
+            if msg:
+                self._run(
+                    "INSERT INTO chat_messages (chat_id, sender_id, message) VALUES (%s,%s,%s)",
+                    (chat_id, uid, msg)
+                )
+            return redirect(url_for('seller.chat_detail', chat_id=chat_id))
+
+        return render_template('seller/chat_detail.html',
+                               chat=chat, messages=messages, store=store)
+
+    def send_message(self, chat_id: int):
+        """POST-only send message endpoint."""
+        return self.chat_detail(chat_id)
+>>>>>>> origin/sandesh
 
     def chat_detail(self, cid: int):
         """
@@ -735,3 +844,8 @@ class SellerController(BaseController):
 
 # ── Singleton ─────────────────────────────────────────────────────────────────
 seller_controller = SellerController()
+<<<<<<< HEAD
+=======
+# Seller controller manages all seller-facing operations
+# Manages all seller-facing operations
+>>>>>>> origin/sandesh

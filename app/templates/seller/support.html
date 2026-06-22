@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
 {# 
@@ -8,6 +9,8 @@ Context: tickets (support-chatbot conversations from customers
 who bought from this store, grouped one ticket per customer), store.
 #}
 >>>>>>> origin/aayushma
+=======
+>>>>>>> origin/sandesh
 {% extends "seller/base_seller.html" %}
 {% block title %}Support Tickets{% endblock %}
 {% block seller_content %}
@@ -21,6 +24,7 @@ who bought from this store, grouped one ticket per customer), store.
     <div>
       <i class="bi bi-person-circle me-2" style="color:var(--purple2)"></i>
       <strong>{{ t.customer_name or 'Customer' }}</strong>
+<<<<<<< HEAD
       <span style="color:#E6EDF3;font-size:.8rem;margin-left:.5rem">{{ t.customer_email or '' }}</span>
     </div>
     <span style="color:#E6EDF3;font-size:.78rem">
@@ -55,6 +59,24 @@ who bought from this store, grouped one ticket per customer), store.
       {% endfor %}
     </div>
 
+=======
+      <span style="color:var(--muted);font-size:.8rem;margin-left:.5rem">{{ t.customer_email or '' }}</span>
+    </div>
+    <span style="color:var(--muted);font-size:.78rem">
+      {{ t.created_at.strftime('%b %d, %Y %H:%M') if t.created_at else '' }}
+    </span>
+  </div>
+  <div class="card-body">
+    <!-- Customer message -->
+    <div style="background:rgba(108,63,200,.07);border-radius:10px;padding:.8rem 1rem;margin-bottom:.8rem">
+      <div style="font-size:.78rem;color:var(--purple2);font-weight:600;margin-bottom:.3rem">
+        <i class="bi bi-chat-left-text me-1"></i>Customer Message
+      </div>
+      <div style="font-size:.9rem">{{ t.message }}</div>
+    </div>
+
+    <!-- Reply form — opens a chat -->
+>>>>>>> origin/sandesh
     <form method="post" action="{{ url_for('seller.support_reply') }}" class="d-flex gap-2 mt-2">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <input type="hidden" name="customer_id" value="{{ t.user_id }}">
@@ -70,10 +92,18 @@ who bought from this store, grouped one ticket per customer), store.
 {% endfor %}
 {% else %}
 <div class="card">
+<<<<<<< HEAD
   <div class="card-body text-center py-5" style="color:#E6EDF3">
+=======
+  <div class="card-body text-center py-5" style="color:var(--muted)">
+>>>>>>> origin/sandesh
     <i class="bi bi-inbox" style="font-size:2.5rem;opacity:.4"></i>
     <p class="mt-2">No support questions from your customers yet.</p>
   </div>
 </div>
 {% endif %}
+<<<<<<< HEAD
 {% endblock %}
+=======
+{% endblock %}
+>>>>>>> origin/sandesh

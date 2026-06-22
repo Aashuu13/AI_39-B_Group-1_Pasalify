@@ -23,5 +23,9 @@ class Config:
     MYSQL_PORT         = int(os.environ.get('MYSQL_PORT', 3306))
 
     UPLOAD_FOLDER      = os.path.join(BASE, 'static', 'uploads')
+<<<<<<< HEAD
 
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024
+=======
+    MAX_CONTENT_LENGTH = 16 * 1024 * 1024
+>>>>>>> origin/sandesh

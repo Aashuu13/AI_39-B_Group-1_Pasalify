@@ -1,5 +1,8 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> origin/sandesh
 """
 ==============================================================
 OOP Concept: INHERITANCE & ENCAPSULATION (Store Controller)
@@ -9,7 +12,10 @@ OOP Concept: INHERITANCE & ENCAPSULATION (Store Controller)
   logic so the route never writes raw SQL.
 ==============================================================
 """
+<<<<<<< HEAD
 >>>>>>> origin/aayushma
+=======
+>>>>>>> origin/sandesh
 
 from flask import render_template, request, redirect, url_for, session, flash
 
@@ -17,23 +23,32 @@ from app.controllers.base_controller import BaseController
 from app.models import StoreModel
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> origin/aayushma
+=======
+
+>>>>>>> origin/sandesh
 class StoreController(BaseController):
     """
     Handles public store pages and customer-seller chat
     initiated from the store page.
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     Inherited from BaseController:
 =======
     Inherits from BaseController:
 >>>>>>> origin/aayushma
+=======
+    Inherits from BaseController:
+>>>>>>> origin/sandesh
         _ok/_err/_warn/_info, _q/_run, _log, _notify,
         _current_user_id, _is_logged_in
     """
 
+<<<<<<< HEAD
 <<<<<<< HEAD
     def _get_or_create_chat(self, customer_id: int, seller_id: int,
                             product_id: int | None = None) -> int:
@@ -42,6 +57,8 @@ class StoreController(BaseController):
         seller, or create a new one and return its id. Callers always
         just get an int back — they never see the SELECT/INSERT logic.
 =======
+=======
+>>>>>>> origin/sandesh
     # ── Private Helpers (Encapsulation) ───────────────────────────────────────
 
     def _get_or_create_chat(self, customer_id: int, seller_id: int,
@@ -49,7 +66,10 @@ class StoreController(BaseController):
         """
         Return existing chat id, or create and return a new one.
         Encapsulation: callers get a chat id; they never write SQL.
+<<<<<<< HEAD
 >>>>>>> origin/aayushma
+=======
+>>>>>>> origin/sandesh
         """
         existing = self._q(
             "SELECT id FROM chats WHERE customer_id = %s AND seller_id = %s",
@@ -63,6 +83,7 @@ class StoreController(BaseController):
         )
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     def public_store(self, slug: str):
         """
         Storefront for one seller, reached via /store/<slug>. Supports
@@ -74,6 +95,11 @@ class StoreController(BaseController):
 
     def public_store(self, slug: str):
 >>>>>>> origin/aayushma
+=======
+    # ── Public Store Page ─────────────────────────────────────────────────────
+
+    def public_store(self, slug: str):
+>>>>>>> origin/sandesh
         store = self._q(
             "SELECT * FROM stores WHERE slug = %s AND is_approved = 1 AND is_active = 1",
             (slug,), one=True
@@ -126,6 +152,7 @@ class StoreController(BaseController):
 
     def store_product(self, slug: str, pid: int):
 <<<<<<< HEAD
+<<<<<<< HEAD
         """A store-scoped product URL just forwards to the main product
         detail page — kept simple rather than duplicating that view."""
         return redirect(url_for('customer.product_detail', pid=pid))
@@ -134,12 +161,17 @@ class StoreController(BaseController):
         """Begin a chat with a seller from their storefront. Guests are
         sent to log in first since a chat needs a real user_id."""
 =======
+=======
+>>>>>>> origin/sandesh
         return redirect(url_for('customer.product_detail', pid=pid))
 
     # ── Chat ─────────────────────────────────────────────────────────────────
 
     def start_chat(self, seller_id: int):
+<<<<<<< HEAD
 >>>>>>> origin/aayushma
+=======
+>>>>>>> origin/sandesh
         if not self._is_logged_in():
             self._warn('Login to chat with seller.')
             return redirect(url_for('auth.login'))
@@ -153,6 +185,7 @@ class StoreController(BaseController):
 
     def chat_view(self, cid: int):
 <<<<<<< HEAD
+<<<<<<< HEAD
         """
         GET  -> show the conversation and mark the seller's messages
                 as read.
@@ -160,6 +193,8 @@ class StoreController(BaseController):
         """
 =======
 >>>>>>> origin/aayushma
+=======
+>>>>>>> origin/sandesh
         if not self._is_logged_in():
             return redirect(url_for('auth.login'))
 
@@ -198,8 +233,13 @@ class StoreController(BaseController):
                                msgs=msgs, seller=seller)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 # ── Singleton instance ────────────────────────────────────────────────────────
 >>>>>>> origin/aayushma
+=======
+
+# ── Singleton instance ────────────────────────────────────────────────────────
+>>>>>>> origin/sandesh
 store_controller = StoreController()

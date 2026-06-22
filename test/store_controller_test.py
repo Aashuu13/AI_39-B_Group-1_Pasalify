@@ -5,13 +5,19 @@ from flask import Flask, Blueprint, session, get_flashed_messages
 from app.controllers.store_controller import StoreController
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> origin/sandesh
 
 # A reusable helper that builds a tiny Flask app for every test.
 # define the route names the controller redirects to
 # (customer.home, customer.product_detail, auth.login, store.chat_view)
 # so that url_for() inside the controller can build URLs successfully.
+<<<<<<< HEAD
 >>>>>>> origin/aayushma
+=======
+>>>>>>> origin/sandesh
 def make_test_app():
     app = Flask(__name__)
     app.secret_key = "test-secret-key"
@@ -32,9 +38,13 @@ def make_test_app():
     return app
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> origin/aayushma
+=======
+
+>>>>>>> origin/sandesh
 def make_controller():
     """
     Build a StoreController whose DB-touching helpers (_q/_run/_log/
@@ -49,12 +59,18 @@ def make_controller():
     return controller
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> origin/sandesh
 
 # =====================================================================
 #  PUBLIC STORE PAGE
 # =====================================================================
+<<<<<<< HEAD
 >>>>>>> origin/aayushma
+=======
+>>>>>>> origin/sandesh
 class TestPublicStore(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -83,10 +99,15 @@ class TestPublicStore(unittest.TestCase):
         reviews_avg = {"avg": 4.5, "cnt": 3}
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         # _q is called in sequence: store lookup, products, categories,
         # owner, reviews_avg.
 >>>>>>> origin/aayushma
+=======
+        # _q is called in sequence: store lookup, products, categories,
+        # owner, reviews_avg.
+>>>>>>> origin/sandesh
         self.controller._q.side_effect = [store_row, products, categories, owner, reviews_avg]
 
         with self.app.test_request_context("/store/cool-shop?q=widget&sort=price_asc"):
@@ -111,12 +132,18 @@ class TestPublicStore(unittest.TestCase):
             self.assertTrue(response.location.endswith("/product/42"))
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> origin/sandesh
 
 # =====================================================================
 #  CHAT STARTED FROM A STORE PAGE
 # =====================================================================
+<<<<<<< HEAD
 >>>>>>> origin/aayushma
+=======
+>>>>>>> origin/sandesh
 class TestStartChat(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -136,12 +163,17 @@ class TestStartChat(unittest.TestCase):
         """A logged-in customer with no existing chat gets a brand new
         one created and is redirected straight into it."""
 <<<<<<< HEAD
+<<<<<<< HEAD
         self.controller._q.return_value = None  
         self.controller._run.return_value = 77  
 =======
         self.controller._q.return_value = None  # no existing chat
         self.controller._run.return_value = 77  # new chat id
 >>>>>>> origin/aayushma
+=======
+        self.controller._q.return_value = None  # no existing chat
+        self.controller._run.return_value = 77  # new chat id
+>>>>>>> origin/sandesh
 
         with self.app.test_request_context(method="POST", data={"product_id": "3"}):
             session["user_id"] = 1
@@ -166,12 +198,18 @@ class TestStartChat(unittest.TestCase):
             self.controller._run.assert_not_called()
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> origin/sandesh
 
 # =====================================================================
 #  CHAT VIEW
 # =====================================================================
+<<<<<<< HEAD
 >>>>>>> origin/aayushma
+=======
+>>>>>>> origin/sandesh
 class TestChatView(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -225,10 +263,14 @@ class TestChatView(unittest.TestCase):
         msgs = [{"id": 1, "message": "hi"}]
         seller = {"name": "Sam", "store_name": "Cool Shop"}
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
         # _q called: chat lookup, msgs, seller
 >>>>>>> origin/aayushma
+=======
+        # _q called: chat lookup, msgs, seller
+>>>>>>> origin/sandesh
         self.controller._q.side_effect = [chat_row, msgs, seller]
 
         with self.app.test_request_context(method="GET"):
@@ -239,18 +281,26 @@ class TestChatView(unittest.TestCase):
                 "store/chat.html", chat=chat_row, msgs=msgs, seller=seller
             )
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
             # The seller's unread messages get marked as read.
 >>>>>>> origin/aayushma
+=======
+            # The seller's unread messages get marked as read.
+>>>>>>> origin/sandesh
             self.controller._run.assert_called_once_with(
                 "UPDATE chat_messages SET is_read=1 WHERE chat_id=%s AND sender_id!=%s",
                 (1, 1)
             )
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> origin/aayushma
+=======
+
+>>>>>>> origin/sandesh
 if __name__ == "__main__":
     unittest.main()

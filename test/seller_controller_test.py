@@ -5,7 +5,10 @@ from flask import Flask, Blueprint, session, get_flashed_messages
 from app.controllers.seller_controller import SellerController
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> origin/sandesh
 
 # A reusable helper that builds a tiny Flask app for every test.
 # define the route names the controller redirects to
@@ -14,7 +17,10 @@ from app.controllers.seller_controller import SellerController
 # seller.chats, seller.chat_detail, seller.support_tickets,
 # customer.order_detail) so that url_for() inside the controller can
 # build URLs successfully.
+<<<<<<< HEAD
 >>>>>>> origin/aayushma
+=======
+>>>>>>> origin/sandesh
 def make_test_app():
     app = Flask(__name__)
     app.secret_key = "test-secret-key"
@@ -39,9 +45,13 @@ def make_test_app():
     return app
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> origin/aayushma
+=======
+
+>>>>>>> origin/sandesh
 def make_controller():
     """
     Build a SellerController whose DB-touching helpers (_q/_run/_log/
@@ -57,12 +67,18 @@ def make_controller():
     return controller
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> origin/sandesh
 
 # =====================================================================
 #  STORE SETUP
 # =====================================================================
+<<<<<<< HEAD
 >>>>>>> origin/aayushma
+=======
+>>>>>>> origin/sandesh
 class TestSetup(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -109,12 +125,18 @@ class TestSetup(unittest.TestCase):
             self.assertIn(("success", "Store created successfully!"), flashes)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> origin/sandesh
 
 # =====================================================================
 #  DASHBOARD
 # =====================================================================
+<<<<<<< HEAD
 >>>>>>> origin/aayushma
+=======
+>>>>>>> origin/sandesh
 class TestDashboard(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -157,12 +179,18 @@ class TestDashboard(unittest.TestCase):
             self.assertEqual(kwargs["total_products"], 3)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> origin/sandesh
 
 # =====================================================================
 #  STORE PROFILE / CUSTOMIZE
 # =====================================================================
+<<<<<<< HEAD
 >>>>>>> origin/aayushma
+=======
+>>>>>>> origin/sandesh
 class TestStoreProfile(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -173,10 +201,14 @@ class TestStoreProfile(unittest.TestCase):
         store = {"id": 1, "logo": "uploads/logos/old.png", "banner": "uploads/banners/old.png"}
         mock_store_model.find_by_user.return_value = store
 <<<<<<< HEAD
+<<<<<<< HEAD
         self.controller._save_file.return_value = None  
 =======
         self.controller._save_file.return_value = None  # no new file uploaded
 >>>>>>> origin/aayushma
+=======
+        self.controller._save_file.return_value = None  # no new file uploaded
+>>>>>>> origin/sandesh
 
         with self.app.test_request_context(
             method="POST", data={"name": "New Name", "description": "New desc"}
@@ -192,9 +224,13 @@ class TestStoreProfile(unittest.TestCase):
             self.assertIn(("success", "Store profile updated!"), flashes)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> origin/aayushma
+=======
+
+>>>>>>> origin/sandesh
 class TestStoreCustomize(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -214,12 +250,18 @@ class TestStoreCustomize(unittest.TestCase):
             self.assertEqual(response.status_code, 302)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> origin/sandesh
 
 # =====================================================================
 #  PRODUCTS
 # =====================================================================
+<<<<<<< HEAD
 >>>>>>> origin/aayushma
+=======
+>>>>>>> origin/sandesh
 class TestProducts(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -312,12 +354,18 @@ class TestProducts(unittest.TestCase):
             self.assertIn(("info", "Product removed."), flashes)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> origin/sandesh
 
 # =====================================================================
 #  CATEGORIES (read-only for sellers)
 # =====================================================================
+<<<<<<< HEAD
 >>>>>>> origin/aayushma
+=======
+>>>>>>> origin/sandesh
 class TestCategories(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -336,12 +384,18 @@ class TestCategories(unittest.TestCase):
             )
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> origin/sandesh
 
 # =====================================================================
 #  INVENTORY
 # =====================================================================
+<<<<<<< HEAD
 >>>>>>> origin/aayushma
+=======
+>>>>>>> origin/sandesh
 class TestInventory(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -363,12 +417,18 @@ class TestInventory(unittest.TestCase):
             self.assertIn(("success", "Stock updated!"), flashes)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> origin/sandesh
 
 # =====================================================================
 #  ORDERS
 # =====================================================================
+<<<<<<< HEAD
 >>>>>>> origin/aayushma
+=======
+>>>>>>> origin/sandesh
 class TestOrders(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -395,12 +455,18 @@ class TestOrders(unittest.TestCase):
             self.assertEqual(response.status_code, 302)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> origin/sandesh
 
 # =====================================================================
 #  CHAT
 # =====================================================================
+<<<<<<< HEAD
 >>>>>>> origin/aayushma
+=======
+>>>>>>> origin/sandesh
 class TestChat(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -429,12 +495,18 @@ class TestChat(unittest.TestCase):
             self.assertTrue(response.location.endswith("/chats/5"))
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> origin/sandesh
 
 # =====================================================================
 #  SUPPORT TICKETS (seller-scoped)
 # =====================================================================
+<<<<<<< HEAD
 >>>>>>> origin/aayushma
+=======
+>>>>>>> origin/sandesh
 class TestSupportTickets(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -457,12 +529,17 @@ class TestSupportTickets(unittest.TestCase):
     def test_support_reply_creates_chat_and_sends_message(self, mock_store_model):
         mock_store_model.find_by_user.return_value = {"id": 1, "name": "Cool Shop"}
 <<<<<<< HEAD
+<<<<<<< HEAD
         self.controller._q.return_value = None  
         self.controller._run.return_value = 88  
 =======
         self.controller._q.return_value = None  # no existing chat
         self.controller._run.return_value = 88  # new chat id
 >>>>>>> origin/aayushma
+=======
+        self.controller._q.return_value = None  # no existing chat
+        self.controller._run.return_value = 88  # new chat id
+>>>>>>> origin/sandesh
 
         with self.app.test_request_context(
             method="POST", data={"customer_id": "2", "message": "We'll help!"}
@@ -476,8 +553,12 @@ class TestSupportTickets(unittest.TestCase):
             self.assertIn(("success", "Message sent to customer."), flashes)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> origin/aayushma
+=======
+
+>>>>>>> origin/sandesh
 if __name__ == "__main__":
     unittest.main()

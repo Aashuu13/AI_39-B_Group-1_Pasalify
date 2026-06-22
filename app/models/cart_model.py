@@ -96,3 +96,4 @@ class CartModel(BaseModel):
             "SELECT COUNT(*) AS c FROM cart WHERE user_id = %s", (user_id,), one=True
         )
         return row['c'] if row else 0
+# Handles customer cart operations

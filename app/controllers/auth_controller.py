@@ -155,3 +155,4 @@ class AuthController(BaseController):
         return render_template('auth/change_password.html')
 
 auth_controller = AuthController()
+# Manages authentication and registration

@@ -317,6 +317,7 @@ INSERT IGNORE INTO categories (name, slug, icon) VALUES
 -- (The long hex string is a PBKDF2-SHA256 hash, not the plain password.)
 INSERT IGNORE INTO users (name,email,phone,password_hash,role,is_active) VALUES
 ('Pasalify Admin','admin@pasalify.com','9800000000',
+<<<<<<< HEAD
  '3ac179c671a66c06af031954e0ed311f35e567477c6cd8b1bdabd09796d267d1:f913dd1eaabbb9cc573a44502cdf9ac90254b8d47a0db0a64082a823da3fa2f7','admin',1);
 <<<<<<< HEAD
 =======
@@ -358,3 +359,6 @@ ALTER TABLE orders MODIFY COLUMN status
     ENUM('placed','confirmed','processing','shipped','out_for_delivery','delivered','cancelled') 
     DEFAULT 'placed';
 >>>>>>> origin/aayushma
+=======
+ '3ac179c671a66c06af031954e0ed311f35e567477c6cd8b1bdabd09796d267d1:f913dd1eaabbb9cc573a44502cdf9ac90254b8d47a0db0a64082a823da3fa2f7','admin',1);
+>>>>>>> origin/sandesh

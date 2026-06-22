@@ -111,6 +111,10 @@ class ProductModel(BaseModel):
             (store_id,)
         )
 
+<<<<<<< HEAD
+=======
+   
+>>>>>>> origin/sandesh
     @classmethod
     def approve(cls, product_id: int) -> None:
         """Admin approves a product, making it visible to customers."""
@@ -127,6 +131,10 @@ class ProductModel(BaseModel):
         that reference it still display correctly."""
         cls.update(product_id, {'is_active': 0})
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/sandesh
     @classmethod
     def decrement_stock(cls, product_id: int, qty: int) -> None:
         """
@@ -146,6 +154,10 @@ class ProductModel(BaseModel):
             (qty, product_id)
         )
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/sandesh
     @classmethod
     def update_rating(cls, product_id: int) -> None:
         """
@@ -162,4 +174,4 @@ class ProductModel(BaseModel):
                 WHERE r.product_id = p.id AND r.is_approved = 1
             )
             WHERE p.id = %s
-        """, (product_id,))
+        """, (product_id,))# Handles product CRUD operations
