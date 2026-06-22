@@ -35,7 +35,9 @@ def create_app():
     # Make sure the folder for uploaded images exists before any upload happens
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-   
+    # ── Register Blueprints ────────────────────────────────────────────
+    # Each blueprint is one "section" of the site: auth, customer-facing
+    # pages, seller dashboard, admin dashboard, and public store pages.
     from app.routes.auth     import auth_bp
     from app.routes.customer import customer_bp
     from app.routes.seller   import seller_bp

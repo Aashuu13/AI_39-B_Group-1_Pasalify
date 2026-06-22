@@ -96,6 +96,7 @@ class SellerController(BaseController):
                     (product_id, path, 1 if (i == 0 and first_is_primary) else 0)
                 )
 
+    # ── Setup ───────────────────────────────────────────────────────────────
 
     def setup(self):
         """One-time wizard: create the store for a brand-new seller.

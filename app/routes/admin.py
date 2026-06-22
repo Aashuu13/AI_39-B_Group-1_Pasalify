@@ -50,6 +50,6 @@ admin_bp.add_url_rule('/system/backup',                'backup',          _admin
 admin_bp.add_url_rule('/categories',                   'categories',      _admin(ac.categories))
 admin_bp.add_url_rule('/categories/add',               'category_add',    _admin(ac.category_add), methods=['POST'])
 
-
+# ── Support tickets (platform-wide) ────────────────────────────────────
 admin_bp.add_url_rule('/support',                      'support_tickets', _admin(ac.support_tickets))
 admin_bp.add_url_rule('/support/reply',                'support_reply',   _admin(ac.support_reply),   methods=['POST'])

@@ -29,7 +29,7 @@ class StoreController(BaseController):
         _current_user_id, _is_logged_in
     """
 
-   
+    # ── Private helpers (Encapsulation) ─────────────────────────────────────
 
     def _get_or_create_chat(self, customer_id: int, seller_id: int,
                             product_id: int | None = None) -> int:

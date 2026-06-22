@@ -20,7 +20,9 @@ def make_test_app():
     return app
 
 
-
+# =====================================================================
+#  SESSION HELPERS
+# =====================================================================
 class TestSessionHelpers(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()

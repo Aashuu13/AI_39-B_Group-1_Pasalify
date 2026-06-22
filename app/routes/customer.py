@@ -19,7 +19,7 @@ cc = customer_controller   # short alias, used below for readability
 
 _lr = login_required       # short alias for the decorator
 
-
+# ── Public ──────────────────────────────────────────────────────────────
 customer_bp.add_url_rule('/',                        'home',            cc.home)
 customer_bp.add_url_rule('/products',                'products',        cc.products)
 customer_bp.add_url_rule('/product/<int:pid>',       'product_detail',  cc.product_detail)

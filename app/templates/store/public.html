@@ -1,8 +1,14 @@
+{# 
+store/public.html
+Rendered by: StoreController.public_store()
+Context: store, products, cats, owner, q, sort, reviews_avg.
+#}
 {% extends "base.html" %}
 {% block title %}{{ store.name }}{% endblock %}
 {% block content %}
 
-<!-- Store banner -->
+<!-- Store banner: logo, name, owner, description, and quick stats,
+     tinted using the seller's own theme_color -->
 <div style="position:relative;height:200px;background:linear-gradient(135deg, {{ store.theme_color }}22, {{ store.theme_color }}44);border-bottom:1px solid var(--border);overflow:hidden">
   {% if store.banner %}
   <img src="{{ url_for('static', filename=store.banner) }}" style="width:100%;height:100%;object-fit:cover;opacity:.4">
@@ -18,10 +24,10 @@
       {% endif %}
       <div>
         <h1 style="font-family:'Playfair Display',serif;font-size:1.8rem;margin:0">{{ store.name }}</h1>
-        {% if owner %}<div style="color:var(--muted);font-size:.85rem">by {{ owner.name }}</div>{% endif %}
-        {% if store.description %}<div style="color:var(--muted);font-size:.88rem;margin-top:.3rem;max-width:500px">{{ store.description }}</div>{% endif %}
+        {% if owner %}<div style="color:#E6EDF3;font-size:.85rem">by {{ owner.name }}</div>{% endif %}
+        {% if store.description %}<div style="color:#E6EDF3;font-size:.88rem;margin-top:.3rem;max-width:500px">{{ store.description }}</div>{% endif %}
         <div class="d-flex gap-3 mt-2">
-          <span style="color:var(--muted);font-size:.8rem"><i class="bi bi-grid me-1"></i>{{ products|length }} Products</span>
+          <span style="color:#E6EDF3;font-size:.8rem"><i class="bi bi-grid me-1"></i>{{ products|length }} Products</span>
           {% if reviews_avg.avg %}
           <span style="color:var(--gold);font-size:.8rem"><i class="bi bi-star-fill me-1"></i>{{ "%.1f"|format(reviews_avg.avg) }} ({{ reviews_avg.cnt }} reviews)</span>
           {% endif %}
@@ -33,7 +39,7 @@
 
 <div class="container mt-4 mb-5">
   <div class="row g-3">
-  >
+    <!-- In-store search/category/sort filters (scoped to this store only) -->
     <div class="col-md-3">
       <div class="card sticky-top" style="top:80px">
         <div class="card-header"><i class="bi bi-funnel me-1"></i> Filter</div>
@@ -51,7 +57,7 @@
               </a>
               {% endfor %}
               {% if request.args.get('cat') %}
-              <a href="?" style="color:var(--muted);font-size:.78rem"><i class="bi bi-x me-1"></i>Clear</a>
+              <a href="?" style="color:#E6EDF3;font-size:.78rem"><i class="bi bi-x me-1"></i>Clear</a>
               {% endif %}
             </div>
             {% endif %}
@@ -65,7 +71,8 @@
       </div>
     </div>
 
-    <!-- Products -->
+    <!-- Product grid; column count/image height adapt to the seller's
+         chosen theme_layout (grid/list/masonry) -->
     <div class="col-md-9">
       {% if products %}
       <div class="row g-3 {% if store.theme_layout=='list' %}row-cols-1{% elif store.theme_layout=='masonry' %}row-cols-2{% else %}row-cols-2 row-cols-md-3{% endif %}">
@@ -83,7 +90,7 @@
               {% endif %}
             </a>
             <div class="p-body">
-              <a href="{{ url_for('customer.product_detail', pid=p.id) }}" style="color:var(--text)">
+              <a href="{{ url_for('customer.product_detail', pid=p.id) }}" style="color:#E6EDF3">
                 <div class="p-name">{{ p.name }}</div>
               </a>
               {% if p.cat_name %}<span class="badge-purple" style="font-size:.68rem">{{ p.cat_name }}</span>{% endif %}
@@ -103,7 +110,7 @@
                   </button>
                 </form>
                 {% else %}
-                <span style="color:var(--muted);font-size:.78rem">Out of stock</span>
+                <span style="color:#E6EDF3;font-size:.78rem">Out of stock</span>
                 {% endif %}
               </div>
             </div>
@@ -112,16 +119,16 @@
         {% endfor %}
       </div>
       {% else %}
-      <div class="text-center py-5" style="color:var(--muted)">
+      <div class="text-center py-5" style="color:#E6EDF3">
         <i class="bi bi-search" style="font-size:3rem;opacity:.3"></i>
         <h4 class="mt-3">No products found</h4>
-        <a href="{{ url_for('store.public_store', slug=store.slug) }}" class="btn btn-sm mt-2" style="color:var(--muted)">Clear filters</a>
+        <a href="{{ url_for('store.public_store', slug=store.slug) }}" class="btn btn-sm mt-2" style="color:#E6EDF3">Clear filters</a>
       </div>
       {% endif %}
     </div>
   </div>
 
-  <!-- Chat with seller button -->
+  <!-- Floating "Chat with Seller" button, customers only -->
   {% if session.user_id and session.role == 'customer' %}
   <div style="position:fixed;bottom:2rem;right:2rem;z-index:500">
     <form method="post" action="{{ url_for('store.start_chat', seller_id=store.user_id) }}">
