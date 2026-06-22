@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 """
 app/auth.py
 ================================================================
@@ -18,15 +16,11 @@ in app/controllers/auth_controller.py):
     session['user_id']  -> present only when a user is logged in
     session['role']     -> 'customer' | 'seller' | 'admin'
 """
->>>>>>> origin/aayushma
 
 from functools import wraps
 from flask import session, redirect, url_for, flash
 
-<<<<<<< HEAD
-=======
 
->>>>>>> origin/aayushma
 def login_required(f):
     """
     Route decorator: only let logged-in users through.
@@ -48,10 +42,7 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated
 
-<<<<<<< HEAD
-=======
 
->>>>>>> origin/aayushma
 def guest_only(f):
     """
     Route decorator: the opposite of login_required.
@@ -67,10 +58,7 @@ def guest_only(f):
         return f(*args, **kwargs)
     return decorated
 
-<<<<<<< HEAD
-=======
 
->>>>>>> origin/aayushma
 def admin_required(f):
     """
     Route decorator: only logged-in users whose role is 'admin'.

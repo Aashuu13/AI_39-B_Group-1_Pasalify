@@ -1,8 +1,14 @@
-
+{# 
+base.html — global layout
+Extended by every other template via {% extends "base.html" %}.
+Provides: <head>/meta tags, the navbar, flash-message rendering,
+footer, and shared <script> includes. Child templates fill in
+the 'content' block (and 'title'/'extra_css'/'extra_js' if needed).
+#}
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
+<!-- Bootstrap 5 + Bootstrap Icons from CDN, then our own theme on top -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{% block title %}Pasalify{% endblock %} — Nepal's Multi-Vendor Marketplace</title>
@@ -13,7 +19,9 @@
 </head>
 <body>
 
-
+<!-- Top navbar: logo, main nav links, search box, then a role-aware
+     right-hand section (cart/wishlist/notifications for customers,
+     a login/register pair for guests) -->
 <nav class="navbar navbar-expand-lg">
   <div class="container-fluid px-4">
     <a class="navbar-brand" href="{{ url_for('customer.home') }}">
@@ -24,14 +32,6 @@
     </button>
     <div class="collapse navbar-collapse" id="navMain">
       <ul class="navbar-nav me-auto ms-3 gap-1">
-        <li class="nav-item">
-          <a class="nav-link position-relative" href="{{ url_for('customer.notifications') }}">
-            <i class="bi bi-bell"></i>
-            <span id="notif-count"
-              class="position-absolute top-0 start-100 translate-middle badge rounded-pill"
-              style="background:var(--red);font-size:.6rem;display:none">0</span>
-          </a>
-        </li>
         <li class="nav-item"><a class="nav-link" href="{{ url_for('customer.home') }}"><i class="bi bi-house"></i> Home</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ url_for('customer.products') }}"><i class="bi bi-grid"></i> Products</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ url_for('customer.stores') }}"><i class="bi bi-shop"></i> Stores</a></li>
@@ -44,7 +44,8 @@
         </div>
       </form>
       <ul class="navbar-nav gap-1 align-items-center">
-        
+        <!-- Logged in: cart/wishlist/chat/notifications (customers only)
+             plus a name dropdown whose links depend on session.role -->
         {% if session.user_id %}
           {% if session.role == 'customer' %}
           <li class="nav-item">
@@ -85,7 +86,7 @@
             </ul>
           </li>
         {% else %}
-        
+        <!-- Guest: just login/register -->
           <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.login') }}">Login</a></li>
           <li class="nav-item"><a class="btn btn-purple btn-sm ms-1" href="{{ url_for('auth.register') }}">Register</a></li>
         {% endif %}
@@ -95,7 +96,7 @@
 </nav>
 
 <div class="container-fluid px-4 mt-2">
-  
+  <!-- Flash messages set by controllers via self._ok()/_err()/_warn()/_info() -->
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% for cat, msg in messages %}
     <div class="alert alert-{{ cat }} alert-dismissible fade show" role="alert" style="margin-bottom:.5rem">
@@ -106,10 +107,10 @@
   {% endwith %}
 </div>
 
-
+<!-- Every page's actual content is injected here -->
 {% block content %}{% endblock %}
 
-
+<!-- Site-wide footer -->
 <footer style="background:var(--navy2);border-top:1px solid var(--border);padding:2.5rem 0;margin-top:4rem">
   <div class="container">
     <div class="row g-4">
@@ -151,7 +152,8 @@
   </div>
 </footer>
 
-
+<!-- Bootstrap's JS bundle, then our own pasalify.js, then any
+     page-specific scripts a child template adds via the scripts block -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="{{ url_for('static', filename='js/pasalify.js') }}"></script>
 {% block scripts %}{% endblock %}

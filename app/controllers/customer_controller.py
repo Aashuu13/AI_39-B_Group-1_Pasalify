@@ -1,18 +1,22 @@
-<<<<<<< HEAD
-=======
 """
-==============================================================
-OOP Concept: INHERITANCE & ENCAPSULATION (Customer Controller)
-==============================================================
-- Inheritance: CustomerController extends BaseController.
-- Encapsulation: Promo-code validation, checkout logic,
-  and cart upsert are all private methods — the route layer
-  calls one public method and never sees the internals.
-- Polymorphism: cart_add / cart_update / cart_remove all
-  operate on the same cart table but behave differently.
-==============================================================
+app/controllers/customer_controller.py
+================================================================
+OOP concepts on display: INHERITANCE + ENCAPSULATION + POLYMORPHISM
+
+    - Inheritance:   CustomerController extends BaseController and
+      reuses every shared helper (_ok, _q, _run, _log, ...).
+    - Encapsulation: promo-code validation, the cart "upsert"
+      logic, and the whole checkout flow each live inside their
+      own private helper or method — the route layer never sees
+      raw SQL or business rules directly.
+    - Polymorphism:  cart_add / cart_update / cart_remove all
+      operate on the same cart_items table through a shared shape
+      of method, but each produces a different effect.
+
+Handles every customer-facing page: home, browsing/search, product
+detail, cart, wishlist, checkout, orders, reviews, profile,
+notifications, the support chatbot, and customer-seller chat.
 """
->>>>>>> origin/aayushma
 
 import uuid
 from datetime import datetime
@@ -26,7 +30,7 @@ from app.models import (
 )
 from app import db
 
-<<<<<<< HEAD
+
 class CustomerController(BaseController):
     """
     Handles all customer-facing views:
@@ -34,25 +38,12 @@ class CustomerController(BaseController):
     checkout, orders, reviews, profile, notifications, chat.
 
     Inherited from BaseController:
-=======
-
-class CustomerController(BaseController):
-    """
-    Handles all customer-facing views:
-    home, products, product_detail, cart, wishlist,
-    checkout, orders, reviews, profile, notifications, chat.
-
-    Inherits from BaseController:
-<<<<<<< HEAD
->>>>>>> origin/aayushma
-=======
->>>>>>> origin/sandesh
         _ok/_err/_warn/_info, _q/_run, _log, _notify,
         _current_user_id, _is_logged_in
     """
 
-<<<<<<< HEAD
-<<<<<<< HEAD
+    # ── Private helpers (Encapsulation) ─────────────────────────────────────
+
     def _validate_promo(self, code: str, subtotal: float) -> dict:
         """
         Check a promo code against the cart subtotal and, if it's
@@ -63,21 +54,6 @@ class CustomerController(BaseController):
              'message': str}
         so callers (checkout() and the AJAX validate_promo() endpoint)
         both get a consistent result to work with.
-=======
-=======
->>>>>>> origin/sandesh
-    # ── Private Helpers (Encapsulation) ───────────────────────────────────────
-
-    def _validate_promo(self, code: str, subtotal: float) -> dict:
-        """
-        Validate a promo code against the current subtotal.
-        Returns {'valid': bool, 'discount': float, 'promo_id': int|None,
-                  'message': str}
-        Encapsulation: all promo logic lives here.
-<<<<<<< HEAD
->>>>>>> origin/aayushma
-=======
->>>>>>> origin/sandesh
         """
         if not code:
             return {'valid': False, 'discount': 0, 'promo_id': None, 'message': ''}
@@ -101,23 +77,18 @@ class CustomerController(BaseController):
         else:
             discount = float(pc['discount_value'])
 
+        # Counts this application of the code immediately, even though
+        # the order itself hasn't been created yet — keeps the logic
+        # in one place rather than splitting "validate" from "consume".
         self._run("UPDATE promo_codes SET used_count = used_count + 1 WHERE id = %s",
                   (pc['id'],))
         return {'valid': True, 'discount': discount, 'promo_id': pc['id'],
                 'message': f"Code applied! Rs.{discount:.2f} off."}
 
     def _cart_items(self) -> list[dict]:
-<<<<<<< HEAD
-<<<<<<< HEAD
         """Return the logged-in user's cart rows joined with product,
         image, and store info — everything the cart/checkout pages need
         in a single query."""
-=======
-        """Return the current user's cart with product info."""
->>>>>>> origin/aayushma
-=======
-        """Return the current user's cart with product info."""
->>>>>>> origin/sandesh
         return self._q("""
             SELECT ci.*, p.name, p.price, p.stock_qty, pi.image_path,
                    s.name AS store_name, p.store_id
@@ -128,19 +99,13 @@ class CustomerController(BaseController):
             WHERE ci.user_id = %s
         """, (self._current_user_id(),))
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
->>>>>>> origin/sandesh
-    # ── Home / Discovery ──────────────────────────────────────────────────────
+    # ── Home / Discovery ─────────────────────────────────────────────────────
 
->>>>>>> origin/aayushma
     def home(self):
         """Landing page: category pills + the 12 newest approved products."""
         cats = CategoryModel.find_all()
         featured = self._q("""
-            SELECT p.*, pi.image_path, s.name AS store_name, s.slug AS store_slug
+            SELECT p.*, pi.image_path, s.name AS store_name
             FROM products p
             LEFT JOIN product_images pi ON pi.product_id = p.id AND pi.is_primary = 1
             JOIN stores s ON s.id = p.store_id
@@ -150,14 +115,8 @@ class CustomerController(BaseController):
         return render_template('customer/home.html', cats=cats, featured=featured)
 
     def products(self):
-<<<<<<< HEAD
-<<<<<<< HEAD
         """Product catalogue with search/filter/sort, all delegated to
         ProductModel.search() so this method just reads query params."""
-=======
->>>>>>> origin/aayushma
-=======
->>>>>>> origin/sandesh
         items = ProductModel.search(
             query=request.args.get('q', ''),
             cat_slug=request.args.get('cat', ''),
@@ -197,49 +156,25 @@ class CustomerController(BaseController):
         return render_template('customer/product_detail.html', p=p, images=images,
                                reviews=reviews, related=related, in_wish=in_wish)
 
-<<<<<<< HEAD
-<<<<<<< HEAD
+    # ── Cart ────────────────────────────────────────────────────────────────
+
     def cart(self):
         """Show the cart and its running total."""
-=======
-    # ── Cart ─────────────────────────────────────────────────────────────────
-
-    def cart(self):
->>>>>>> origin/aayushma
-=======
-    # ── Cart ─────────────────────────────────────────────────────────────────
-
-    def cart(self):
->>>>>>> origin/sandesh
         items = self._cart_items()
         total = sum(i['price'] * i['quantity'] for i in items)
         return render_template('customer/cart.html', items=items, total=total)
 
     def cart_add(self, pid: int):
-<<<<<<< HEAD
-<<<<<<< HEAD
         """
         Add a product to the cart, or bump its quantity if it's
         already in there (an "upsert": one INSERT path, one UPDATE path).
         """
-=======
->>>>>>> origin/aayushma
-=======
->>>>>>> origin/sandesh
         qty = int(request.form.get('quantity', 1))
         p   = ProductModel.find_by_id(pid)
         if not p or p['stock_qty'] < qty:
             self._err('Not enough stock.')
             return redirect(request.referrer or url_for('customer.products'))
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-        # Encapsulation: upsert logic in one place
->>>>>>> origin/aayushma
-=======
-        # Encapsulation: upsert logic in one place
->>>>>>> origin/sandesh
         existing = self._q(
             "SELECT id, quantity FROM cart_items WHERE user_id = %s AND product_id = %s",
             (self._current_user_id(), pid), one=True
@@ -254,13 +189,7 @@ class CustomerController(BaseController):
         return redirect(request.referrer or url_for('customer.cart'))
 
     def cart_update(self, cid: int):
-<<<<<<< HEAD
-<<<<<<< HEAD
         """Set an exact quantity for one cart row; dropping to 0 deletes it."""
-=======
->>>>>>> origin/aayushma
-=======
->>>>>>> origin/sandesh
         qty = int(request.form.get('quantity', 1))
         if qty < 1:
             self._run("DELETE FROM cart_items WHERE id = %s AND user_id = %s",
@@ -271,32 +200,16 @@ class CustomerController(BaseController):
         return redirect(url_for('customer.cart'))
 
     def cart_remove(self, cid: int):
-<<<<<<< HEAD
-<<<<<<< HEAD
         """Remove a single line item from the cart."""
-=======
->>>>>>> origin/aayushma
-=======
->>>>>>> origin/sandesh
         self._run("DELETE FROM cart_items WHERE id = %s AND user_id = %s",
                   (cid, self._current_user_id()))
         self._info('Item removed.')
         return redirect(url_for('customer.cart'))
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
 
-    # ── Wishlist ──────────────────────────────────────────────────────────────
->>>>>>> origin/aayushma
+    # ── Wishlist ────────────────────────────────────────────────────────────
 
     def wishlist(self):
         """Show every product the user has saved to their wishlist."""
-=======
-
-    # ── Wishlist ──────────────────────────────────────────────────────────────
-
-    def wishlist(self):
->>>>>>> origin/sandesh
         items = self._q("""
             SELECT p.*, pi.image_path, s.name AS store_name
             FROM wishlists w JOIN products p ON p.id = w.product_id
@@ -307,11 +220,8 @@ class CustomerController(BaseController):
         return render_template('customer/wishlist.html', items=items)
 
     def wishlist_toggle(self, pid: int):
-<<<<<<< HEAD
         """Add or remove a product from the wishlist with a single
         button — checks current state, then does the opposite."""
-=======
->>>>>>> origin/sandesh
         uid      = self._current_user_id()
         existing = self._q(
             "SELECT id FROM wishlists WHERE user_id = %s AND product_id = %s",
@@ -326,8 +236,8 @@ class CustomerController(BaseController):
             self._ok('Added to wishlist!')
         return redirect(request.referrer or url_for('customer.wishlist'))
 
-<<<<<<< HEAD
-<<<<<<< HEAD
+    # ── Checkout ────────────────────────────────────────────────────────────
+
     def checkout(self):
         """
         GET  -> show the checkout form with the cart summary.
@@ -335,16 +245,6 @@ class CustomerController(BaseController):
                 record the seller commission per item, clear the
                 cart, log the payment, and notify the buyer.
         """
-=======
-    # ── Checkout ─────────────────────────────────────────────────────────────
-
-    def checkout(self):
->>>>>>> origin/aayushma
-=======
-    # ── Checkout ─────────────────────────────────────────────────────────────
-
-    def checkout(self):
->>>>>>> origin/sandesh
         items = self._cart_items()
         if not items:
             self._warn('Your cart is empty.')
@@ -361,14 +261,9 @@ class CustomerController(BaseController):
             city      = request.form.get('city', '')
             method    = request.form.get('payment_method', 'cod')
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-            # Encapsulation: promo validation in one call
->>>>>>> origin/aayushma
-=======
-            # Encapsulation: promo validation in one call
->>>>>>> origin/sandesh
+            # Re-validate (and consume) any promo code at the moment
+            # of checkout, rather than trusting a value posted from
+            # an earlier page.
             promo_code = request.form.get('promo_code', '').strip().upper()
             promo      = self._validate_promo(promo_code, subtotal)
             if promo_code and not promo['valid']:
@@ -397,16 +292,11 @@ class CustomerController(BaseController):
                 """, (oid, i['product_id'], i['store_id'], i['name'],
                       price, i['quantity'], price * i['quantity']))
 
-<<<<<<< HEAD
-<<<<<<< HEAD
+                # Stock never goes negative — ProductModel guards that.
                 ProductModel.decrement_stock(i['product_id'], i['quantity'])
 
-=======
-                # Decrement stock (Encapsulation: inside ProductModel)
-                ProductModel.decrement_stock(i['product_id'], i['quantity'])
-
-                # Commission calculation
->>>>>>> origin/aayushma
+                # Split this line item's revenue between the seller and
+                # the platform, based on that store's commission rate.
                 store = self._q(
                     "SELECT id, commission_rate FROM stores WHERE id = %s",
                     (i['store_id'],), one=True
@@ -425,35 +315,7 @@ class CustomerController(BaseController):
                             VALUES (%s,%s,%s,%s)
                         """, (oi['id'], i['store_id'], seller_amt, comm))
 
-<<<<<<< HEAD
-=======
-            # Clear cart & record payment
->>>>>>> origin/aayushma
-=======
-                # Decrement stock (Encapsulation: inside ProductModel)
-                ProductModel.decrement_stock(i['product_id'], i['quantity'])
-
-                # Commission calculation
-                store = self._q(
-                    "SELECT id, commission_rate FROM stores WHERE id = %s",
-                    (i['store_id'],), one=True
-                )
-                if store:
-                    comm       = round(price * i['quantity'] * float(store['commission_rate']) / 100, 2)
-                    seller_amt = round(price * i['quantity'] - comm, 2)
-                    oi         = self._q(
-                        "SELECT id FROM order_items WHERE order_id = %s AND product_id = %s",
-                        (oid, i['product_id']), one=True
-                    )
-                    if oi:
-                        self._run("""
-                            INSERT INTO commissions
-                              (order_item_id, store_id, seller_amount, platform_amount)
-                            VALUES (%s,%s,%s,%s)
-                        """, (oi['id'], i['store_id'], seller_amt, comm))
-
-            # Clear cart & record payment
->>>>>>> origin/sandesh
+            # Order is fully recorded — now empty the cart and log the payment.
             self._run("DELETE FROM cart_items WHERE user_id = %s", (uid,))
             pay_status = 'success' if method == 'cod' else 'pending'
             self._run(
@@ -470,30 +332,16 @@ class CustomerController(BaseController):
                                subtotal=subtotal, user=user)
 
     def validate_promo(self):
-<<<<<<< HEAD
-<<<<<<< HEAD
         """AJAX endpoint behind the 'Apply' button on the checkout page —
         validates a promo code and returns just enough JSON to update
         the total on screen without a full page reload."""
-=======
-        """AJAX endpoint — validate a promo code and return JSON."""
->>>>>>> origin/aayushma
-=======
-        """AJAX endpoint — validate a promo code and return JSON."""
->>>>>>> origin/sandesh
         code     = request.form.get('code', '').strip().upper()
         subtotal = float(request.form.get('subtotal', 0))
         result   = self._validate_promo(code, subtotal)
         return jsonify({'valid': result['valid'], 'discount': result['discount'],
                         'message': result['message']})
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
->>>>>>> origin/sandesh
 
-    # ── Orders ────────────────────────────────────────────────────────────────
->>>>>>> origin/aayushma
+    # ── Orders ──────────────────────────────────────────────────────────────
 
     def orders(self):
         """List every order this customer has placed."""
@@ -504,12 +352,9 @@ class CustomerController(BaseController):
         return render_template('customer/orders.html', orders=ords)
 
     def order_detail(self, oid: int):
-<<<<<<< HEAD
         """Single order's full details and line items.
         Scoped to user_id so customers can't view each other's orders
         just by guessing an order id in the URL."""
-=======
->>>>>>> origin/aayushma
         order = self._q(
             "SELECT * FROM orders WHERE id = %s AND user_id = %s",
             (oid, self._current_user_id()), one=True
@@ -525,29 +370,15 @@ class CustomerController(BaseController):
         return render_template('customer/order_detail.html', order=order, items=items)
 
     def payment_history(self):
-<<<<<<< HEAD
-<<<<<<< HEAD
         """All payment records for this customer, newest first."""
-=======
->>>>>>> origin/aayushma
-=======
->>>>>>> origin/sandesh
         pays = self._q("""
             SELECT p.*, o.order_number FROM payments p
             JOIN orders o ON o.id = p.order_id
             WHERE p.user_id = %s ORDER BY p.created_at DESC
         """, (self._current_user_id(),))
         return render_template('customer/payment_history.html', pays=pays)
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
 
-    # ── Reviews ───────────────────────────────────────────────────────────────
->>>>>>> origin/aayushma
-=======
-
-    # ── Reviews ───────────────────────────────────────────────────────────────
->>>>>>> origin/sandesh
+    # ── Reviews ─────────────────────────────────────────────────────────────
 
     def submit_review(self, pid: int):
         """
@@ -568,8 +399,8 @@ class CustomerController(BaseController):
         self._ok('Review submitted!')
         return redirect(url_for('customer.product_detail', pid=pid))
 
-<<<<<<< HEAD
-<<<<<<< HEAD
+    # ── Profile ─────────────────────────────────────────────────────────────
+
     def profile(self):
         """
         GET  -> show the profile form pre-filled with current details,
@@ -579,19 +410,6 @@ class CustomerController(BaseController):
         uid  = self._current_user_id()
         user = UserModel.find_by_id(uid)
 
-=======
-=======
->>>>>>> origin/sandesh
-    # ── Profile ───────────────────────────────────────────────────────────────
-
-    def profile(self):
-        uid  = self._current_user_id()
-        user = UserModel.find_by_id(uid)
-
-<<<<<<< HEAD
->>>>>>> origin/aayushma
-=======
->>>>>>> origin/sandesh
         if request.method == 'POST':
             UserModel.update(uid, {
                 'name':    request.form.get('name', '').strip(),
@@ -599,13 +417,8 @@ class CustomerController(BaseController):
                 'address': request.form.get('address', '').strip(),
                 'city':    request.form.get('city', '').strip(),
             })
-<<<<<<< HEAD
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/aayushma
-=======
->>>>>>> origin/sandesh
+            # Keep the navbar's greeting in sync with the new name
+            # right away, without forcing the user to log in again.
             session['name'] = request.form.get('name', '').strip()
             self._ok('Profile updated!')
             return redirect(url_for('customer.profile'))
@@ -620,21 +433,11 @@ class CustomerController(BaseController):
                                orders_count=orders_count['c'],
                                wish_count=wish_count['c'])
 
-<<<<<<< HEAD
-<<<<<<< HEAD
+    # ── Notifications ───────────────────────────────────────────────────────
+
     def notifications(self):
         """Show the latest 50 notifications and mark them all as read
         the moment the user opens this page."""
-=======
-    # ── Notifications ─────────────────────────────────────────────────────────
-
-    def notifications(self):
->>>>>>> origin/aayushma
-=======
-    # ── Notifications ─────────────────────────────────────────────────────────
-
-    def notifications(self):
->>>>>>> origin/sandesh
         uid    = self._current_user_id()
         notifs = self._q(
             "SELECT * FROM notifications WHERE user_id = %s ORDER BY created_at DESC LIMIT 50",
@@ -644,22 +447,16 @@ class CustomerController(BaseController):
         return render_template('customer/notifications.html', notifs=notifs)
 
     def notif_count(self):
-<<<<<<< HEAD
-<<<<<<< HEAD
         """JSON endpoint polled every 30s by pasalify.js to update the
         little red badge on the notification bell."""
-=======
->>>>>>> origin/aayushma
-=======
->>>>>>> origin/sandesh
         c = self._q(
             "SELECT COUNT(*) AS c FROM notifications WHERE user_id = %s AND is_read = 0",
             (self._current_user_id(),), one=True
         )
         return jsonify({'count': c['c']})
 
-<<<<<<< HEAD
-<<<<<<< HEAD
+    # ── Support Chatbot ─────────────────────────────────────────────────────
+
     def support(self):
         """Show the support chat page along with this user's previous
         bot conversation history (guests just see an empty history)."""
@@ -678,20 +475,6 @@ class CustomerController(BaseController):
         support_messages so a human (seller or admin) can later see the
         full thread and reply on the same conversation.
         """
-=======
-=======
->>>>>>> origin/sandesh
-    # ── Support Chatbot ───────────────────────────────────────────────────────
-
-    def support(self):
-        return render_template('customer/support.html')
-
-    def support_chat(self):
-        """Simple keyword-based FAQ bot. Encapsulation: FAQ map is local."""
-<<<<<<< HEAD
->>>>>>> origin/aayushma
-=======
->>>>>>> origin/sandesh
         msg     = request.form.get('message', '').strip().lower()
         user_id = self._current_user_id()
         faqs    = {
@@ -718,21 +501,11 @@ class CustomerController(BaseController):
         )
         return jsonify({'reply': reply})
 
-<<<<<<< HEAD
-<<<<<<< HEAD
+    # ── Stores ──────────────────────────────────────────────────────────────
+
     def stores(self):
         """Directory of every approved store, with an optional name/
         description search."""
-=======
-    # ── Stores ────────────────────────────────────────────────────────────────
-
-    def stores(self):
->>>>>>> origin/aayushma
-=======
-    # ── Stores ────────────────────────────────────────────────────────────────
-
-    def stores(self):
->>>>>>> origin/sandesh
         q = request.args.get('q', '')
         if q:
             results = self._q(
@@ -744,14 +517,8 @@ class CustomerController(BaseController):
         return render_template('customer/store.html', stores=results, q=q)
 
     def store_page(self, slug: str):
-<<<<<<< HEAD
-<<<<<<< HEAD
         """Public-facing page for one store (its catalogue), reached
         from the store directory above."""
-=======
->>>>>>> origin/aayushma
-=======
->>>>>>> origin/sandesh
         store = self._q(
             "SELECT * FROM stores WHERE slug = %s AND is_approved = 1", (slug,), one=True
         )
@@ -765,73 +532,9 @@ class CustomerController(BaseController):
             ORDER BY p.created_at DESC
         """, (store['id'],))
         return render_template('customer/store_page.html', store=store, products=prods)
-<<<<<<< HEAD
-=======
 
-    # ── Chat ──────────────────────────────────────────────────────────────────
+    # ── Chat (customer side of customer<->seller messaging) ────────────────
 
-    def chats(self):
-        convs = self._q("""
-            SELECT ch.*, s.name AS store_name, s.logo AS store_logo,
-                   (SELECT message FROM chat_messages WHERE chat_id=ch.id
-                    ORDER BY created_at DESC LIMIT 1) AS last_msg,
-                   (SELECT COUNT(*) FROM chat_messages
-                    WHERE chat_id=ch.id AND is_read=0 AND sender_id!=ch.customer_id) AS unread
-            FROM chats ch JOIN stores s ON s.user_id = ch.seller_id
-            WHERE ch.customer_id = %s ORDER BY ch.created_at DESC
-        """, (self._current_user_id(),))
-        return render_template('customer/chats.html', convs=convs)
-
-    def chat_start(self, store_id: int):
-        store = self._q("SELECT * FROM stores WHERE id = %s", (store_id,), one=True)
-        if not store:
-            self._err('Store not found.')
-            return redirect(url_for('customer.home'))
-        uid  = self._current_user_id()
-        chat = self._q(
-            "SELECT * FROM chats WHERE customer_id = %s AND seller_id = %s",
-            (uid, store['user_id']), one=True
-        )
-        cid = chat['id'] if chat else self._run(
-            "INSERT INTO chats (customer_id, seller_id) VALUES (%s,%s)",
-            (uid, store['user_id'])
-        )
-        return redirect(url_for('customer.chat_detail', cid=cid))
-
-    def chat_detail(self, cid: int):
-        uid  = self._current_user_id()
-        chat = self._q(
-            "SELECT * FROM chats WHERE id = %s AND customer_id = %s", (cid, uid), one=True
-        )
-        if not chat:
-            self._err('Not found.')
-            return redirect(url_for('customer.chats'))
-
-        if request.method == 'POST':
-            msg = request.form.get('message', '').strip()
-            if msg:
-                self._run(
-                    "INSERT INTO chat_messages (chat_id, sender_id, message) VALUES (%s,%s,%s)",
-                    (cid, uid, msg)
-                )
-            return redirect(url_for('customer.chat_detail', cid=cid))
-
-        msgs  = self._q("""
-            SELECT cm.*, u.name FROM chat_messages cm
-            JOIN users u ON u.id = cm.sender_id
-            WHERE cm.chat_id = %s ORDER BY cm.created_at
-        """, (cid,))
-        store = self._q("SELECT * FROM stores WHERE user_id = %s",
-                         (chat['seller_id'],), one=True)
-        self._run(
-            "UPDATE chat_messages SET is_read=1 WHERE chat_id=%s AND sender_id!=%s",
-            (cid, uid)
-        )
-        return render_template('customer/chat_detail.html', chat=chat,
-                               msgs=msgs, store=store)
->>>>>>> origin/sandesh
-
-<<<<<<< HEAD
     def chats(self):
         """List of this customer's conversations, each with the store's
         name/logo, the most recent message preview, and an unread count."""
@@ -846,27 +549,9 @@ class CustomerController(BaseController):
         """, (self._current_user_id(),))
         return render_template('customer/chats.html', convs=convs)
 
-<<<<<<< HEAD
     def chat_start(self, store_id: int):
         """Start (or resume) a chat with a store's seller, then jump
         straight into that conversation."""
-=======
-    # ── Chat ──────────────────────────────────────────────────────────────────
-
-    def chats(self):
-        convs = self._q("""
-            SELECT ch.*, s.name AS store_name, s.logo AS store_logo,
-                   (SELECT message FROM chat_messages WHERE chat_id=ch.id
-                    ORDER BY created_at DESC LIMIT 1) AS last_msg,
-                   (SELECT COUNT(*) FROM chat_messages
-                    WHERE chat_id=ch.id AND is_read=0 AND sender_id!=ch.customer_id) AS unread
-            FROM chats ch JOIN stores s ON s.user_id = ch.seller_id
-            WHERE ch.customer_id = %s ORDER BY ch.created_at DESC
-        """, (self._current_user_id(),))
-        return render_template('customer/chats.html', convs=convs)
-
-    def chat_start(self, store_id: int):
->>>>>>> origin/aayushma
         store = self._q("SELECT * FROM stores WHERE id = %s", (store_id,), one=True)
         if not store:
             self._err('Store not found.')
@@ -883,14 +568,11 @@ class CustomerController(BaseController):
         return redirect(url_for('customer.chat_detail', cid=cid))
 
     def chat_detail(self, cid: int):
-<<<<<<< HEAD
         """
         GET  -> show the full message thread, then mark the seller's
                 messages as read since the customer is viewing them now.
         POST -> send a new message into this conversation.
         """
-=======
->>>>>>> origin/aayushma
         uid  = self._current_user_id()
         chat = self._q(
             "SELECT * FROM chats WHERE id = %s AND customer_id = %s", (cid, uid), one=True
@@ -921,14 +603,7 @@ class CustomerController(BaseController):
         )
         return render_template('customer/chat_detail.html', chat=chat,
                                msgs=msgs, store=store)
-<<<<<<< HEAD
-=======
 
->>>>>>> origin/aayushma
 
-# ── Singleton instance ────────────────────────────────────────────────────────
+# ── Singleton instance imported by app/controllers/__init__.py and routes ──
 customer_controller = CustomerController()
-=======
-# ── Singleton instance ────────────────────────────────────────────────────────
-customer_controller = CustomerController()
->>>>>>> origin/sandesh

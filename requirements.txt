@@ -6,12 +6,5 @@ pymysql==1.1.1
 cryptography==44.0.0
 # Adds CSRF protection to every form (see csrf.init_app in app/app.py)
 Flask-WTF==1.2.2
-<<<<<<< HEAD
 # Loads environment variables from a .env file
 python-dotenv==0.21.0
-=======
-python-dotenv==1.0.1
-PyMySQL==1.1.1
-Werkzeug==3.1.3
-email-validator==2.2.0
->>>>>>> origin/sandesh

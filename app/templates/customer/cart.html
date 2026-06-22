@@ -1,4 +1,8 @@
-
+{# 
+customer/cart.html
+Rendered by: CustomerController.cart()
+Context: items (cart rows joined with product/store info), total.
+#}
 {% extends "base.html" %}
 {% block title %}My Cart{% endblock %}
 {% block content %}
@@ -12,10 +16,7 @@
         <div class="card-body">
           <div class="d-flex gap-3 align-items-center">
             {% if item.image_path %}
-               <img src="{{ url_for('static', filename=item.image_path) }}" 
-                  style="width:80px;height:80px;object-fit:cover;border-radius:8px"
-                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-               <div style="width:80px;height:80px;background:var(--navy3);border-radius:8px;display:none;align-items:center;justify-content:center;color:var(--muted)"><i class="bi bi-image"></i></div>
+            <img src="{{ url_for('static', filename=item.image_path) }}" style="width:80px;height:80px;object-fit:cover;border-radius:8px">
             {% else %}
             <div style="width:80px;height:80px;background:var(--navy3);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#E6EDF3"><i class="bi bi-image"></i></div>
             {% endif %}

@@ -1,4 +1,8 @@
-
+{# 
+seller/base_seller.html — seller layout wrapper
+Extended by every seller/*.html page (not rendered directly by
+any controller). Adds the seller sidebar on top of base.html.
+#}
 {% extends "base.html" %}
 {% block content %}
 <div class="d-flex">
@@ -44,31 +48,14 @@
     <a href="{{ url_for('seller.reviews') }}" class="sidebar-link {% if request.endpoint=='seller.reviews' %}active{% endif %}">
       <i class="bi bi-star"></i> Reviews
     </a>
-<<<<<<< HEAD
-<<<<<<< HEAD
     <a href="{{ url_for('seller.support_tickets') }}" class="sidebar-link {% if request.endpoint=='seller.support_tickets' %}active{% endif %}">
       <i class="bi bi-headset"></i> Support Tickets
-=======
-
-    <a href="{{ url_for('seller.store_customize') }}" class="sidebar-link {% if request.endpoint=='seller.store_customize' %}active{% endif %}">
-      <i class="bi bi-palette"></i> Customize
->>>>>>> origin/aayushma
-=======
-    <a href="{{ url_for('seller.support_tickets') }}" class="sidebar-link {% if request.endpoint=='seller.support_tickets' %}active{% endif %}">
-      <i class="bi bi-headset"></i> Support Tickets
->>>>>>> origin/sandesh
     </a>
     <div class="sidebar-section">Store</div>
     <a href="{{ url_for('seller.store_profile') }}" class="sidebar-link {% if request.endpoint=='seller.store_profile' %}active{% endif %}">
       <i class="bi bi-person-vcard"></i> Store Profile
     </a>
-    
-    {% if store %}
-    <a href="{{ url_for('store.public_store', slug=store.slug) }}" class="sidebar-link" target="_blank">
-      <i class="bi bi-box-arrow-up-right"></i> View Store
-    </a>
-    {% endif %}
-  </div>
+    </div>
   <div class="main-content">
     {% block seller_content %}{% endblock %}
   </div>

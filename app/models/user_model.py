@@ -1,7 +1,24 @@
+"""
+app/models/user_model.py
+================================================================
+OOP concepts on display: INHERITANCE + ENCAPSULATION + POLYMORPHISM
+
+    - Inheritance:   UserModel extends BaseModel and gets find_by_id,
+      create, update, delete, count, etc. for free.
+    - Encapsulation: password hashing/verification is hidden inside
+      this class — controllers call UserModel.authenticate() and
+      never see a raw hash.
+    - Polymorphism:  UserModel overrides the abstract `table`
+      property required by BaseModel, the same way every other
+      model does, but each returns its own table name.
+
+Represents the `users` table.
+"""
 
 from app.models.basemodel import BaseModel
 from app.models.database import Database
 from app.utils.auth import hash_password, check_password
+
 
 class UserModel(BaseModel):
     """
@@ -15,16 +32,15 @@ class UserModel(BaseModel):
         record_failed_login, update_last_login
     """
 
+    # ── Required by BaseModel (ABC) ────────────────────────────────────────
     TABLE = 'users'
 
     @property
-    def table(self) -> str:          
+    def table(self) -> str:          # satisfies the @abstractmethod in BaseModel
         return self.TABLE
 
-<<<<<<< HEAD
-=======
+    # ── User-specific class methods ─────────────────────────────────────────
 
->>>>>>> origin/sandesh
     @classmethod
     def find_by_email(cls, email: str) -> dict | None:
         """Look up a user by email (case-insensitive)."""
@@ -101,11 +117,5 @@ class UserModel(BaseModel):
 
     @classmethod
     def all_by_role(cls, role: str) -> list[dict]:
-<<<<<<< HEAD
         """Return all users that have a specific role (customer/seller/admin)."""
         return cls.find_where("role = %s ORDER BY created_at DESC", (role,))
-=======
-        """Return all users with a specific role."""
-        return cls.find_where("role = %s ORDER BY created_at DESC", (role,))# User model handles seller and customer registration
-# Handles seller and customer registration
->>>>>>> origin/sandesh

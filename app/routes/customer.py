@@ -1,28 +1,25 @@
-<<<<<<< HEAD
+"""
+app/routes/customer.py
+================================================================
+URL → controller-method wiring for every customer-facing page.
 
-=======
+Routes are split into two groups:
+  - Public:         anyone can open these, logged in or not.
+  - Auth-protected:  wrapped with _lr (login_required) so a guest
+                     trying to open them is redirected to login
+                     instead of erroring out.
 """
-Customer routes — public and auth-protected.
-"""
->>>>>>> origin/aayushma
+
 from flask import Blueprint
 from app.controllers import customer_controller
 from app.utils.auth import login_required
 
 customer_bp = Blueprint('customer', __name__)
-<<<<<<< HEAD
-<<<<<<< HEAD
-cc = customer_controller   
+cc = customer_controller   # short alias, used below for readability
 
-_lr = login_required       
+_lr = login_required       # short alias for the decorator
 
-=======
-cc = customer_controller   # alias for brevity
-
-_lr = login_required   # alias
-
-# ── Public ────────────────────────────────────────────────────────────────────
->>>>>>> origin/aayushma
+# ── Public ──────────────────────────────────────────────────────────────
 customer_bp.add_url_rule('/',                        'home',            cc.home)
 customer_bp.add_url_rule('/products',                'products',        cc.products)
 customer_bp.add_url_rule('/product/<int:pid>',       'product_detail',  cc.product_detail)
@@ -31,72 +28,34 @@ customer_bp.add_url_rule('/support/chat',            'support_chat',    cc.suppo
 customer_bp.add_url_rule('/stores',                  'stores',          cc.stores)
 customer_bp.add_url_rule('/store/<slug>',            'store_page',      cc.store_page)
 
-<<<<<<< HEAD
-=======
-# ── Auth-protected ─────────────────────────────────────────────────────────────
->>>>>>> origin/aayushma
+# ── Auth-protected: cart ────────────────────────────────────────────────
 customer_bp.add_url_rule('/cart',                    'cart',            _lr(cc.cart))
 customer_bp.add_url_rule('/cart/add/<int:pid>',      'cart_add',        _lr(cc.cart_add),       methods=['POST'])
 customer_bp.add_url_rule('/cart/update/<int:cid>',   'cart_update',     _lr(cc.cart_update),    methods=['POST'])
 customer_bp.add_url_rule('/cart/remove/<int:cid>',   'cart_remove',     _lr(cc.cart_remove))
 
+# ── Auth-protected: wishlist ────────────────────────────────────────────
 customer_bp.add_url_rule('/wishlist',                'wishlist',        _lr(cc.wishlist))
 customer_bp.add_url_rule('/wishlist/toggle/<int:pid>','wishlist_toggle', _lr(cc.wishlist_toggle))
 
+# ── Auth-protected: checkout & promo codes ─────────────────────────────
 customer_bp.add_url_rule('/checkout',                'checkout',        _lr(cc.checkout),       methods=['GET', 'POST'])
 customer_bp.add_url_rule('/promo/validate',          'validate_promo',  _lr(cc.validate_promo), methods=['POST'])
 
+# ── Auth-protected: orders & payments ──────────────────────────────────
 customer_bp.add_url_rule('/orders',                  'orders',          _lr(cc.orders))
 customer_bp.add_url_rule('/order/<int:oid>',         'order_detail',    _lr(cc.order_detail))
 customer_bp.add_url_rule('/payments',                'payment_history', _lr(cc.payment_history))
 
+# ── Auth-protected: reviews ─────────────────────────────────────────────
 customer_bp.add_url_rule('/review/<int:pid>',        'submit_review',   _lr(cc.submit_review),  methods=['POST'])
 
-=======
-cc = customer_controller   # alias for brevity
-
-_lr = login_required   # alias
-
-# ── Public ────────────────────────────────────────────────────────────────────
-customer_bp.add_url_rule('/',                        'home',            cc.home)
-customer_bp.add_url_rule('/products',                'products',        cc.products)
-customer_bp.add_url_rule('/product/<int:pid>',       'product_detail',  cc.product_detail)
-customer_bp.add_url_rule('/support',                 'support',         cc.support)
-customer_bp.add_url_rule('/support/chat',            'support_chat',    cc.support_chat,    methods=['POST'])
-customer_bp.add_url_rule('/stores',                  'stores',          cc.stores)
-customer_bp.add_url_rule('/store/<slug>',            'store_page',      cc.store_page)
-
-# ── Auth-protected ─────────────────────────────────────────────────────────────
-customer_bp.add_url_rule('/cart',                    'cart',            _lr(cc.cart))
-customer_bp.add_url_rule('/cart/add/<int:pid>',      'cart_add',        _lr(cc.cart_add),       methods=['POST'])
-customer_bp.add_url_rule('/cart/update/<int:cid>',   'cart_update',     _lr(cc.cart_update),    methods=['POST'])
-customer_bp.add_url_rule('/cart/remove/<int:cid>',   'cart_remove',     _lr(cc.cart_remove))
-
-customer_bp.add_url_rule('/wishlist',                'wishlist',        _lr(cc.wishlist))
-customer_bp.add_url_rule('/wishlist/toggle/<int:pid>','wishlist_toggle', _lr(cc.wishlist_toggle))
-
-customer_bp.add_url_rule('/checkout',                'checkout',        _lr(cc.checkout),       methods=['GET', 'POST'])
-customer_bp.add_url_rule('/promo/validate',          'validate_promo',  _lr(cc.validate_promo), methods=['POST'])
-
-customer_bp.add_url_rule('/orders',                  'orders',          _lr(cc.orders))
-customer_bp.add_url_rule('/order/<int:oid>',         'order_detail',    _lr(cc.order_detail))
-customer_bp.add_url_rule('/payments',                'payment_history', _lr(cc.payment_history))
-
-customer_bp.add_url_rule('/review/<int:pid>',        'submit_review',   _lr(cc.submit_review),  methods=['POST'])
-
->>>>>>> origin/sandesh
+# ── Auth-protected: profile & notifications ────────────────────────────
 customer_bp.add_url_rule('/profile',                 'profile',         _lr(cc.profile),        methods=['GET', 'POST'])
 customer_bp.add_url_rule('/notifications',           'notifications',   _lr(cc.notifications))
 customer_bp.add_url_rule('/notifications/count',     'notif_count',     _lr(cc.notif_count))
 
+# ── Auth-protected: customer<->seller chat ──────────────────────────────
 customer_bp.add_url_rule('/chats',                   'chats',           _lr(cc.chats))
 customer_bp.add_url_rule('/chat/<int:cid>',          'chat_detail',     _lr(cc.chat_detail),    methods=['GET', 'POST'])
-<<<<<<< HEAD
-<<<<<<< HEAD
 customer_bp.add_url_rule('/chat/start/<int:store_id>','chat_start',      _lr(cc.chat_start))
-=======
-customer_bp.add_url_rule('/chat/start/<int:store_id>','chat_start',      _lr(cc.chat_start))
->>>>>>> origin/aayushma
-=======
-customer_bp.add_url_rule('/chat/start/<int:store_id>','chat_start',      _lr(cc.chat_start))
->>>>>>> origin/sandesh

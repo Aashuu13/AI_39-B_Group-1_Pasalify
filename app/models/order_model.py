@@ -1,6 +1,21 @@
+"""
+app/models/order_model.py
+================================================================
+OOP concepts on display: INHERITANCE + ENCAPSULATION
+
+    - Inheritance:   OrderModel extends BaseModel and gets every
+      CRUD method (find_by_id, create, update, ...) for free.
+    - Encapsulation: every status change (cancel/ship/complete/
+      mark_paid) goes through its own small method instead of
+      controllers writing raw "UPDATE orders SET status=..."
+      statements scattered across the codebase.
+
+Represents the `orders` table.
+"""
 
 from app.models.basemodel import BaseModel
 from app.models.database import Database
+
 
 class OrderModel(BaseModel):
     """
@@ -20,10 +35,8 @@ class OrderModel(BaseModel):
     def table(self) -> str:
         return self.TABLE
 
-<<<<<<< HEAD
-=======
+    # ── Lookups ─────────────────────────────────────────────────────────
 
->>>>>>> origin/sandesh
     @classmethod
     def find_by_user(cls, user_id: int) -> list[dict]:
         """All orders placed by one customer, newest first, with each
@@ -70,10 +83,8 @@ class OrderModel(BaseModel):
             LIMIT %s
         """, (limit,))
 
-<<<<<<< HEAD
-=======
+    # ── Status transitions (Encapsulation) ───────────────────────────────
 
->>>>>>> origin/sandesh
     @classmethod
     def cancel(cls, order_id: int) -> None:
         """Move an order to the 'cancelled' status."""
@@ -95,10 +106,8 @@ class OrderModel(BaseModel):
         shipping/delivery status above."""
         cls.update(order_id, {'payment_status': 'paid'})
 
-<<<<<<< HEAD
-=======
+    # ── Revenue stats ───────────────────────────────────────────────────
 
->>>>>>> origin/sandesh
     @classmethod
     def monthly_revenue(cls, store_id: int | None = None, months: int = 6) -> list[dict]:
         """
@@ -127,4 +136,4 @@ class OrderModel(BaseModel):
             WHERE created_at >= DATE_SUB(NOW(), INTERVAL %s MONTH)
             GROUP BY month
             ORDER BY month
-        """, (months,))# Handles order status and tracking
+        """, (months,))

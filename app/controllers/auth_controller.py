@@ -1,9 +1,27 @@
+"""
+app/controllers/auth_controller.py
+================================================================
+OOP concepts on display: INHERITANCE + ENCAPSULATION
+
+    - Inheritance:   AuthController extends BaseController, so
+      self._ok / self._err / self._q / self._run / self._log all
+      work here without being redefined.
+    - Encapsulation: every validation rule (email format,
+      password length, duplicate-account check, role whitelist)
+      lives inside the private _validate_registration() helper.
+      The login() method's password-hash comparison is likewise
+      hidden inside UserModel.authenticate() — this class never
+      touches a raw password hash.
+
+Handles: register, login, logout, forgot_password, change_password.
+"""
 
 from flask import render_template, request, redirect, url_for, session, flash
 
 from app.controllers.base_controller import BaseController
 from app.models import UserModel, StoreModel
 from app.utils.auth import valid_email, log_action
+
 
 class AuthController(BaseController):
     """
@@ -14,6 +32,8 @@ class AuthController(BaseController):
         _ok, _err, _warn, _info, _q, _run, _log, _notify,
         _current_user_id, _is_logged_in
     """
+
+    # ── Private validation (Encapsulation) ──────────────────────────────────
 
     def _validate_registration(self, name, email, phone, pw, pw2, role) -> list[str]:
         """
@@ -37,6 +57,8 @@ class AuthController(BaseController):
         if UserModel.find_by_email_or_phone(email, phone):
             errors.append('Email or phone already registered.')
         return errors
+
+    # ── Public actions (bound directly to routes) ───────────────────────────
 
     def register(self):
         """
@@ -62,7 +84,8 @@ class AuthController(BaseController):
 
             uid = UserModel.register(name, email, phone, pw, role)
             if role == 'seller':
-
+                # Remembered so the seller can be nudged into the
+                # store-setup wizard right after their first login.
                 session['pending_store_setup'] = uid
             self._ok('Account created! Please log in.')
             return redirect(url_for('auth.login'))
@@ -79,6 +102,8 @@ class AuthController(BaseController):
             email = request.form.get('email', '').strip().lower()
             pw    = request.form.get('password', '')
 
+            # Encapsulation: the hash comparison happens inside
+            # UserModel.authenticate(); this method never sees a raw hash.
             user = UserModel.find_by_email(email)
 
             if not user or not UserModel.authenticate(email, pw):
@@ -91,6 +116,9 @@ class AuthController(BaseController):
                 self._err('Your account has been deactivated.')
                 return render_template('auth/login.html')
 
+            # Successful login: reset any old session data, then store
+            # just enough info in the session to avoid a DB lookup on
+            # every single request.
             UserModel.update_last_login(user['id'])
             session.clear()
             session['user_id'] = user['id']
@@ -99,6 +127,8 @@ class AuthController(BaseController):
             session['email']   = user['email']
             self._log('login')
 
+            # Polymorphism in spirit: the same login() method produces a
+            # different redirect depending on the user's role.
             if user['role'] == 'admin':
                 return redirect(url_for('admin.dashboard'))
             elif user['role'] == 'seller':
@@ -142,6 +172,8 @@ class AuthController(BaseController):
             new_pw = request.form.get('new_password', '')
             user   = UserModel.find_by_id(self._current_user_id())
 
+            # Re-using authenticate() here means the password-check
+            # logic only ever lives in one place in the whole app.
             if not UserModel.authenticate(user['email'], old_pw):
                 self._err('Current password is incorrect.')
             elif len(new_pw) < 8:
@@ -154,5 +186,6 @@ class AuthController(BaseController):
 
         return render_template('auth/change_password.html')
 
+
+# ── Singleton instance imported by app/controllers/__init__.py and routes ──
 auth_controller = AuthController()
-# Manages authentication and registration

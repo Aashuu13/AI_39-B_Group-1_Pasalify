@@ -1,4 +1,9 @@
-
+{# 
+admin/system.html
+Rendered by: AdminController.system()
+Context: logs (latest 100 activity entries), db_size (MB on disk),
+table_counts (per-table row counts).
+#}
 {% extends "admin/base_admin.html" %}
 {% block title %}System Monitoring{% endblock %}
 {% block admin_content %}
@@ -12,7 +17,7 @@
   </a>
 </div>
 
-
+<!-- Three quick diagnostic numbers: DB size, table count, recent log volume -->
 <div class="row g-3 mb-4">
   <div class="col-md-4">
     <div class="stat-card">
@@ -38,7 +43,7 @@
 </div>
 
 <div class="row g-3">
-  
+  <!-- Per-table row counts, straight from information_schema -->
   <div class="col-md-4">
     <div class="card">
       <div class="card-header">Table Row Counts</div>
@@ -53,7 +58,8 @@
     </div>
   </div>
 
-  
+  <!-- Scrollable activity log table; action text is color-coded by
+       keyword (delete/reject = red, approve/login = green, create/add = blue) -->
   <div class="col-md-8">
     <div class="card">
       <div class="card-header"><i class="bi bi-list-ul me-1"></i> Activity Logs (Last 100)</div>
@@ -93,7 +99,8 @@
   </div>
 </div>
 
-
+<!-- Static checklist describing the app's security posture — not
+     queried from anywhere, just a hardcoded list for the demo/presentation -->
 <div class="card mt-3">
   <div class="card-header"><i class="bi bi-shield-check me-1" style="color:#34D399"></i> Security Framework Status</div>
   <div class="card-body">

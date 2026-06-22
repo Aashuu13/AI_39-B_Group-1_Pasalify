@@ -1,3 +1,14 @@
+"""
+app/models/notification_model.py
+================================================================
+OOP concept on display: INHERITANCE
+
+NotificationModel extends BaseModel, adding just the handful of
+methods that the in-app notification bell actually needs: fetch
+recent ones, count unread, mark them read, and send a new one.
+
+Represents the `notifications` table.
+"""
 
 from app.models.basemodel import BaseModel
 from app.models.database import Database
@@ -50,4 +61,3 @@ class NotificationModel(BaseModel):
             'type':    notif_type,
             'is_read': 0,
         })
-# Handles low stock and system notifications

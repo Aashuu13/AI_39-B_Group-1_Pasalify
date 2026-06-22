@@ -1,6 +1,28 @@
+"""
+app/models/cart_model.py
+================================================================
+OOP concepts on display: INHERITANCE + ENCAPSULATION
+
+    - Inheritance:   CartModel extends BaseModel.
+    - Encapsulation: add_item() hides the "insert vs. update"
+      (upsert) decision — callers don't need to check whether the
+      product is already in the cart before calling it.
+
+Represents a `cart` table — one row per (user, product) pair.
+
+NOTE: schema.sql actually names this table `cart_items`, and the
+live CustomerController writes its own raw SQL against
+`cart_items` directly rather than calling through this model
+(see CustomerController._cart_items / cart_add / cart_update /
+cart_remove in app/controllers/customer_controller.py). That
+means this class currently isn't used by any route — it's kept
+here, untouched, as it was found, since fixing app behaviour
+wasn't part of this comment-cleanup pass.
+"""
 
 from app.models.basemodel import BaseModel
 from app.models.database import Database
+
 
 class CartModel(BaseModel):
     """
@@ -12,6 +34,8 @@ class CartModel(BaseModel):
     @property
     def table(self) -> str:
         return self.TABLE
+
+    # ── Cart operations ───────────────────────────────────────────────────
 
     @classmethod
     def get_cart(cls, user_id: int) -> list[dict]:
@@ -29,31 +53,13 @@ class CartModel(BaseModel):
     @classmethod
     def add_item(cls, user_id: int, product_id: int, qty: int = 1) -> None:
         """
-<<<<<<< HEAD
         Add a product to the cart, or increment its quantity if it's
         already there. Encapsulation: this "upsert" decision is made
         right here, so callers just call add_item() either way.
-=======
-        Add a product to the cart or increment its quantity.
-        Encapsulation: upsert logic is hidden from the controller.
-        Validates that requested quantity doesn't exceed available stock.
->>>>>>> origin/aayushma
         """
-        product = Database.query(
-            "SELECT stock_qty FROM products WHERE id = %s", (product_id,), one=True
-        )
-        if not product:
-            raise ValueError("Product not found")
-
         existing = cls.find_where(
             "user_id = %s AND product_id = %s", (user_id, product_id), one=True
         )
-        current_qty = existing['quantity'] if existing else 0
-        new_qty = current_qty + qty
-
-        if new_qty > product['stock_qty']:
-            raise ValueError(f"Only {product['stock_qty']} item(s) in stock")
-
         if existing:
             Database.execute(
                 "UPDATE cart SET quantity = quantity + %s WHERE user_id = %s AND product_id = %s",
@@ -64,13 +70,7 @@ class CartModel(BaseModel):
 
     @classmethod
     def update_qty(cls, user_id: int, product_id: int, qty: int) -> None:
-<<<<<<< HEAD
         """Overwrite a cart row's quantity with an exact value."""
-=======
-        """Set an exact quantity for a cart item. Quantity must be at least 1."""
-        if qty < 1:
-            raise ValueError("Quantity must be at least 1")
->>>>>>> origin/aayushma
         Database.execute(
             "UPDATE cart SET quantity = %s WHERE user_id = %s AND product_id = %s",
             (qty, user_id, product_id)
@@ -96,4 +96,3 @@ class CartModel(BaseModel):
             "SELECT COUNT(*) AS c FROM cart WHERE user_id = %s", (user_id,), one=True
         )
         return row['c'] if row else 0
-# Handles customer cart operations

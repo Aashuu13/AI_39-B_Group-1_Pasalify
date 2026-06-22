@@ -1,7 +1,25 @@
+"""
+app/db.py
+================================================================
+Low-level MySQL access layer.
+
+This is the ONLY file in the project that talks to pymysql
+directly. Everything else — including app/models/database.py and
+every model class — goes through the four functions below. That
+single choke point means: if Pasalify ever switched databases,
+this is the only file that would need to change.
+
+Connections are stored on Flask's request-scoped `g` object, so
+each HTTP request gets exactly one connection that is reused for
+every query during that request and closed automatically when
+the request ends (see close_db, wired up in app/app.py's
+teardown_appcontext hook).
+"""
 
 import pymysql
 import os
 from flask import g, current_app
+
 
 def get_db():
     """
@@ -17,10 +35,11 @@ def get_db():
             database=cfg['MYSQL_DB'],
             port=cfg['MYSQL_PORT'],
             charset='utf8mb4',
-            cursorclass=pymysql.cursors.DictCursor,  
+            cursorclass=pymysql.cursors.DictCursor,  # rows come back as dicts, not tuples
             autocommit=False
         )
     return g.db
+
 
 def close_db(e=None):
     """Close the request's connection, if one was opened.
@@ -28,6 +47,7 @@ def close_db(e=None):
     db = g.pop('db', None)
     if db:
         db.close()
+
 
 def query(sql, args=(), one=False):
     """
@@ -46,6 +66,7 @@ def query(sql, args=(), one=False):
         rv = cur.fetchall()
     return (rv[0] if rv else None) if one else rv
 
+
 def execute(sql, args=()):
     """
     Run an INSERT / UPDATE / DELETE and commit it.
@@ -57,6 +78,7 @@ def execute(sql, args=()):
         lid = cur.lastrowid
     db.commit()
     return lid
+
 
 def init_db():
     """
@@ -70,7 +92,7 @@ def init_db():
     conn = pymysql.connect(
         host=os.environ.get('MYSQL_HOST', 'localhost'),
         user=os.environ.get('MYSQL_USER', 'root'),
-        password=os.environ.get('MYSQL_PASSWORD', '@ayushma1234'),
+        password=os.environ.get('MYSQL_PASSWORD', 'aashuNEXTdoor2007_'),
         charset='utf8mb4',
         cursorclass=pymysql.cursors.DictCursor
     )
@@ -81,7 +103,9 @@ def init_db():
             cur.execute(f"USE {db_name}")
             schema = os.path.join(os.path.dirname(__file__), '..', 'schema.sql')
             with open(schema) as f:
-
+                # schema.sql has multiple statements separated by ';' —
+                # split and run them one at a time since pymysql's
+                # execute() only accepts a single statement.
                 for stmt in f.read().split(';'):
                     s = stmt.strip()
                     if s:

@@ -4,11 +4,6 @@ from flask import Flask, Blueprint, session, get_flashed_messages
 
 from app.controllers.customer_controller import CustomerController
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
->>>>>>> origin/sandesh
 
 # A reusable helper that builds a tiny Flask app for every test.
 # define the route names the controller redirects to
@@ -17,10 +12,6 @@ from app.controllers.customer_controller import CustomerController
 # customer.product_detail, customer.chats, customer.chat_detail,
 # customer.stores, customer.home) so that url_for() inside the
 # controller can build URLs successfully.
-<<<<<<< HEAD
->>>>>>> origin/aayushma
-=======
->>>>>>> origin/sandesh
 def make_test_app():
     app = Flask(__name__)
     app.secret_key = "test-secret-key"
@@ -41,14 +32,7 @@ def make_test_app():
 
     return app
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
 
->>>>>>> origin/aayushma
-=======
-
->>>>>>> origin/sandesh
 def make_controller():
     """
     Build a CustomerController whose DB-touching helpers (_q/_run/_log/
@@ -62,19 +46,10 @@ def make_controller():
     controller._notify = MagicMock()
     return controller
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
->>>>>>> origin/sandesh
 
 # =====================================================================
 #  HOME / DISCOVERY
 # =====================================================================
-<<<<<<< HEAD
->>>>>>> origin/aayushma
-=======
->>>>>>> origin/sandesh
 class TestHomeAndDiscovery(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -130,15 +105,7 @@ class TestHomeAndDiscovery(unittest.TestCase):
     ):
         mock_product_model.get_with_images.return_value = {"id": 1, "category_id": 2}
         mock_review_model.find_by_product.return_value = []
-<<<<<<< HEAD
-<<<<<<< HEAD
-
-=======
         # _q called for: images, related (no wishlist check for guests)
->>>>>>> origin/aayushma
-=======
-        # _q called for: images, related (no wishlist check for guests)
->>>>>>> origin/sandesh
         self.controller._q.side_effect = [[], []]
         mock_render.return_value = "product_page"
         with self.app.test_request_context():
@@ -147,19 +114,10 @@ class TestHomeAndDiscovery(unittest.TestCase):
             _, kwargs = mock_render.call_args
             self.assertFalse(kwargs["in_wish"])
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
->>>>>>> origin/sandesh
 
 # =====================================================================
 #  CART
 # =====================================================================
-<<<<<<< HEAD
->>>>>>> origin/aayushma
-=======
->>>>>>> origin/sandesh
 class TestCart(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -179,15 +137,7 @@ class TestCart(unittest.TestCase):
     @patch("app.controllers.customer_controller.ProductModel")
     def test_cart_add_inserts_new_row_when_not_already_in_cart(self, mock_product_model):
         mock_product_model.find_by_id.return_value = {"id": 1, "stock_qty": 10}
-<<<<<<< HEAD
-<<<<<<< HEAD
-        self.controller._q.return_value = None  
-=======
         self.controller._q.return_value = None  # no existing cart row
->>>>>>> origin/aayushma
-=======
-        self.controller._q.return_value = None  # no existing cart row
->>>>>>> origin/sandesh
         with self.app.test_request_context(method="POST", data={"quantity": "2"}):
             session["user_id"] = 1
             response = self.controller.cart_add(1)
@@ -239,19 +189,10 @@ class TestCart(unittest.TestCase):
             flashes = get_flashed_messages(with_categories=True)
             self.assertIn(("info", "Item removed."), flashes)
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
->>>>>>> origin/sandesh
 
 # =====================================================================
 #  WISHLIST
 # =====================================================================
-<<<<<<< HEAD
->>>>>>> origin/aayushma
-=======
->>>>>>> origin/sandesh
 class TestWishlist(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -280,19 +221,10 @@ class TestWishlist(unittest.TestCase):
             flashes = get_flashed_messages(with_categories=True)
             self.assertIn(("info", "Removed from wishlist."), flashes)
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
->>>>>>> origin/sandesh
 
 # =====================================================================
 #  CHECKOUT
 # =====================================================================
-<<<<<<< HEAD
->>>>>>> origin/aayushma
-=======
->>>>>>> origin/sandesh
 class TestCheckout(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -316,34 +248,16 @@ class TestCheckout(unittest.TestCase):
             "product_id": 10, "store_id": 3, "name": "Widget",
             "price": 100.0, "quantity": 2,
         }]
-<<<<<<< HEAD
-<<<<<<< HEAD
-
-=======
-=======
->>>>>>> origin/sandesh
         # _q call order inside checkout():
         #   1) cart items (via _cart_items -> self._q)
         #   2) store lookup for commission
         #   3) order_item id lookup for commission insert
-<<<<<<< HEAD
->>>>>>> origin/aayushma
-=======
->>>>>>> origin/sandesh
         self.controller._q.side_effect = [
             cart_items,
             {"id": 3, "commission_rate": 10},
             {"id": 55},
         ]
-<<<<<<< HEAD
-<<<<<<< HEAD
-        self.controller._run.return_value = 999  
-=======
         self.controller._run.return_value = 999  # order id
->>>>>>> origin/aayushma
-=======
-        self.controller._run.return_value = 999  # order id
->>>>>>> origin/sandesh
 
         with self.app.test_request_context(
             method="POST",
@@ -361,15 +275,7 @@ class TestCheckout(unittest.TestCase):
             self.assertTrue(any(cat == "success" for cat, _ in flashes))
 
     def test_validate_promo_returns_json(self):
-<<<<<<< HEAD
-<<<<<<< HEAD
-        self.controller._q.return_value = None  
-=======
         self.controller._q.return_value = None  # invalid/missing promo code
->>>>>>> origin/aayushma
-=======
-        self.controller._q.return_value = None  # invalid/missing promo code
->>>>>>> origin/sandesh
         with self.app.test_request_context(
             method="POST", data={"code": "SAVE10", "subtotal": "500"}
         ):
@@ -381,19 +287,10 @@ class TestCheckout(unittest.TestCase):
             self.assertIn("message", data)
             self.assertFalse(data["valid"])
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
->>>>>>> origin/sandesh
 
 # =====================================================================
 #  ORDERS
 # =====================================================================
-<<<<<<< HEAD
->>>>>>> origin/aayushma
-=======
->>>>>>> origin/sandesh
 class TestOrders(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -430,19 +327,10 @@ class TestOrders(unittest.TestCase):
             result = self.controller.order_detail(5)
             self.assertEqual(result, "order_detail_page")
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
->>>>>>> origin/sandesh
 
 # =====================================================================
 #  REVIEWS
 # =====================================================================
-<<<<<<< HEAD
->>>>>>> origin/aayushma
-=======
->>>>>>> origin/sandesh
 class TestReviews(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -463,19 +351,10 @@ class TestReviews(unittest.TestCase):
             flashes = get_flashed_messages(with_categories=True)
             self.assertIn(("success", "Review submitted!"), flashes)
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
->>>>>>> origin/sandesh
 
 # =====================================================================
 #  PROFILE
 # =====================================================================
-<<<<<<< HEAD
->>>>>>> origin/aayushma
-=======
->>>>>>> origin/sandesh
 class TestProfile(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -512,19 +391,10 @@ class TestProfile(unittest.TestCase):
             self.assertEqual(kwargs["orders_count"], 3)
             self.assertEqual(kwargs["wish_count"], 5)
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
->>>>>>> origin/sandesh
 
 # =====================================================================
 #  NOTIFICATIONS
 # =====================================================================
-<<<<<<< HEAD
->>>>>>> origin/aayushma
-=======
->>>>>>> origin/sandesh
 class TestNotifications(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -550,19 +420,10 @@ class TestNotifications(unittest.TestCase):
             data = response.get_json()
             self.assertEqual(data["count"], 4)
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
->>>>>>> origin/sandesh
 
 # =====================================================================
 #  SUPPORT CHATBOT
 # =====================================================================
-<<<<<<< HEAD
->>>>>>> origin/aayushma
-=======
->>>>>>> origin/sandesh
 class TestSupportChatbot(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -591,19 +452,10 @@ class TestSupportChatbot(unittest.TestCase):
             data = response.get_json()
             self.assertIn("Sorry, I didn't understand", data["reply"])
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
->>>>>>> origin/sandesh
 
 # =====================================================================
 #  STORES (directory)
 # =====================================================================
-<<<<<<< HEAD
->>>>>>> origin/aayushma
-=======
->>>>>>> origin/sandesh
 class TestStores(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -630,19 +482,10 @@ class TestStores(unittest.TestCase):
             flashes = get_flashed_messages(with_categories=True)
             self.assertIn(("danger", "Store not found."), flashes)
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
->>>>>>> origin/sandesh
 
 # =====================================================================
 #  CHAT (customer side)
 # =====================================================================
-<<<<<<< HEAD
->>>>>>> origin/aayushma
-=======
->>>>>>> origin/sandesh
 class TestChat(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -688,13 +531,6 @@ class TestChat(unittest.TestCase):
             self.assertEqual(response.status_code, 302)
             self.assertTrue(response.location.endswith("/chat/5"))
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
 
->>>>>>> origin/aayushma
-=======
-
->>>>>>> origin/sandesh
 if __name__ == "__main__":
     unittest.main()

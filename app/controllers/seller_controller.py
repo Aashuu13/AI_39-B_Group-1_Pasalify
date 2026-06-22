@@ -1,16 +1,24 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
 """
-Sprint 3 - Seller Controller
-US 4.5 Manage Inventory | US 4.6 Manage Orders | US 2.6 Seller Chat
-(Builds on Sprint 1+2: Store setup, Products, Reviews, Dashboard)
-"""
->>>>>>> origin/sandesh
+app/controllers/seller_controller.py
+================================================================
+OOP concepts on display: INHERITANCE + ENCAPSULATION + POLYMORPHISM
 
-import uuid
-=======
->>>>>>> origin/aayushma
+    - Inheritance:   SellerController extends BaseController and
+      gets _save_file, _ok/_err, _q/_run, _log, _notify for free.
+    - Encapsulation: _get_store() hides the store lookup, and
+      _require_store() hides the "redirect to setup if no store
+      yet" guard, so every seller-only action is protected with
+      just one line instead of repeating the same check everywhere.
+    - Polymorphism:  product_add() and product_edit() both lean on
+      the same _parse_product_form() helper and produce a similar
+      shape of result, even though one inserts a new row and the
+      other updates an existing one.
+
+Handles all seller-facing pages: store setup, dashboard, store
+profile/customization, products, categories, inventory, orders,
+reviews, chat, and support tickets.
+"""
+
 from flask import render_template, request, redirect, url_for, session, flash
 
 from app.controllers.base_controller import BaseController
@@ -32,7 +40,7 @@ class SellerController(BaseController):
         _current_user_id, _is_logged_in
     """
 
-    # ── Helpers ───────────────────────────────────────────────────────────────
+    # ── Private helpers (Encapsulation) ─────────────────────────────────────
 
     def _get_store(self) -> dict | None:
         """Return the current seller's store row, or None if they
@@ -87,7 +95,7 @@ class SellerController(BaseController):
                     (product_id, path, 1 if (i == 0 and first_is_primary) else 0)
                 )
 
-    # ── US 4.1 Register Store ─────────────────────────────────────────────────
+    # ── Setup ───────────────────────────────────────────────────────────────
 
     def setup(self):
         """One-time wizard: create the store for a brand-new seller.
@@ -98,14 +106,12 @@ class SellerController(BaseController):
         if request.method == 'POST':
             name   = request.form.get('name', '').strip()
             desc   = request.form.get('description', '').strip()
-            slug   = StoreModel.make_unique_slug(name)
             logo   = self._save_file(request.files.get('logo'), 'logos')
             banner = self._save_file(request.files.get('banner'), 'banners')
 
             sid = StoreModel.create({
                 'user_id':     self._current_user_id(),
                 'name':        name,
-                'slug':        slug,
                 'description': desc,
                 'logo':        logo,
                 'banner':      banner,
@@ -116,6 +122,8 @@ class SellerController(BaseController):
             return redirect(url_for('seller.dashboard'))
 
         return render_template('seller/setup.html')
+
+    # ── Dashboard ───────────────────────────────────────────────────────────
 
     def dashboard(self):
         """Seller's home page: revenue/order/product totals, low-stock
@@ -135,75 +143,16 @@ class SellerController(BaseController):
             WHERE oi.store_id = %s GROUP BY p.id ORDER BY sold DESC LIMIT 5
         """, (store['id'],))
 
-<<<<<<< HEAD
         return render_template('seller/dashboard.html', store=store,
                                total_sales=stats['total_sales'],
                                total_orders=stats['total_orders'],
                                total_products=stats['total_products'],
-=======
-        total_sales = self._q(
-            """SELECT COALESCE(SUM(oi.subtotal),0) AS t FROM order_items oi
-               JOIN orders o ON o.id=oi.order_id WHERE oi.store_id=%s AND o.payment_status='paid'""",
-            (sid,), one=True
-        )['t']
-
-        total_orders = self._q(
-            "SELECT COUNT(DISTINCT order_id) AS c FROM order_items WHERE store_id=%s", (sid,), one=True
-        )['c']
-
-        total_products = self._q(
-            "SELECT COUNT(*) AS c FROM products WHERE store_id=%s AND is_active=1", (sid,), one=True
-        )['c']
-
-        low_stock = self._q(
-            "SELECT * FROM products WHERE store_id=%s AND is_active=1 AND stock_qty <= low_stock_threshold ORDER BY stock_qty ASC LIMIT 5",
-            (sid,)
-        )
-
-        top_products = self._q(
-            """SELECT p.name, COALESCE(SUM(oi.quantity),0) AS sold,
-                      COALESCE(SUM(oi.subtotal),0) AS revenue
-               FROM products p LEFT JOIN order_items oi ON oi.product_id=p.id
-               WHERE p.store_id=%s GROUP BY p.id ORDER BY sold DESC LIMIT 5""",
-            (sid,)
-        )
-
-        monthly = self._q(
-            """SELECT DATE_FORMAT(o.created_at,'%%Y-%%m') AS month,
-                      COALESCE(SUM(oi.subtotal),0) AS revenue
-               FROM order_items oi JOIN orders o ON o.id=oi.order_id
-               WHERE oi.store_id=%s AND o.created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
-               GROUP BY month ORDER BY month""",
-            (sid,)
-        )
-
-        recent_orders = self._q(
-            """SELECT DISTINCT o.*, u.name AS customer_name FROM orders o
-               JOIN order_items oi ON oi.order_id=o.id
-               JOIN users u ON u.id=o.user_id
-               WHERE oi.store_id=%s ORDER BY o.created_at DESC LIMIT 5""",
-            (sid,)
-        )
-
-        # Pending review count
-        pending_reviews = self._q(
-            """SELECT COUNT(*) AS c FROM reviews r
-               JOIN products p ON p.id=r.product_id
-               WHERE p.store_id=%s AND r.is_approved=0""",
-            (sid,), one=True
-        )['c']
-
-        return render_template('seller/dashboard.html',
-                               store=store,
-                               total_sales=total_sales,
-                               total_orders=total_orders,
-                               total_products=total_products,
->>>>>>> origin/aayushma
                                low_stock=low_stock,
                                recent_orders=recent_orders,
                                monthly=monthly,
-<<<<<<< HEAD
                                top_products=top_products)
+
+    # ── Store profile & customization ───────────────────────────────────────
 
     def store_profile(self):
         """Edit basic store info (name, description, logo, banner)."""
@@ -212,13 +161,12 @@ class SellerController(BaseController):
             return redir
 
         if request.method == 'POST':
-
+            # Keep the old logo/banner if no new file was chosen
             logo   = self._save_file(request.files.get('logo'), 'logos')   or store['logo']
             banner = self._save_file(request.files.get('banner'), 'banners') or store['banner']
             StoreModel.update(store['id'], {
                 'name':        request.form.get('name', ''),
                 'description': request.form.get('description', ''),
-                'theme_color': request.form.get('theme_color', '#6C3FC8'),
                 'logo':        logo,
                 'banner':      banner,
             })
@@ -227,27 +175,7 @@ class SellerController(BaseController):
 
         return render_template('seller/store_profile.html', store=store)
 
-    def store_customize(self):
-        """Edit the storefront's look and feel: theme color and layout."""
-        store, redir = self._require_store()
-        if redir:
-            return redir
-
-        if request.method == 'POST':
-            StoreModel.update(store['id'], {
-                'theme_color':  request.form.get('theme_color', '#6C3FC8'),
-                'theme_layout': request.form.get('theme_layout', 'grid'),
-            })
-            self._ok('Store design saved!')
-            return redirect(url_for('seller.store_customize'))
-
-        return render_template('seller/store_customize.html', store=store)
-=======
-                               recent_orders=recent_orders,
-                               pending_reviews=pending_reviews)
->>>>>>> origin/sandesh
-
-    # ── US 4.3 Manage Products ────────────────────────────────────────────────
+    # ── Products ────────────────────────────────────────────────────────────
 
     def products(self):
         """List every product this seller's store has (active or not)."""
@@ -351,19 +279,15 @@ class SellerController(BaseController):
         self._info('Product removed.')
         return redirect(url_for('seller.products'))
 
-<<<<<<< HEAD
-<<<<<<< HEAD
+    # ── Categories ──────────────────────────────────────────────────────────
+
     def categories(self):
         """Read-only category browser for sellers (categories are
         managed by admins, see admin_controller.categories)."""
         cats = CategoryModel.find_all()
         return render_template('seller/categories.html', cats=cats)
-=======
-    # ── US 4.5 Manage Inventory ───────────────────────────────────────────────
->>>>>>> origin/aayushma
-=======
-    # ── US 4.5 Manage Inventory ───────────────────────────────────────────────
->>>>>>> origin/sandesh
+
+    # ── Inventory ───────────────────────────────────────────────────────────
 
     def inventory(self):
         """Stock-focused product list, sorted lowest-stock-first so
@@ -371,42 +295,10 @@ class SellerController(BaseController):
         store, redir = self._require_store()
         if redir:
             return redir
-<<<<<<< HEAD
-<<<<<<< HEAD
         prods = ProductModel.find_where(
             "store_id = %s AND is_active = 1 ORDER BY stock_qty ASC", (store['id'],)
         )
         return render_template('seller/inventory.html', products=prods, store=store)
-=======
-=======
->>>>>>> origin/sandesh
-        
-        filter_by = request.args.get('filter', 'all')
-        base_sql  = "SELECT * FROM products WHERE store_id = %s AND is_active = 1"
-        
-        if filter_by == 'low':
-            base_sql += " AND stock_qty <= low_stock_threshold"
-        elif filter_by == 'out':
-            base_sql += " AND stock_qty = 0"
-        
-        base_sql += " ORDER BY stock_qty ASC"
-        prods = self._q(base_sql, (store['id'],))
-        
-        # Summary stats
-        total_products  = self._q("SELECT COUNT(*) AS c FROM products WHERE store_id=%s AND is_active=1", (store['id'],), one=True)['c']
-        low_stock_count = self._q("SELECT COUNT(*) AS c FROM products WHERE store_id=%s AND is_active=1 AND stock_qty <= low_stock_threshold AND stock_qty > 0", (store['id'],), one=True)['c']
-        out_of_stock    = self._q("SELECT COUNT(*) AS c FROM products WHERE store_id=%s AND is_active=1 AND stock_qty=0", (store['id'],), one=True)['c']
-
-        return render_template('seller/inventory.html',
-                               products=prods, store=store,
-                               filter_by=filter_by,
-                               total_products=total_products,
-                               low_stock_count=low_stock_count,
-                               out_of_stock=out_of_stock)
-<<<<<<< HEAD
->>>>>>> origin/aayushma
-=======
->>>>>>> origin/sandesh
 
     def inventory_update(self, pid: int):
         """Manually set a product's stock count (e.g. after a physical
@@ -414,72 +306,22 @@ class SellerController(BaseController):
         store, redir = self._require_store()
         if redir:
             return redir
-        qty       = max(0, int(request.form.get('stock_qty', 0)))
-        threshold = max(1, int(request.form.get('low_stock_threshold', 5)))
+        qty = max(0, int(request.form.get('stock_qty', 0)))
         self._run(
-            "UPDATE products SET stock_qty=%s, low_stock_threshold=%s WHERE id=%s AND store_id=%s",
-            (qty, threshold, pid, store['id'])
+            "UPDATE products SET stock_qty = %s WHERE id = %s AND store_id = %s",
+            (qty, pid, store['id'])
         )
         self._ok('Stock updated!')
         return redirect(url_for('seller.inventory'))
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-    def inventory_bulk_update(self):
-        """US 4.5 - Bulk stock update from inventory page."""
-=======
-    def inventory_bulk_update(self):
-        """US 4.5 - Bulk stock update from inventory page."""
-        store, redir = self._require_store()
-        if redir:
-            return redir
-        
-        product_ids = request.form.getlist('product_id')
-        for pid in product_ids:
-            qty = request.form.get(f'stock_{pid}', 0)
-            try:
-                self._run(
-                    "UPDATE products SET stock_qty=%s WHERE id=%s AND store_id=%s",
-                    (int(qty), int(pid), store['id'])
-                )
-            except Exception:
-                pass
-        self._ok('Inventory updated!')
-        return redirect(url_for('seller.inventory'))
+    # ── Orders ──────────────────────────────────────────────────────────────
 
-    # ── US 4.6 Manage Orders ──────────────────────────────────────────────────
-
-    def orders(self):
->>>>>>> origin/sandesh
-        store, redir = self._require_store()
-        if redir:
-            return redir
-        
-<<<<<<< HEAD
-        product_ids = request.form.getlist('product_id')
-        for pid in product_ids:
-            qty = request.form.get(f'stock_{pid}', 0)
-            try:
-                self._run(
-                    "UPDATE products SET stock_qty=%s WHERE id=%s AND store_id=%s",
-                    (int(qty), int(pid), store['id'])
-                )
-            except Exception:
-                pass
-        self._ok('Inventory updated!')
-        return redirect(url_for('seller.inventory'))
-
-    # ── US 4.6 Manage Orders ──────────────────────────────────────────────────
-
->>>>>>> origin/aayushma
     def orders(self):
         """All orders that include at least one item from this store,
         with the items concatenated into one readable string per row."""
         store, redir = self._require_store()
         if redir:
             return redir
-<<<<<<< HEAD
         ords = self._q("""
             SELECT o.*, GROUP_CONCAT(oi.product_name SEPARATOR ', ') AS items,
                    SUM(oi.subtotal) AS store_total
@@ -504,98 +346,8 @@ class SellerController(BaseController):
                 )
             self._ok('Order status updated.')
         return redirect(url_for('seller.orders'))
-=======
-        
-=======
->>>>>>> origin/sandesh
-        status_filter = request.args.get('status', '')
-        
-        sql = """
-            SELECT DISTINCT o.*, u.name AS customer_name
-            FROM   orders o
-            JOIN   order_items oi ON oi.order_id = o.id
-            JOIN   users u        ON u.id = o.user_id
-            WHERE  oi.store_id = %s
-        """
-        args = [store['id']]
-        if status_filter:
-            sql += " AND o.status = %s"
-            args.append(status_filter)
-        sql += " ORDER BY o.created_at DESC"
-        
-        ords = self._q(sql, tuple(args))
-        
-        # Order counts by status
-        status_counts = self._q("""
-            SELECT o.status, COUNT(DISTINCT o.id) AS cnt
-            FROM orders o JOIN order_items oi ON oi.order_id=o.id
-            WHERE oi.store_id=%s GROUP BY o.status
-        """, (store['id'],))
-        counts = {r['status']: r['cnt'] for r in status_counts}
-        
-        return render_template('seller/orders.html',
-                               orders=ords, store=store,
-                               status_filter=status_filter,
-                               counts=counts)
 
-    def order_detail(self, oid: int):
-        store, redir = self._require_store()
-        if redir:
-            return redir
-        order = self._q(
-            "SELECT o.*, u.name AS customer_name, u.phone AS customer_phone FROM orders o JOIN users u ON u.id = o.user_id WHERE o.id = %s",
-            (oid,), one=True
-        )
-        if not order:
-            self._err('Order not found.')
-            return redirect(url_for('seller.orders'))
-        items = self._q("""
-            SELECT oi.*, pi.image_path FROM order_items oi
-            LEFT JOIN product_images pi ON pi.product_id = oi.product_id AND pi.is_primary = 1
-            WHERE oi.order_id = %s AND oi.store_id = %s
-        """, (oid, store['id']))
-        return render_template('seller/order_detail.html', order=order, items=items, store=store)
-
-    def order_status(self, oid: int):
-        store, redir = self._require_store()
-        if redir:
-            return redir
-        status = request.form.get('status')
-        note   = request.form.get('note', '').strip()
-        
-        valid_statuses = ['confirmed', 'processing', 'shipped', 'out_for_delivery', 'delivered', 'cancelled']
-        if status not in valid_statuses:
-            self._err('Invalid status.')
-            return redirect(url_for('seller.order_detail', oid=oid))
-        
-        self._run("UPDATE orders SET status = %s WHERE id = %s", (status, oid))
-        self._log('order_status_updated', 'order', oid)
-        
-        # Notify customer
-        order = self._q("SELECT user_id, order_number FROM orders WHERE id=%s", (oid,), one=True)
-        if order:
-            self._notify(
-                order['user_id'],
-                f'Order {order["order_number"]} Update',
-                f'Your order status has been updated to: {status.replace("_", " ").title()}',
-                'order',
-                f'/customer/order/{oid}'
-            )
-        
-        self._ok('Order status updated.')
-        return redirect(url_for('seller.order_detail', oid=oid))
-
-    # ── Categories ────────────────────────────────────────────────────────────
-
-    def categories(self):
-        store, redir = self._require_store()
-        if redir:
-            return redir
-        cats = CategoryModel.find_all()
-        return render_template('seller/categories.html', cats=cats, store=store)
->>>>>>> origin/aayushma
-
-    # ── Reviews ───────────────────────────────────────────────────────────────
+    # ── Reviews ─────────────────────────────────────────────────────────────
 
     def reviews(self):
         """Every review left on any product from this store."""
@@ -611,7 +363,7 @@ class SellerController(BaseController):
         """, (store['id'],))
         return render_template('seller/reviews.html', reviews=revs, store=store)
 
-    # ── US 2.6  Seller Chat ───────────────────────────────────────────────────
+    # ── Chat (seller side of customer<->seller messaging) ──────────────────
 
     def chats(self):
         """List of this seller's conversations with customers, each with
@@ -619,7 +371,6 @@ class SellerController(BaseController):
         store, redir = self._require_store()
         if redir:
             return redir
-<<<<<<< HEAD
         convs = self._q("""
             SELECT ch.*, u.name AS customer_name,
                    (SELECT message FROM chat_messages WHERE chat_id=ch.id
@@ -630,62 +381,6 @@ class SellerController(BaseController):
             WHERE ch.seller_id = %s ORDER BY ch.created_at DESC
         """, (self._current_user_id(),))
         return render_template('seller/chats.html', convs=convs, store=store)
-=======
-        uid   = self._current_user_id()
-        chats = self._q("""
-            SELECT c.*, u.name AS customer_name,
-                   (SELECT message FROM chat_messages WHERE chat_id=c.id ORDER BY created_at DESC LIMIT 1) AS last_message,
-                   (SELECT COUNT(*) FROM chat_messages WHERE chat_id=c.id AND sender_id != %s AND is_read=0) AS unread_count
-            FROM chats c
-            JOIN users u ON u.id = c.customer_id
-            WHERE c.seller_id = %s
-            ORDER BY c.created_at DESC
-        """, (uid, uid))
-        return render_template('seller/chats.html', chats=chats, store=store)
-
-    def chat_detail(self, chat_id: int):
-        store, redir = self._require_store()
-        if redir:
-            return redir
-        uid  = self._current_user_id()
-        chat = self._q(
-            """SELECT c.*, u.name AS customer_name FROM chats c
-               JOIN users u ON u.id=c.customer_id
-               WHERE c.id=%s AND c.seller_id=%s""",
-            (chat_id, uid), one=True
-        )
-        if not chat:
-            self._err('Chat not found.')
-            return redirect(url_for('seller.chats'))
-
-        messages = self._q(
-            """SELECT cm.*, u.name AS sender_name FROM chat_messages cm
-               JOIN users u ON u.id = cm.sender_id
-               WHERE cm.chat_id = %s ORDER BY cm.created_at""",
-            (chat_id,)
-        )
-        # Mark messages as read
-        self._run(
-            "UPDATE chat_messages SET is_read=1 WHERE chat_id=%s AND sender_id != %s",
-            (chat_id, uid)
-        )
-
-        if request.method == 'POST':
-            msg = request.form.get('message', '').strip()
-            if msg:
-                self._run(
-                    "INSERT INTO chat_messages (chat_id, sender_id, message) VALUES (%s,%s,%s)",
-                    (chat_id, uid, msg)
-                )
-            return redirect(url_for('seller.chat_detail', chat_id=chat_id))
-
-        return render_template('seller/chat_detail.html',
-                               chat=chat, messages=messages, store=store)
-
-    def send_message(self, chat_id: int):
-        """POST-only send message endpoint."""
-        return self.chat_detail(chat_id)
->>>>>>> origin/sandesh
 
     def chat_detail(self, cid: int):
         """
@@ -701,21 +396,6 @@ class SellerController(BaseController):
             self._err('Not found.')
             return redirect(url_for('seller.chats'))
 
-<<<<<<< HEAD
-=======
-        messages = self._q(
-            """SELECT cm.*, u.name AS sender_name FROM chat_messages cm
-               JOIN users u ON u.id = cm.sender_id
-               WHERE cm.chat_id = %s ORDER BY cm.created_at""",
-            (chat_id,)
-        )
-        # Mark messages as read
-        self._run(
-            "UPDATE chat_messages SET is_read=1 WHERE chat_id=%s AND sender_id != %s",
-            (chat_id, uid)
-        )
-
->>>>>>> origin/aayushma
         if request.method == 'POST':
             msg = request.form.get('message', '').strip()
             if msg:
@@ -740,6 +420,8 @@ class SellerController(BaseController):
         return render_template('seller/chat_detail.html', chat=chat,
                                msgs=msgs, customer=customer, store=store)
 
+    # ── Support tickets (customers asking the chatbot, escalated here) ─────
+
     def support_tickets(self):
         """
         Build one "ticket" per customer who has both (a) messaged the
@@ -748,15 +430,9 @@ class SellerController(BaseController):
         buyers, not the whole platform's support inbox (that's the
         admin view in admin_controller.support_tickets).
 
-<<<<<<< HEAD
         Encapsulation: the grouping-by-customer logic lives entirely
         here; the template just loops over the finished `tickets` list.
         """
-=======
-    # ── Store Profile & Customize ─────────────────────────────────────────────
-
-    def store_profile(self):
->>>>>>> origin/aayushma
         store, redir = self._require_store()
         if redir:
             return redir
@@ -801,7 +477,6 @@ class SellerController(BaseController):
         store, redir = self._require_store()
         if redir:
             return redir
-<<<<<<< HEAD
         customer_id = request.form.get('customer_id', type=int)
         message     = request.form.get('message', '').strip()
         if not message or not customer_id:
@@ -823,29 +498,7 @@ class SellerController(BaseController):
                      f'{store["name"]} replied to your support question.', 'system')
         self._ok('Message sent to customer.')
         return redirect(url_for('seller.chat_detail', cid=cid))
-=======
-        if request.method == 'POST':
-            primary_color = request.form.get('primary_color', '')
-            banner_text   = request.form.get('banner_text', '')
-            self._run(
-                "UPDATE stores SET primary_color=%s, banner_text=%s WHERE id=%s",
-                (primary_color, banner_text, store['id'])
-            )
-            self._ok('Store customized!')
-            return redirect(url_for('seller.store_customize'))
-        return render_template('seller/store_customize.html', store=store)
-
-    # ── Aliases ───────────────────────────────────────────────────────────────
-
-    def order_update(self, oid: int):
-        return self.order_status(oid)
->>>>>>> origin/aayushma
 
 
-# ── Singleton ─────────────────────────────────────────────────────────────────
+# ── Singleton instance imported by app/controllers/__init__.py and routes ──
 seller_controller = SellerController()
-<<<<<<< HEAD
-=======
-# Seller controller manages all seller-facing operations
-# Manages all seller-facing operations
->>>>>>> origin/sandesh

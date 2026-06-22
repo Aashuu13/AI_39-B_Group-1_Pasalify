@@ -1,4 +1,8 @@
-
+{# 
+admin/sellers.html
+Rendered by: AdminController.sellers()
+Context: sellers (every store + its owner, for approve/reject).
+#}
 {% extends "admin/base_admin.html" %}
 {% block title %}Sellers{% endblock %}
 {% block admin_content %}
@@ -28,9 +32,7 @@
               {% endif %}
               <div>
                 <div style="font-weight:600;font-size:.88rem">{{ s.name }}</div>
-                <a href="{{ url_for('store.public_store', slug=s.slug) }}" target="_blank" style="font-size:.74rem;color:var(--purple2)">
-                  /store/{{ s.slug }} <i class="bi bi-box-arrow-up-right"></i>
-                </a>
+                <span style="font-size:.74rem;color:var(--purple2)">/store/{{ s.slug }}</span>
               </div>
             </div>
           </td>

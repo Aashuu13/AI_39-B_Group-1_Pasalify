@@ -1,7 +1,12 @@
-
+/* Pasalify — dark purple/navy theme, built on Bootstrap utility classes.
+   Two Google Fonts: Playfair Display for headings/prices (an elegant
+   serif), DM Sans for everything else (a clean, readable sans-serif). */
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap');
 
-
+/* CSS custom properties = the entire color system in one place.
+   Every other rule below references these (var(--purple), etc.)
+   instead of hardcoding hex codes, so the whole theme can be
+   restyled by editing just this block. */
 :root{
   --navy:#0D1117;--navy2:#161B22;--navy3:#21262D;
   --purple:#6C3FC8;--purple2:#8B5CF6;--purple3:#A78BFA;--accent:#C084FC;
@@ -9,17 +14,17 @@
   --text:#E6EDF3;--muted:#B0BAC5;--dim:#6E7A87;--border:#30363D;--card:#161B22;
   --radius:12px;--shadow:0 4px 24px rgba(108,63,200,.18);
 }
-
+/* Basic reset + global page defaults */
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'DM Sans',sans-serif;background:var(--navy);color:#E6EDF3;min-height:100vh;line-height:1.6}
 a{color:var(--purple2);text-decoration:none}
 a:hover{color:var(--accent)}
-
+/* Thin custom scrollbar matching the theme, instead of the OS default */
 ::-webkit-scrollbar{width:6px}
 ::-webkit-scrollbar-track{background:var(--navy2)}
 ::-webkit-scrollbar-thumb{background:var(--purple);border-radius:3px}
 
-
+/* ── Top navigation bar (logo, nav links, notification bell) ───────── */
 .navbar{background:rgba(13,17,23,.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:.75rem 0;position:sticky;top:0;z-index:1000}
 .navbar-brand{display:flex;align-items:center;gap:.5rem}
 .navbar-brand span{font-family:'Playfair Display',serif;font-size:1.35rem;color:var(--text)}
@@ -27,15 +32,15 @@ a:hover{color:var(--accent)}
 .nav-link:hover,.nav-link.active{color:var(--purple2)!important}
 .navbar-toggler{border-color:var(--border)}
 
-
+/* ── Left sidebar nav, used on the seller and admin dashboards ──────── */
 .sidebar{background:var(--navy2);border-right:1px solid var(--border);min-height:calc(100vh - 61px);padding:1rem 0;width:240px;position:fixed;top:61px;left:0;overflow-y:auto;z-index:100}
 .sidebar-link{color:var(--dim)!important;padding:.55rem 1.25rem;display:flex;align-items:center;gap:.6rem;font-weight:500;transition:.2s;border-right:3px solid transparent;font-size:.9rem}
 .sidebar-link:hover,.sidebar-link.active{color:var(--text)!important;background:rgba(108,63,200,.18);border-right-color:var(--purple)}
 .sidebar-section{color:var(--dim);font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;padding:.9rem 1.25rem .3rem;font-weight:700}
-
+/* Pushes page content right of the fixed sidebar above */
 .main-content{margin-left:240px;padding:1.75rem;min-height:calc(100vh - 61px)}
 
-
+/* ── Generic card panels + the small KPI "stat" cards on dashboards ─── */
 .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);color:#E6EDF3}
 .card-header{background:var(--navy3);border-bottom:1px solid var(--border);padding:.9rem 1.2rem;font-weight:600;font-size:.95rem}
 .card-body{padding:1.2rem;color:#E6EDF3}
@@ -45,7 +50,7 @@ a:hover{color:var(--accent)}
 .stat-value{font-size:1.75rem;font-weight:700;font-family:'Playfair Display',serif;margin:.3rem 0 .1rem}
 .stat-label{color:var(--muted);font-size:.82rem}
 
-
+/* ── Product grid cards used on the catalogue, search, and home page ─ */
 .product-card{background:var(--navy3);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:.25s;display:flex;flex-direction:column;height:100%;color:#E6EDF3}
 .product-card:hover{border-color:var(--purple);transform:translateY(-4px);box-shadow:0 8px 28px rgba(108,63,200,.25)}
 .product-card img{width:100%;height:200px;object-fit:cover}
@@ -58,7 +63,7 @@ a:hover{color:var(--accent)}
 .p-rating{color:var(--gold);font-size:.8rem;margin:.3rem 0}
 .p-actions{margin-top:auto;display:flex;gap:.4rem;padding-top:.75rem}
 
-
+/* ── Buttons (solid purple + outline variants) ───────────────────────── */
 .btn{border-radius:8px;font-weight:500;transition:.2s}
 .btn-purple{background:var(--purple);color:#fff;border:none}
 .btn-purple:hover{background:var(--purple2);color:#fff;transform:translateY(-1px)}
@@ -66,33 +71,33 @@ a:hover{color:var(--accent)}
 .btn-outline-purple:hover{background:var(--purple);color:#fff}
 .btn-sm{padding:.28rem .65rem;font-size:.8rem}
 
-
+/* ── Form inputs (dark-themed overrides of Bootstrap's form controls) ─ */
 .form-control,.form-select{background:var(--navy2);border:1px solid var(--border);color:var(--text);border-radius:8px}
 .form-control:focus,.form-select:focus{background:var(--navy2);color:var(--text);border-color:var(--purple);box-shadow:0 0 0 3px rgba(108,63,200,.2)}
 .form-label{font-weight:500;color:var(--text);margin-bottom:.35rem;font-size:.9rem}
 .input-group-text{background:var(--navy3);border-color:var(--border);color:var(--dim)}
 .form-control::placeholder{color:var(--dim)}
 
-
+/* ── Tables (orders, products, users — admin/seller list views) ─────── */
 .table{color:#E6EDF3;font-size:.88rem;--bs-table-bg:transparent;--bs-table-color:#E6EDF3;--bs-table-border-color:var(--border);--bs-table-striped-bg:transparent;--bs-table-hover-bg:rgba(108,63,200,.06)}
 .table thead th{background:var(--navy3)!important;border-color:var(--border)!important;color:#B0BAC5;font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;font-weight:600}
 .table td,.table th{border-color:var(--border)!important;vertical-align:middle;padding:.6rem .75rem;background:transparent!important;color:#E6EDF3!important}
 .table tbody tr{background:transparent!important}
 .table tbody tr:hover td{background:rgba(108,63,200,.08)!important}
 
-
+/* ── Flash message banners (success/danger/warning/info) ─────────────── */
 .alert{border-radius:var(--radius);border:none;font-size:.9rem}
 .alert-success{background:rgba(16,185,129,.12);color:#34D399;border:1px solid rgba(16,185,129,.2)}
 .alert-danger{background:rgba(239,68,68,.12);color:#F87171;border:1px solid rgba(239,68,68,.2)}
 .alert-warning{background:rgba(245,158,11,.12);color:#FCD34D;border:1px solid rgba(245,158,11,.2)}
 .alert-info{background:rgba(108,63,200,.12);color:var(--purple3);border:1px solid rgba(108,63,200,.2)}
 
-
+/* ── Homepage hero banner ─────────────────────────────────────────────── */
 .hero{background:linear-gradient(135deg,var(--navy2) 0%,rgba(108,63,200,.12) 100%);border-bottom:1px solid var(--border);padding:4rem 0}
 .hero h1{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,4vw,3.2rem);line-height:1.25}
 .hero h1 em{color:var(--purple2);font-style:normal}
 
-
+/* ── Order/payment status pills (one color per status value) ────────── */
 .status-badge{border-radius:50px;padding:.18rem .7rem;font-size:.75rem;font-weight:600;display:inline-block}
 .s-placed{background:rgba(139,92,246,.15);color:#A78BFA}
 .s-confirmed{background:rgba(59,130,246,.15);color:#60A5FA}
@@ -104,14 +109,14 @@ a:hover{color:var(--accent)}
 .s-paid,.s-success{background:rgba(16,185,129,.15);color:#34D399}
 .s-failed{background:rgba(239,68,68,.15);color:#F87171}
 
-
+/* ── Chat thread bubbles (customer<->seller chat + support page) ────── */
 .chat-box{height:380px;overflow-y:auto;background:#1a1f27;border:1px solid var(--border);border-radius:var(--radius);padding:1rem;display:flex;flex-direction:column;gap:.5rem}
 .msg-bubble{max-width:70%;padding:.55rem .9rem;border-radius:12px;font-size:.88rem}
 .msg-me{background:rgba(108,63,200,.55);border:1px solid rgba(108,63,200,.7);align-self:flex-end;color:#fff}
 .msg-other{background:#2D333B;border:1px solid #444C56;align-self:flex-start;color:#E6EDF3}
 .msg-time{font-size:.68rem;color:#aab0b8;display:block;margin-top:.15rem}
 
-
+/* ── Misc small helpers used across many pages ──────────────────────── */
 .section-title{font-family:'Playfair Display',serif;font-size:1.5rem;margin-bottom:1.5rem}
 .divider{border-top:1px solid var(--border);margin:1.5rem 0}
 .badge-purple{background:rgba(108,63,200,.2);color:var(--purple2);border:1px solid rgba(108,63,200,.3);border-radius:6px;padding:.2rem .55rem;font-size:.74rem}
@@ -125,7 +130,7 @@ a:hover{color:var(--accent)}
 .page-title{font-family:'Playfair Display',serif;font-size:1.6rem;margin-bottom:.25rem}
 .page-subtitle{color:var(--muted);font-size:.88rem;margin-bottom:1.5rem}
 
-
+/* ── Mobile layout: hide the sidebar, let content use full width ────── */
 @media(max-width:768px){
   .sidebar{display:none}
   .main-content{margin-left:0;padding:1rem}

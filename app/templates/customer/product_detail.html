@@ -1,22 +1,14 @@
-<<<<<<< HEAD
-
-=======
 {# 
 customer/product_detail.html
 Rendered by: CustomerController.product_detail()
 Context: p (the product), images, reviews, related (same-category
 products), in_wish (whether the viewer already wishlisted this).
 #}
->>>>>>> origin/sandesh
 {% extends "base.html" %}
 {% block title %}{{ p.name }}{% endblock %}
 {% block content %}
 <div class="container mt-4 mb-5">
-<<<<<<< HEAD
-  
-=======
   <!-- Breadcrumb trail: Home > Products > Category > Product name -->
->>>>>>> origin/sandesh
   <nav aria-label="breadcrumb" class="mb-3">
     <ol class="breadcrumb">
       <li class="breadcrumb-item"><a href="{{ url_for('customer.home') }}">Home</a></li>
@@ -27,11 +19,7 @@ products), in_wish (whether the viewer already wishlisted this).
   </nav>
 
   <div class="row g-4">
-<<<<<<< HEAD
-    
-=======
     <!-- Image gallery: main image + thumbnail strip that swaps it on click -->
->>>>>>> origin/sandesh
     <div class="col-md-5">
       {% if images %}
       <div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--navy2)">
@@ -56,17 +44,11 @@ products), in_wish (whether the viewer already wishlisted this).
 
     <div class="col-md-7">
       <div style="color:#E6EDF3;font-size:.85rem;margin-bottom:.5rem">
-        <a href="{{ url_for('store.public_store', slug=p.store_slug) }}" style="color:var(--purple2)">
-          <i class="bi bi-shop me-1"></i>{{ p.store_name }}
-        </a>
+        <span style="color:var(--purple2)"><i class="bi bi-shop me-1"></i>{{ p.store_name }}</span>
         {% if p.cat_name %} · <span class="badge-purple">{{ p.cat_name }}</span>{% endif %}
       </div>
       <h1 style="font-family:'Playfair Display',serif;font-size:1.8rem;line-height:1.3">{{ p.name }}</h1>
-<<<<<<< HEAD
-      
-=======
       <!-- Star rating, filled stars computed from avg_rating -->
->>>>>>> origin/sandesh
       <div class="d-flex align-items-center gap-2 mt-2 mb-3">
         <div class="stars">
           {% for i in range(5) %}
@@ -75,11 +57,7 @@ products), in_wish (whether the viewer already wishlisted this).
         </div>
         <span style="color:#E6EDF3;font-size:.85rem">{{ "%.1f"|format(p.avg_rating) }} ({{ p.review_count }} reviews)</span>
       </div>
-<<<<<<< HEAD
-      
-=======
       <!-- Price, with an optional struck-through "compare at" price + % off badge -->
->>>>>>> origin/sandesh
       <div class="mb-3">
         <span style="font-size:2rem;font-weight:700;color:var(--purple2)">Rs. {{ "%.0f"|format(p.price) }}</span>
         {% if p.compare_price and p.compare_price > p.price %}
@@ -87,11 +65,7 @@ products), in_wish (whether the viewer already wishlisted this).
         <span class="badge-red ms-2">{{ ((p.compare_price-p.price)/p.compare_price*100)|int }}% OFF</span>
         {% endif %}
       </div>
-<<<<<<< HEAD
-      
-=======
       <!-- Stock indicator: in stock / low stock / out of stock -->
->>>>>>> origin/sandesh
       <div class="mb-3">
         {% if p.stock_qty > 10 %}
         <span class="badge-green"><i class="bi bi-check-circle me-1"></i>In Stock ({{ p.stock_qty }} available)</span>
@@ -106,11 +80,7 @@ products), in_wish (whether the viewer already wishlisted this).
         {{ p.description }}
       </div>
       {% endif %}
-<<<<<<< HEAD
-      
-=======
       <!-- Quantity picker + Add to Cart + Wishlist toggle (hidden entirely if out of stock) -->
->>>>>>> origin/sandesh
       {% if p.stock_qty > 0 %}
       <div class="d-flex gap-3 align-items-end flex-wrap">
         <div>
@@ -133,11 +103,7 @@ products), in_wish (whether the viewer already wishlisted this).
         </a>
       </div>
       {% endif %}
-<<<<<<< HEAD
-      
-=======
       <!-- "Ask Seller" shortcut: submits a hidden form to start/resume a chat -->
->>>>>>> origin/sandesh
       {% if session.user_id and session.role == 'customer' %}
       <form method="post" action="{{ url_for('store.start_chat', seller_id=p.seller_user_id) }}" class="mt-3" style="display:none" id="chat-form-hidden">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -156,11 +122,7 @@ products), in_wish (whether the viewer already wishlisted this).
         Customer Reviews <span style="color:#E6EDF3;font-size:1rem">({{ p.review_count }})</span>
       </h3>
 
-<<<<<<< HEAD
-      
-=======
       <!-- Review submission form — only shown to logged-in customers -->
->>>>>>> origin/sandesh
       {% if session.user_id and session.role == 'customer' %}
       <div class="card mb-4">
         <div class="card-header">Write a Review</div>
@@ -190,11 +152,7 @@ products), in_wish (whether the viewer already wishlisted this).
       </div>
       {% endif %}
 
-<<<<<<< HEAD
-      
-=======
       <!-- Loop over existing reviews; falls back to an empty-state message -->
->>>>>>> origin/sandesh
       {% for r in reviews %}
       <div class="card mb-2">
         <div class="card-body">
@@ -222,11 +180,7 @@ products), in_wish (whether the viewer already wishlisted this).
     </div>
   </div>
 
-<<<<<<< HEAD
-  
-=======
   <!-- Related products: same category, current product excluded -->
->>>>>>> origin/sandesh
   {% if related %}
   <div class="mt-5">
     <h3 style="font-family:'Playfair Display',serif;margin-bottom:1rem">You May Also Like</h3>

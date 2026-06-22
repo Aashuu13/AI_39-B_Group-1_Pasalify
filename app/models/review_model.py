@@ -1,6 +1,19 @@
+"""
+app/models/review_model.py
+================================================================
+OOP concepts on display: INHERITANCE + ENCAPSULATION
+
+    - Inheritance:   ReviewModel extends BaseModel.
+    - Encapsulation: approve() recalculates the product's average
+      rating as part of the same call — whoever calls approve()
+      never has to remember to also refresh the rating themselves.
+
+Represents the `reviews` table.
+"""
 
 from app.models.basemodel import BaseModel
 from app.models.database import Database
+
 
 class ReviewModel(BaseModel):
     """
@@ -12,6 +25,8 @@ class ReviewModel(BaseModel):
     @property
     def table(self) -> str:
         return self.TABLE
+
+    # ── Lookups ─────────────────────────────────────────────────────────
 
     @classmethod
     def find_by_product(cls, product_id: int, approved_only: bool = True) -> list[dict]:
@@ -37,6 +52,8 @@ class ReviewModel(BaseModel):
             "user_id = %s AND product_id = %s", (user_id, product_id), one=True
         )
         return row is not None
+
+    # ── Moderation ──────────────────────────────────────────────────────
 
     @classmethod
     def approve(cls, review_id: int) -> None:
@@ -64,4 +81,3 @@ class ReviewModel(BaseModel):
             WHERE r.is_approved = 0
             ORDER BY r.created_at DESC
         """)
-# Handles product reviews

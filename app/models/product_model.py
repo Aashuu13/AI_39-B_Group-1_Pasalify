@@ -1,6 +1,22 @@
+"""
+app/models/product_model.py
+================================================================
+OOP concepts on display: INHERITANCE + POLYMORPHISM + ENCAPSULATION
+
+    - Inheritance:   ProductModel extends BaseModel — every CRUD
+      method is inherited for free.
+    - Polymorphism:  on top of the shared CRUD interface, this class
+      adds its own product-specific behaviour (approve, reject,
+      update_rating, decrement_stock, search, ...).
+    - Encapsulation: stock-guarding logic (never goes below 0) and
+      rating recalculation are both hidden inside this class.
+
+Represents the `products` table.
+"""
 
 from app.models.basemodel import BaseModel
 from app.models.database import Database
+
 
 class ProductModel(BaseModel):
     """
@@ -21,12 +37,14 @@ class ProductModel(BaseModel):
     def table(self) -> str:
         return self.TABLE
 
+    # ── Catalogue queries ────────────────────────────────────────────────
+
     @classmethod
     def find_active(cls) -> list[dict]:
         """Every approved, active product with its primary image and
         store/category names attached, newest first."""
         sql = """
-            SELECT p.*, pi.image_path, s.name AS store_name, s.slug AS store_slug,
+            SELECT p.*, pi.image_path, s.name AS store_name,
                    c.name AS cat_name
             FROM products p
             LEFT JOIN product_images pi ON pi.product_id = p.id AND pi.is_primary = 1
@@ -52,7 +70,7 @@ class ProductModel(BaseModel):
         ProductModel.search(**request.args) without writing any SQL.
         """
         sql = """
-            SELECT p.*, pi.image_path, s.name AS store_name, s.slug AS store_slug,
+            SELECT p.*, pi.image_path, s.name AS store_name,
                    c.name AS cat_name
             FROM products p
             LEFT JOIN product_images pi ON pi.product_id = p.id AND pi.is_primary = 1
@@ -92,8 +110,8 @@ class ProductModel(BaseModel):
         product detail page. Image rows themselves are fetched
         separately in the controller (a product can have many)."""
         product = Database.query("""
-            SELECT p.*, s.name AS store_name, s.slug AS store_slug,
-                   s.theme_color, s.user_id AS seller_user_id,
+            SELECT p.*, s.name AS store_name,
+                   s.user_id AS seller_user_id,
                    s.id AS store_id, c.name AS cat_name
             FROM products p
             JOIN stores s ON s.id = p.store_id
@@ -111,10 +129,8 @@ class ProductModel(BaseModel):
             (store_id,)
         )
 
-<<<<<<< HEAD
-=======
-   
->>>>>>> origin/sandesh
+    # ── Moderation ──────────────────────────────────────────────────────
+
     @classmethod
     def approve(cls, product_id: int) -> None:
         """Admin approves a product, making it visible to customers."""
@@ -131,10 +147,8 @@ class ProductModel(BaseModel):
         that reference it still display correctly."""
         cls.update(product_id, {'is_active': 0})
 
-<<<<<<< HEAD
-=======
+    # ── Stock management ───────────────────────────────────────────────
 
->>>>>>> origin/sandesh
     @classmethod
     def decrement_stock(cls, product_id: int, qty: int) -> None:
         """
@@ -154,10 +168,8 @@ class ProductModel(BaseModel):
             (qty, product_id)
         )
 
-<<<<<<< HEAD
-=======
+    # ── Rating ──────────────────────────────────────────────────────────
 
->>>>>>> origin/sandesh
     @classmethod
     def update_rating(cls, product_id: int) -> None:
         """
@@ -174,4 +186,4 @@ class ProductModel(BaseModel):
                 WHERE r.product_id = p.id AND r.is_approved = 1
             )
             WHERE p.id = %s
-        """, (product_id,))# Handles product CRUD operations
+        """, (product_id,))
