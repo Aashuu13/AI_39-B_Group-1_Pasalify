@@ -58,9 +58,7 @@ class BaseController(ABC):
         """True if the current visitor has an active session."""
         return 'user_id' in session
 
-    # ── Flash message shortcuts ────────────────────────────────────────────
-    # Short names so controller methods read as: self._ok('Saved!')
-    # instead of: flash('Saved!', 'success')
+    
 
     @staticmethod
     def _ok(msg: str):
