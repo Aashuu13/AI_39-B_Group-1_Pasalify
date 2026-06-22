@@ -1,7 +1,13 @@
+<<<<<<< HEAD
 
 import csv
 import io
 
+=======
+import csv
+import io
+
+>>>>>>> origin/aayushma
 from flask import render_template, request, redirect, url_for, session, flash, make_response
 
 from app.controllers.base_controller import BaseController
@@ -250,6 +256,89 @@ class AdminController(BaseController):
         """)
         return render_template('admin/system.html', logs=logs,
                                db_size=db_size, table_counts=table_counts)
+<<<<<<< HEAD
+
+    def backup(self):
+        """Placeholder for a manual backup trigger — in production this
+        would shell out to mysqldump or call a managed backup API."""
+        self._log('manual_backup_triggered')
+        self._info('Backup initiated. In production, connect mysqldump here.')
+        return redirect(url_for('admin.system'))
+
+    def categories(self):
+        """List every product category."""
+        cats = self._q("SELECT * FROM categories ORDER BY name")
+        return render_template('admin/categories.html', cats=cats)
+
+    def category_add(self):
+        """Create a new category from the admin form."""
+        name = request.form.get('name', '').strip()
+        slug = name.lower().replace(' ', '-')
+        icon = request.form.get('icon', 'tag')
+        CategoryModel.create({'name': name, 'slug': slug, 'icon': icon})
+        self._ok('Category added.')
+        return redirect(url_for('admin.categories'))
+
+    def support_tickets(self):
+        """
+        Group every customer's support-chatbot messages into one
+        "ticket" per customer, exactly like seller_controller's
+        version, but WITHOUT the store filter — an admin should see
+        every customer's support thread on the platform, not just
+        the ones tied to one store.
+
+        Bug fix: this used to render a template named
+        'admin/support_tickets.html', which doesn't exist (the real
+        file is 'admin/support.html'), and it passed a flat list of
+        raw message rows instead of the grouped-by-customer shape
+        the template actually expects (t.customer_name,
+        t.customer_email, t.last_message, t.messages). Both are
+        corrected below.
+        """
+        users = self._q("""
+            SELECT DISTINCT sm.user_id, u.name AS customer_name, u.email AS customer_email,
+                   MAX(sm.created_at) AS last_message
+            FROM support_messages sm
+            LEFT JOIN users u ON u.id = sm.user_id
+            WHERE sm.role = 'user'
+            GROUP BY sm.user_id, u.name, u.email
+            ORDER BY last_message DESC
+        """)
+        tickets = []
+        for user in users:
+            messages = self._q("""
+                SELECT * FROM support_messages
+                WHERE user_id = %s
+                ORDER BY created_at ASC
+            """, (user['user_id'],))
+            tickets.append({
+                'user_id':        user['user_id'],
+                'customer_name':  user['customer_name'],
+                'customer_email': user['customer_email'],
+                'last_message':   user['last_message'],
+                'messages':       messages,
+            })
+        return render_template('admin/support.html', tickets=tickets)
+
+    def support_reply(self):
+        """Reply to a customer's support thread directly as 'admin'
+        (stored straight in support_messages, unlike the seller's
+        reply flow which moves into the regular chat system)."""
+        customer_id = request.form.get('customer_id', type=int)
+        message     = request.form.get('message', '').strip()
+        if not message or not customer_id:
+            self._err('Reply cannot be empty.')
+            return redirect(url_for('admin.support_tickets'))
+        self._run(
+            "INSERT INTO support_messages (user_id, role, message) VALUES (%s, 'admin', %s)",
+            (customer_id, message)
+        )
+        self._notify(customer_id, 'Support Reply',
+                     'Admin replied to your support message.', 'system')
+        self._ok('Reply sent.')
+        return redirect(url_for('admin.support_tickets'))
+=======
+>>>>>>> origin/aayushma
 
     def backup(self):
         """Placeholder for a manual backup trigger — in production this

@@ -1,25 +1,55 @@
+<<<<<<< HEAD
+=======
+"""
+==============================================================
+OOP Concept: INHERITANCE & ENCAPSULATION (Store Controller)
+==============================================================
+- Inheritance: StoreController extends BaseController.
+- Encapsulation: _get_or_create_chat() hides the chat upsert
+  logic so the route never writes raw SQL.
+==============================================================
+"""
+>>>>>>> origin/aayushma
 
 from flask import render_template, request, redirect, url_for, session, flash
 
 from app.controllers.base_controller import BaseController
 from app.models import StoreModel
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/aayushma
 class StoreController(BaseController):
     """
     Handles public store pages and customer-seller chat
     initiated from the store page.
 
+<<<<<<< HEAD
     Inherited from BaseController:
+=======
+    Inherits from BaseController:
+>>>>>>> origin/aayushma
         _ok/_err/_warn/_info, _q/_run, _log, _notify,
         _current_user_id, _is_logged_in
     """
 
+<<<<<<< HEAD
     def _get_or_create_chat(self, customer_id: int, seller_id: int,
                             product_id: int | None = None) -> int:
         """
         Return the id of an existing chat between this customer and
         seller, or create a new one and return its id. Callers always
         just get an int back — they never see the SELECT/INSERT logic.
+=======
+    # ── Private Helpers (Encapsulation) ───────────────────────────────────────
+
+    def _get_or_create_chat(self, customer_id: int, seller_id: int,
+                            product_id: int | None = None) -> int:
+        """
+        Return existing chat id, or create and return a new one.
+        Encapsulation: callers get a chat id; they never write SQL.
+>>>>>>> origin/aayushma
         """
         existing = self._q(
             "SELECT id FROM chats WHERE customer_id = %s AND seller_id = %s",
@@ -32,12 +62,18 @@ class StoreController(BaseController):
             (customer_id, seller_id, product_id)
         )
 
+<<<<<<< HEAD
     def public_store(self, slug: str):
         """
         Storefront for one seller, reached via /store/<slug>. Supports
         the same search/category/sort filters as the main product
         catalogue, but scoped to just this store's products.
         """
+=======
+    # ── Public Store Page ─────────────────────────────────────────────────────
+
+    def public_store(self, slug: str):
+>>>>>>> origin/aayushma
         store = self._q(
             "SELECT * FROM stores WHERE slug = %s AND is_approved = 1 AND is_active = 1",
             (slug,), one=True
@@ -89,6 +125,7 @@ class StoreController(BaseController):
                                reviews_avg=reviews_avg)
 
     def store_product(self, slug: str, pid: int):
+<<<<<<< HEAD
         """A store-scoped product URL just forwards to the main product
         detail page — kept simple rather than duplicating that view."""
         return redirect(url_for('customer.product_detail', pid=pid))
@@ -96,6 +133,13 @@ class StoreController(BaseController):
     def start_chat(self, seller_id: int):
         """Begin a chat with a seller from their storefront. Guests are
         sent to log in first since a chat needs a real user_id."""
+=======
+        return redirect(url_for('customer.product_detail', pid=pid))
+
+    # ── Chat ─────────────────────────────────────────────────────────────────
+
+    def start_chat(self, seller_id: int):
+>>>>>>> origin/aayushma
         if not self._is_logged_in():
             self._warn('Login to chat with seller.')
             return redirect(url_for('auth.login'))
@@ -108,11 +152,14 @@ class StoreController(BaseController):
         return redirect(url_for('store.chat_view', cid=cid))
 
     def chat_view(self, cid: int):
+<<<<<<< HEAD
         """
         GET  -> show the conversation and mark the seller's messages
                 as read.
         POST -> send a new message into the conversation.
         """
+=======
+>>>>>>> origin/aayushma
         if not self._is_logged_in():
             return redirect(url_for('auth.login'))
 
@@ -150,4 +197,9 @@ class StoreController(BaseController):
         return render_template('store/chat.html', chat=chat,
                                msgs=msgs, seller=seller)
 
+<<<<<<< HEAD
+=======
+
+# ── Singleton instance ────────────────────────────────────────────────────────
+>>>>>>> origin/aayushma
 store_controller = StoreController()

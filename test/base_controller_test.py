@@ -8,12 +8,27 @@ from flask import Flask, session, get_flashed_messages
 
 from app.controllers.base_controller import BaseController
 
+<<<<<<< HEAD
+=======
+
+# A reusable helper that builds a tiny Flask app for every test.
+# BaseController doesn't redirect to any named routes itself, but its
+# session helpers and flash shortcuts need an active Flask request
+# context to work.
+>>>>>>> origin/aayushma
 def make_test_app():
     app = Flask(__name__)
     app.secret_key = "test-secret-key"
     app.config["UPLOAD_FOLDER"] = tempfile.mkdtemp()
     return app
 
+<<<<<<< HEAD
+=======
+
+# =====================================================================
+#  SESSION HELPERS
+# =====================================================================
+>>>>>>> origin/aayushma
 class TestSessionHelpers(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -46,6 +61,13 @@ class TestSessionHelpers(unittest.TestCase):
             session["user_id"] = 1
             self.assertTrue(self.controller._is_logged_in())
 
+<<<<<<< HEAD
+=======
+
+# =====================================================================
+#  FLASH MESSAGE SHORTCUTS
+# =====================================================================
+>>>>>>> origin/aayushma
 class TestFlashShortcuts(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -71,6 +93,13 @@ class TestFlashShortcuts(unittest.TestCase):
             self.controller._info("FYI")
             self.assertIn(("info", "FYI"), get_flashed_messages(with_categories=True))
 
+<<<<<<< HEAD
+=======
+
+# =====================================================================
+#  DATABASE SHORTHANDS
+# =====================================================================
+>>>>>>> origin/aayushma
 class TestDatabaseShortcuts(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -94,6 +123,13 @@ class TestDatabaseShortcuts(unittest.TestCase):
             )
             self.assertEqual(result, 99)
 
+<<<<<<< HEAD
+=======
+
+# =====================================================================
+#  FILE UPLOAD HELPERS
+# =====================================================================
+>>>>>>> origin/aayushma
 class TestFileUploadHelpers(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -129,6 +165,13 @@ class TestFileUploadHelpers(unittest.TestCase):
             self.assertTrue(path.endswith(".png"))
             fake_file.save.assert_called_once()
 
+<<<<<<< HEAD
+=======
+
+# =====================================================================
+#  AUDIT HELPERS
+# =====================================================================
+>>>>>>> origin/aayushma
 class TestAuditHelpers(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -149,6 +192,13 @@ class TestAuditHelpers(unittest.TestCase):
                 3, "Title", "Message", "order", "/orders/1"
             )
 
+<<<<<<< HEAD
+=======
+
+# =====================================================================
+#  ABSTRACT HOOK / MISC
+# =====================================================================
+>>>>>>> origin/aayushma
 class TestMisc(unittest.TestCase):
     def setUp(self):
         self.controller = BaseController()
@@ -160,5 +210,9 @@ class TestMisc(unittest.TestCase):
     def test_repr_shows_class_name(self):
         self.assertEqual(repr(self.controller), "<BaseController>")
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/aayushma
 if __name__ == "__main__":
     unittest.main()

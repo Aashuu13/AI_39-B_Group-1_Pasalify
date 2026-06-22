@@ -2,6 +2,7 @@
 from app.models.basemodel import BaseModel
 from app.models.database import Database
 
+
 class NotificationModel(BaseModel):
     """
     Represents the `notifications` table.

@@ -4,6 +4,15 @@ from flask import Flask, Blueprint, session, get_flashed_messages
 
 from app.controllers.admin_controller import AdminController
 
+<<<<<<< HEAD
+=======
+
+# A reusable helper that builds a tiny Flask app for every test.
+# define the route names the controller redirects to
+# (admin.sellers, admin.products, admin.users, admin.promos,
+# admin.system, admin.categories, admin.support_tickets) so that
+# url_for() inside the controller can build URLs successfully.
+>>>>>>> origin/aayushma
 def make_test_app():
     app = Flask(__name__)
     app.secret_key = "test-secret-key"
@@ -20,6 +29,10 @@ def make_test_app():
 
     return app
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/aayushma
 def make_controller():
     """
     Build an AdminController whose DB-touching helpers (_q/_run/_log/
@@ -33,6 +46,13 @@ def make_controller():
     controller._notify = MagicMock()
     return controller
 
+<<<<<<< HEAD
+=======
+
+# =====================================================================
+#  DASHBOARD
+# =====================================================================
+>>>>>>> origin/aayushma
 class TestDashboard(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -46,10 +66,17 @@ class TestDashboard(unittest.TestCase):
         self, mock_user_model, mock_product_model, mock_store_model, mock_render
     ):
         mock_render.return_value = "dashboard_page"
+<<<<<<< HEAD
         mock_user_model.count.side_effect = [10, 3]   
         mock_store_model.count.return_value = 2
         mock_product_model.count.return_value = 4
 
+=======
+        mock_user_model.count.side_effect = [10, 3]   # customers, sellers
+        mock_store_model.count.return_value = 2
+        mock_product_model.count.return_value = 4
+        # _q called for: total_orders, total_revenue, recent_orders, monthly, logs
+>>>>>>> origin/aayushma
         self.controller._q.side_effect = [
             {"c": 50}, {"t": 1234.5}, [{"id": 1}], [{"month": "2026-05"}], [{"id": 1}]
         ]
@@ -69,6 +96,13 @@ class TestDashboard(unittest.TestCase):
             self.assertEqual(kwargs["monthly"], [{"month": "2026-05"}])
             self.assertEqual(kwargs["logs"], [{"id": 1}])
 
+<<<<<<< HEAD
+=======
+
+# =====================================================================
+#  SELLER MODERATION
+# =====================================================================
+>>>>>>> origin/aayushma
 class TestSellerModeration(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -126,6 +160,13 @@ class TestSellerModeration(unittest.TestCase):
             flashes = get_flashed_messages(with_categories=True)
             self.assertIn(("danger", "Invalid commission rate."), flashes)
 
+<<<<<<< HEAD
+=======
+
+# =====================================================================
+#  PRODUCT MODERATION
+# =====================================================================
+>>>>>>> origin/aayushma
 class TestProductModeration(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -149,6 +190,13 @@ class TestProductModeration(unittest.TestCase):
             flashes = get_flashed_messages(with_categories=True)
             self.assertIn(("warning", "Product removed."), flashes)
 
+<<<<<<< HEAD
+=======
+
+# =====================================================================
+#  FINANCES
+# =====================================================================
+>>>>>>> origin/aayushma
 class TestFinances(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -158,9 +206,15 @@ class TestFinances(unittest.TestCase):
     def test_finances_renders_transactions_and_commissions(self, mock_render):
         mock_render.return_value = "finances_page"
         self.controller._q.side_effect = [
+<<<<<<< HEAD
             [{"id": 1}],           
             [{"id": 1}],           
             {"t": 555.0},          
+=======
+            [{"id": 1}],           # transactions
+            [{"id": 1}],           # commissions
+            {"t": 555.0},          # total_rev
+>>>>>>> origin/aayushma
         ]
         with self.app.test_request_context():
             result = self.controller.finances()
@@ -180,6 +234,13 @@ class TestFinances(unittest.TestCase):
             body = response.get_data(as_text=True)
             self.assertIn("ID,Order,Name,Amount,Method,Status,Created_at", body)
 
+<<<<<<< HEAD
+=======
+
+# =====================================================================
+#  USER MANAGEMENT
+# =====================================================================
+>>>>>>> origin/aayushma
 class TestUserManagement(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -222,6 +283,13 @@ class TestUserManagement(unittest.TestCase):
             mock_user_model.update.assert_not_called()
             self.assertEqual(response.status_code, 302)
 
+<<<<<<< HEAD
+=======
+
+# =====================================================================
+#  PROMO CODES
+# =====================================================================
+>>>>>>> origin/aayushma
 class TestPromoCodes(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -239,7 +307,11 @@ class TestPromoCodes(unittest.TestCase):
             response = self.controller.promo_add()
             self.controller._run.assert_called_once()
             args = self.controller._run.call_args[0][1]
+<<<<<<< HEAD
             self.assertEqual(args[0], "SAVE10")  
+=======
+            self.assertEqual(args[0], "SAVE10")  # uppercased
+>>>>>>> origin/aayushma
             self.assertEqual(response.status_code, 302)
             flashes = get_flashed_messages(with_categories=True)
             self.assertIn(("success", "Promo code created!"), flashes)
@@ -259,6 +331,13 @@ class TestPromoCodes(unittest.TestCase):
             self.controller.promo_toggle(999)
             self.controller._run.assert_not_called()
 
+<<<<<<< HEAD
+=======
+
+# =====================================================================
+#  SYSTEM MONITORING
+# =====================================================================
+>>>>>>> origin/aayushma
 class TestSystemMonitoring(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -268,9 +347,15 @@ class TestSystemMonitoring(unittest.TestCase):
     def test_system_renders_diagnostics(self, mock_render):
         mock_render.return_value = "system_page"
         self.controller._q.side_effect = [
+<<<<<<< HEAD
             [{"id": 1}],          
             {"size": 12.3},       
             [{"table_name": "users", "table_rows": 5}],  
+=======
+            [{"id": 1}],          # logs
+            {"size": 12.3},       # db_size
+            [{"table_name": "users", "table_rows": 5}],  # table_counts
+>>>>>>> origin/aayushma
         ]
         with self.app.test_request_context():
             result = self.controller.system()
@@ -286,6 +371,13 @@ class TestSystemMonitoring(unittest.TestCase):
                 ("info", "Backup initiated. In production, connect mysqldump here."), flashes
             )
 
+<<<<<<< HEAD
+=======
+
+# =====================================================================
+#  CATEGORIES
+# =====================================================================
+>>>>>>> origin/aayushma
 class TestCategories(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -312,6 +404,13 @@ class TestCategories(unittest.TestCase):
             flashes = get_flashed_messages(with_categories=True)
             self.assertIn(("success", "Category added."), flashes)
 
+<<<<<<< HEAD
+=======
+
+# =====================================================================
+#  SUPPORT TICKETS (PLATFORM-WIDE)
+# =====================================================================
+>>>>>>> origin/aayushma
 class TestSupportTickets(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -353,5 +452,9 @@ class TestSupportTickets(unittest.TestCase):
             flashes = get_flashed_messages(with_categories=True)
             self.assertIn(("success", "Reply sent."), flashes)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/aayushma
 if __name__ == "__main__":
     unittest.main()

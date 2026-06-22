@@ -1,13 +1,27 @@
+<<<<<<< HEAD
 
+=======
+"""
+Customer routes — public and auth-protected.
+"""
+>>>>>>> origin/aayushma
 from flask import Blueprint
 from app.controllers import customer_controller
 from app.utils.auth import login_required
 
 customer_bp = Blueprint('customer', __name__)
+<<<<<<< HEAD
 cc = customer_controller   
 
 _lr = login_required       
 
+=======
+cc = customer_controller   # alias for brevity
+
+_lr = login_required   # alias
+
+# ── Public ────────────────────────────────────────────────────────────────────
+>>>>>>> origin/aayushma
 customer_bp.add_url_rule('/',                        'home',            cc.home)
 customer_bp.add_url_rule('/products',                'products',        cc.products)
 customer_bp.add_url_rule('/product/<int:pid>',       'product_detail',  cc.product_detail)
@@ -16,6 +30,10 @@ customer_bp.add_url_rule('/support/chat',            'support_chat',    cc.suppo
 customer_bp.add_url_rule('/stores',                  'stores',          cc.stores)
 customer_bp.add_url_rule('/store/<slug>',            'store_page',      cc.store_page)
 
+<<<<<<< HEAD
+=======
+# ── Auth-protected ─────────────────────────────────────────────────────────────
+>>>>>>> origin/aayushma
 customer_bp.add_url_rule('/cart',                    'cart',            _lr(cc.cart))
 customer_bp.add_url_rule('/cart/add/<int:pid>',      'cart_add',        _lr(cc.cart_add),       methods=['POST'])
 customer_bp.add_url_rule('/cart/update/<int:cid>',   'cart_update',     _lr(cc.cart_update),    methods=['POST'])
@@ -39,4 +57,8 @@ customer_bp.add_url_rule('/notifications/count',     'notif_count',     _lr(cc.n
 
 customer_bp.add_url_rule('/chats',                   'chats',           _lr(cc.chats))
 customer_bp.add_url_rule('/chat/<int:cid>',          'chat_detail',     _lr(cc.chat_detail),    methods=['GET', 'POST'])
+<<<<<<< HEAD
 customer_bp.add_url_rule('/chat/start/<int:store_id>','chat_start',      _lr(cc.chat_start))
+=======
+customer_bp.add_url_rule('/chat/start/<int:store_id>','chat_start',      _lr(cc.chat_start))
+>>>>>>> origin/aayushma

@@ -1,7 +1,32 @@
+<<<<<<< HEAD
+=======
+"""
+app/auth.py
+================================================================
+AUTHENTICATION decorators — "Is someone logged in at all?"
+================================================================
+This module only answers ONE question: whether the current
+visitor has an active session. It does not know or care which
+*role* that user has — that job belongs to app/authcontrol.py.
+
+Keeping these two concerns in separate files is a small example
+of the Single Responsibility Principle: each module has exactly
+one reason to change.
+
+Session keys this module depends on (set by AuthController.login
+in app/controllers/auth_controller.py):
+    session['user_id']  -> present only when a user is logged in
+    session['role']     -> 'customer' | 'seller' | 'admin'
+"""
+>>>>>>> origin/aayushma
 
 from functools import wraps
 from flask import session, redirect, url_for, flash
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/aayushma
 def login_required(f):
     """
     Route decorator: only let logged-in users through.
@@ -23,6 +48,10 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/aayushma
 def guest_only(f):
     """
     Route decorator: the opposite of login_required.
@@ -38,6 +67,10 @@ def guest_only(f):
         return f(*args, **kwargs)
     return decorated
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/aayushma
 def admin_required(f):
     """
     Route decorator: only logged-in users whose role is 'admin'.

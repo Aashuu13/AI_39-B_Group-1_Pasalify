@@ -4,6 +4,17 @@ from flask import Flask, Blueprint, session, get_flashed_messages
 
 from app.controllers.seller_controller import SellerController
 
+<<<<<<< HEAD
+=======
+
+# A reusable helper that builds a tiny Flask app for every test.
+# define the route names the controller redirects to
+# (seller.setup, seller.dashboard, seller.products, seller.inventory,
+# seller.orders, seller.store_profile, seller.store_customize,
+# seller.chats, seller.chat_detail, seller.support_tickets,
+# customer.order_detail) so that url_for() inside the controller can
+# build URLs successfully.
+>>>>>>> origin/aayushma
 def make_test_app():
     app = Flask(__name__)
     app.secret_key = "test-secret-key"
@@ -27,6 +38,10 @@ def make_test_app():
 
     return app
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/aayushma
 def make_controller():
     """
     Build a SellerController whose DB-touching helpers (_q/_run/_log/
@@ -41,6 +56,13 @@ def make_controller():
     controller._save_file = MagicMock(return_value=None)
     return controller
 
+<<<<<<< HEAD
+=======
+
+# =====================================================================
+#  STORE SETUP
+# =====================================================================
+>>>>>>> origin/aayushma
 class TestSetup(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -86,6 +108,13 @@ class TestSetup(unittest.TestCase):
             flashes = get_flashed_messages(with_categories=True)
             self.assertIn(("success", "Store created successfully!"), flashes)
 
+<<<<<<< HEAD
+=======
+
+# =====================================================================
+#  DASHBOARD
+# =====================================================================
+>>>>>>> origin/aayushma
 class TestDashboard(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -127,6 +156,13 @@ class TestDashboard(unittest.TestCase):
             self.assertEqual(kwargs["total_orders"], 5)
             self.assertEqual(kwargs["total_products"], 3)
 
+<<<<<<< HEAD
+=======
+
+# =====================================================================
+#  STORE PROFILE / CUSTOMIZE
+# =====================================================================
+>>>>>>> origin/aayushma
 class TestStoreProfile(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -136,7 +172,11 @@ class TestStoreProfile(unittest.TestCase):
     def test_post_updates_profile_and_keeps_old_logo_if_none_uploaded(self, mock_store_model):
         store = {"id": 1, "logo": "uploads/logos/old.png", "banner": "uploads/banners/old.png"}
         mock_store_model.find_by_user.return_value = store
+<<<<<<< HEAD
         self.controller._save_file.return_value = None  
+=======
+        self.controller._save_file.return_value = None  # no new file uploaded
+>>>>>>> origin/aayushma
 
         with self.app.test_request_context(
             method="POST", data={"name": "New Name", "description": "New desc"}
@@ -151,6 +191,10 @@ class TestStoreProfile(unittest.TestCase):
             flashes = get_flashed_messages(with_categories=True)
             self.assertIn(("success", "Store profile updated!"), flashes)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/aayushma
 class TestStoreCustomize(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -169,6 +213,13 @@ class TestStoreCustomize(unittest.TestCase):
             )
             self.assertEqual(response.status_code, 302)
 
+<<<<<<< HEAD
+=======
+
+# =====================================================================
+#  PRODUCTS
+# =====================================================================
+>>>>>>> origin/aayushma
 class TestProducts(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -260,6 +311,13 @@ class TestProducts(unittest.TestCase):
             flashes = get_flashed_messages(with_categories=True)
             self.assertIn(("info", "Product removed."), flashes)
 
+<<<<<<< HEAD
+=======
+
+# =====================================================================
+#  CATEGORIES (read-only for sellers)
+# =====================================================================
+>>>>>>> origin/aayushma
 class TestCategories(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -277,6 +335,13 @@ class TestCategories(unittest.TestCase):
                 "seller/categories.html", cats=[{"id": 1, "name": "Gadgets"}]
             )
 
+<<<<<<< HEAD
+=======
+
+# =====================================================================
+#  INVENTORY
+# =====================================================================
+>>>>>>> origin/aayushma
 class TestInventory(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -297,6 +362,13 @@ class TestInventory(unittest.TestCase):
             flashes = get_flashed_messages(with_categories=True)
             self.assertIn(("success", "Stock updated!"), flashes)
 
+<<<<<<< HEAD
+=======
+
+# =====================================================================
+#  ORDERS
+# =====================================================================
+>>>>>>> origin/aayushma
 class TestOrders(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -322,6 +394,13 @@ class TestOrders(unittest.TestCase):
             mock_order_model.update.assert_not_called()
             self.assertEqual(response.status_code, 302)
 
+<<<<<<< HEAD
+=======
+
+# =====================================================================
+#  CHAT
+# =====================================================================
+>>>>>>> origin/aayushma
 class TestChat(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -349,6 +428,13 @@ class TestChat(unittest.TestCase):
             self.assertEqual(response.status_code, 302)
             self.assertTrue(response.location.endswith("/chats/5"))
 
+<<<<<<< HEAD
+=======
+
+# =====================================================================
+#  SUPPORT TICKETS (seller-scoped)
+# =====================================================================
+>>>>>>> origin/aayushma
 class TestSupportTickets(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -370,8 +456,13 @@ class TestSupportTickets(unittest.TestCase):
     @patch("app.controllers.seller_controller.StoreModel")
     def test_support_reply_creates_chat_and_sends_message(self, mock_store_model):
         mock_store_model.find_by_user.return_value = {"id": 1, "name": "Cool Shop"}
+<<<<<<< HEAD
         self.controller._q.return_value = None  
         self.controller._run.return_value = 88  
+=======
+        self.controller._q.return_value = None  # no existing chat
+        self.controller._run.return_value = 88  # new chat id
+>>>>>>> origin/aayushma
 
         with self.app.test_request_context(
             method="POST", data={"customer_id": "2", "message": "We'll help!"}
@@ -384,5 +475,9 @@ class TestSupportTickets(unittest.TestCase):
             flashes = get_flashed_messages(with_categories=True)
             self.assertIn(("success", "Message sent to customer."), flashes)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/aayushma
 if __name__ == "__main__":
     unittest.main()

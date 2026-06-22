@@ -3,6 +3,15 @@ from unittest.mock import patch, MagicMock
 from flask import Flask, Blueprint, session, get_flashed_messages
 from app.controllers.auth_controller import AuthController
 
+<<<<<<< HEAD
+=======
+
+# A reusable helper that builds a tiny Flask app for every test.
+# define the route names the controller redirects to
+# (auth.login, auth.register, customer.home, customer.profile,
+# admin.dashboard, seller.setup, seller.dashboard) so that
+# url_for() inside the controller can build URLs successfully.
+>>>>>>> origin/aayushma
 def make_test_app():
     app = Flask(__name__)
     app.secret_key = "test-secret-key"
@@ -28,6 +37,10 @@ def make_test_app():
 
     return app
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/aayushma
 def make_controller():
     """
     Build an AuthController whose DB-touching helpers (_log/_notify)
@@ -40,6 +53,13 @@ def make_controller():
     controller._notify = MagicMock()
     return controller
 
+<<<<<<< HEAD
+=======
+
+# =====================================================================
+#  REGISTER
+# =====================================================================
+>>>>>>> origin/aayushma
 class TestRegister(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -123,9 +143,15 @@ class TestRegister(unittest.TestCase):
             result = self.controller.register()
             flashes = get_flashed_messages(with_categories=True)
             self.assertIn(("danger", "Email or phone already registered."), flashes)
+<<<<<<< HEAD
 
             self.assertEqual(result, "register_page")
 
+=======
+            # The form is re-rendered rather than redirected.
+            self.assertEqual(result, "register_page")
+            # And the user should NOT be created.
+>>>>>>> origin/aayushma
             mock_user_model.register.assert_not_called()
 
     @patch("app.controllers.auth_controller.UserModel")
@@ -169,6 +195,13 @@ class TestRegister(unittest.TestCase):
             self.controller.register()
             self.assertEqual(session["pending_store_setup"], 7)
 
+<<<<<<< HEAD
+=======
+
+# =====================================================================
+#  LOGIN
+# =====================================================================
+>>>>>>> origin/aayushma
 class TestLogin(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -219,7 +252,11 @@ class TestLogin(unittest.TestCase):
             flashes = get_flashed_messages(with_categories=True)
             self.assertIn(("danger", "Invalid email or password."), flashes)
             mock_user_model.record_failed_login.assert_called_once_with(1)
+<<<<<<< HEAD
 
+=======
+            # No session was created.
+>>>>>>> origin/aayushma
             self.assertNotIn("user_id", session)
 
     @patch("app.controllers.auth_controller.UserModel")
@@ -319,6 +356,13 @@ class TestLogin(unittest.TestCase):
             self.assertEqual(response.status_code, 302)
             self.assertTrue(response.location.endswith("/dashboard"))
 
+<<<<<<< HEAD
+=======
+
+# =====================================================================
+#  LOGOUT
+# =====================================================================
+>>>>>>> origin/aayushma
 class TestLogout(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -327,23 +371,42 @@ class TestLogout(unittest.TestCase):
     def test_logout_clears_session_and_redirects(self):
         """Logging out wipes the session and returns to the login page."""
         with self.app.test_request_context():
+<<<<<<< HEAD
 
+=======
+            # Pretend someone is logged in.
+>>>>>>> origin/aayushma
             session["user_id"] = 99
             session["name"] = "Alice"
             session["role"] = "customer"
 
             response = self.controller.logout()
 
+<<<<<<< HEAD
             self.assertNotIn("user_id", session)
             self.assertNotIn("name", session)
             self.assertNotIn("role", session)
 
+=======
+            # Every session value is gone.
+            self.assertNotIn("user_id", session)
+            self.assertNotIn("name", session)
+            self.assertNotIn("role", session)
+            # Redirected (302) back to login with a goodbye message.
+>>>>>>> origin/aayushma
             self.assertEqual(response.status_code, 302)
             self.assertIn("/login", response.location)
             flashes = get_flashed_messages(with_categories=True)
             self.assertIn(("info", "Logged out successfully."), flashes)
             self.controller._log.assert_called_once_with("logout")
 
+<<<<<<< HEAD
+=======
+
+# =====================================================================
+#  FORGOT PASSWORD
+# =====================================================================
+>>>>>>> origin/aayushma
 class TestForgotPassword(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -371,6 +434,13 @@ class TestForgotPassword(unittest.TestCase):
                 ("info", "If that email exists, a reset link has been sent."), flashes
             )
 
+<<<<<<< HEAD
+=======
+
+# =====================================================================
+#  CHANGE PASSWORD
+# =====================================================================
+>>>>>>> origin/aayushma
 class TestChangePassword(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -446,5 +516,9 @@ class TestChangePassword(unittest.TestCase):
             self.assertIn(("success", "Password updated successfully."), flashes)
             self.controller._log.assert_called_once_with("change_password")
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/aayushma
 if __name__ == "__main__":
     unittest.main()

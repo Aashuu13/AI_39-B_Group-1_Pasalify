@@ -4,6 +4,14 @@ from flask import Flask, Blueprint, session, get_flashed_messages
 
 from app.controllers.store_controller import StoreController
 
+<<<<<<< HEAD
+=======
+
+# A reusable helper that builds a tiny Flask app for every test.
+# define the route names the controller redirects to
+# (customer.home, customer.product_detail, auth.login, store.chat_view)
+# so that url_for() inside the controller can build URLs successfully.
+>>>>>>> origin/aayushma
 def make_test_app():
     app = Flask(__name__)
     app.secret_key = "test-secret-key"
@@ -23,6 +31,10 @@ def make_test_app():
 
     return app
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/aayushma
 def make_controller():
     """
     Build a StoreController whose DB-touching helpers (_q/_run/_log/
@@ -36,6 +48,13 @@ def make_controller():
     controller._notify = MagicMock()
     return controller
 
+<<<<<<< HEAD
+=======
+
+# =====================================================================
+#  PUBLIC STORE PAGE
+# =====================================================================
+>>>>>>> origin/aayushma
 class TestPublicStore(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -63,6 +82,11 @@ class TestPublicStore(unittest.TestCase):
         owner = {"name": "Sam"}
         reviews_avg = {"avg": 4.5, "cnt": 3}
 
+<<<<<<< HEAD
+=======
+        # _q is called in sequence: store lookup, products, categories,
+        # owner, reviews_avg.
+>>>>>>> origin/aayushma
         self.controller._q.side_effect = [store_row, products, categories, owner, reviews_avg]
 
         with self.app.test_request_context("/store/cool-shop?q=widget&sort=price_asc"):
@@ -86,6 +110,13 @@ class TestPublicStore(unittest.TestCase):
             self.assertEqual(response.status_code, 302)
             self.assertTrue(response.location.endswith("/product/42"))
 
+<<<<<<< HEAD
+=======
+
+# =====================================================================
+#  CHAT STARTED FROM A STORE PAGE
+# =====================================================================
+>>>>>>> origin/aayushma
 class TestStartChat(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -104,8 +135,13 @@ class TestStartChat(unittest.TestCase):
     def test_logged_in_user_starts_new_chat(self):
         """A logged-in customer with no existing chat gets a brand new
         one created and is redirected straight into it."""
+<<<<<<< HEAD
         self.controller._q.return_value = None  
         self.controller._run.return_value = 77  
+=======
+        self.controller._q.return_value = None  # no existing chat
+        self.controller._run.return_value = 77  # new chat id
+>>>>>>> origin/aayushma
 
         with self.app.test_request_context(method="POST", data={"product_id": "3"}):
             session["user_id"] = 1
@@ -129,6 +165,13 @@ class TestStartChat(unittest.TestCase):
             self.assertTrue(response.location.endswith("/chat/55"))
             self.controller._run.assert_not_called()
 
+<<<<<<< HEAD
+=======
+
+# =====================================================================
+#  CHAT VIEW
+# =====================================================================
+>>>>>>> origin/aayushma
 class TestChatView(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
@@ -181,7 +224,11 @@ class TestChatView(unittest.TestCase):
         chat_row = {"id": 1, "customer_id": 1, "seller_id": 5}
         msgs = [{"id": 1, "message": "hi"}]
         seller = {"name": "Sam", "store_name": "Cool Shop"}
+<<<<<<< HEAD
 
+=======
+        # _q called: chat lookup, msgs, seller
+>>>>>>> origin/aayushma
         self.controller._q.side_effect = [chat_row, msgs, seller]
 
         with self.app.test_request_context(method="GET"):
@@ -191,11 +238,19 @@ class TestChatView(unittest.TestCase):
             mock_render.assert_called_once_with(
                 "store/chat.html", chat=chat_row, msgs=msgs, seller=seller
             )
+<<<<<<< HEAD
 
+=======
+            # The seller's unread messages get marked as read.
+>>>>>>> origin/aayushma
             self.controller._run.assert_called_once_with(
                 "UPDATE chat_messages SET is_read=1 WHERE chat_id=%s AND sender_id!=%s",
                 (1, 1)
             )
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/aayushma
 if __name__ == "__main__":
     unittest.main()

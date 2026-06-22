@@ -40,6 +40,7 @@ seller_bp.add_url_rule('/inventory/update/<int:pid>',     'inventory_update', _s
 seller_bp.add_url_rule('/orders',                         'orders',           _seller(sc.orders))
 seller_bp.add_url_rule('/orders/<int:oid>/update',        'order_update',     _seller(sc.order_update),     methods=['POST'])
 
+<<<<<<< HEAD
 seller_bp.add_url_rule('/reviews',                        'reviews',          _seller(sc.reviews))
 
 seller_bp.add_url_rule('/chats',                          'chats',            _seller(sc.chats))
@@ -47,3 +48,7 @@ seller_bp.add_url_rule('/chats/<int:cid>',                'chat_detail',      _s
 
 seller_bp.add_url_rule('/support',                        'support_tickets',  _seller(sc.support_tickets))
 seller_bp.add_url_rule('/support/reply',                  'support_reply',    _seller(sc.support_reply),    methods=['POST'])
+=======
+seller_bp.add_url_rule('/store/profile',                    'store_profile',      _seller(sc.store_profile),      methods=['GET', 'POST'])
+seller_bp.add_url_rule('/store/customize',                'store_customize',  _seller(sc.store_customize),  methods=['GET', 'POST'])
+>>>>>>> origin/aayushma

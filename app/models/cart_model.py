@@ -29,13 +29,31 @@ class CartModel(BaseModel):
     @classmethod
     def add_item(cls, user_id: int, product_id: int, qty: int = 1) -> None:
         """
+<<<<<<< HEAD
         Add a product to the cart, or increment its quantity if it's
         already there. Encapsulation: this "upsert" decision is made
         right here, so callers just call add_item() either way.
+=======
+        Add a product to the cart or increment its quantity.
+        Encapsulation: upsert logic is hidden from the controller.
+        Validates that requested quantity doesn't exceed available stock.
+>>>>>>> origin/aayushma
         """
+        product = Database.query(
+            "SELECT stock_qty FROM products WHERE id = %s", (product_id,), one=True
+        )
+        if not product:
+            raise ValueError("Product not found")
+
         existing = cls.find_where(
             "user_id = %s AND product_id = %s", (user_id, product_id), one=True
         )
+        current_qty = existing['quantity'] if existing else 0
+        new_qty = current_qty + qty
+
+        if new_qty > product['stock_qty']:
+            raise ValueError(f"Only {product['stock_qty']} item(s) in stock")
+
         if existing:
             Database.execute(
                 "UPDATE cart SET quantity = quantity + %s WHERE user_id = %s AND product_id = %s",
@@ -46,7 +64,13 @@ class CartModel(BaseModel):
 
     @classmethod
     def update_qty(cls, user_id: int, product_id: int, qty: int) -> None:
+<<<<<<< HEAD
         """Overwrite a cart row's quantity with an exact value."""
+=======
+        """Set an exact quantity for a cart item. Quantity must be at least 1."""
+        if qty < 1:
+            raise ValueError("Quantity must be at least 1")
+>>>>>>> origin/aayushma
         Database.execute(
             "UPDATE cart SET quantity = %s WHERE user_id = %s AND product_id = %s",
             (qty, user_id, product_id)

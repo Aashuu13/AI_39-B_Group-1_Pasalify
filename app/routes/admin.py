@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/aayushma
 from flask import Blueprint
 from app.controllers import admin_controller
 from app.utils.auth import role_required
@@ -35,4 +38,8 @@ admin_bp.add_url_rule('/categories',                   'categories',      _admin
 admin_bp.add_url_rule('/categories/add',               'category_add',    _admin(ac.category_add), methods=['POST'])
 
 admin_bp.add_url_rule('/support',                      'support_tickets', _admin(ac.support_tickets))
+<<<<<<< HEAD
 admin_bp.add_url_rule('/support/reply',                'support_reply',   _admin(ac.support_reply),   methods=['POST'])
+=======
+admin_bp.add_url_rule('/support/reply',                'support_reply',   _admin(ac.support_reply),   methods=['POST'])
+>>>>>>> origin/aayushma

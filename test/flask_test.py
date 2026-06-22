@@ -1,3 +1,44 @@
+<<<<<<< HEAD
+=======
+"""
+test/flask_test.py  (EXPANDED)
+================================================================
+Comprehensive unit tests for Pasalify MVC's access-control
+decorators and every route group:
+
+  Sections
+  --------
+  1.  AuthDotPyTests          – decorators in app/auth.py
+  2.  AuthControlDotPyTests   – decorators in app/authcontrol.py
+  3.  AuthRoutesTests         – /auth/* (register, login, logout,
+                                forgot-password, change-password)
+  4.  CustomerPublicTests     – public customer routes (no login)
+  5.  CustomerAuthTests       – login-protected customer routes
+  6.  CartTests               – cart add / update / remove
+  7.  WishlistTests           – wishlist toggle
+  8.  CheckoutTests           – checkout + promo-code AJAX
+  9.  OrderTests              – orders list + order detail
+  10. ReviewTests             – submit_review
+  11. ProfileTests            – profile GET / POST
+  12. NotificationTests       – notifications + count endpoint
+  13. SupportTests            – support chatbot (guest + member)
+  14. ChatTests               – customer-seller chat
+  15. StorePublicTests        – public store pages
+  16. SellerAccessTests       – seller role guard on every route
+  17. SellerFeatureTests      – seller-specific actions (mocked DB)
+  18. AdminAccessTests        – admin role guard on every route
+  19. AdminFeatureTests       – admin-specific actions (mocked DB)
+  20. DebugUploadTests        – unprotected debug-upload endpoint
+
+All tests use a throwaway in-memory Flask app and mock every
+database call, so no real MySQL connection is needed.
+
+Run with:
+    python -m pytest test/flask_test.py -v
+  or:
+    python -m unittest test/flask_test.py -v
+"""
+>>>>>>> origin/aayushma
 
 import io
 import json
@@ -5,6 +46,10 @@ import unittest
 from unittest.mock import patch, MagicMock, PropertyMock
 from flask import Flask, Blueprint, session, url_for, jsonify
 
+<<<<<<< HEAD
+=======
+# ── decorators under test ────────────────────────────────────────────
+>>>>>>> origin/aayushma
 from app.auth import login_required, guest_only, admin_required
 from app.authcontrol import (
     role_required,
@@ -13,6 +58,14 @@ from app.authcontrol import (
     customer_required as ac_customer_required,
 )
 
+<<<<<<< HEAD
+=======
+
+# ══════════════════════════════════════════════════════════════════════
+# SHARED HELPERS
+# ══════════════════════════════════════════════════════════════════════
+
+>>>>>>> origin/aayushma
 def _make_minimal_app():
     """
     Tiny Flask app wired with one dummy route per blueprint so that
@@ -24,6 +77,10 @@ def _make_minimal_app():
     app.config["TESTING"] = True
     app.config["WTF_CSRF_ENABLED"] = False
 
+<<<<<<< HEAD
+=======
+    # ── auth blueprint ───────────────────────────────────────────────
+>>>>>>> origin/aayushma
     auth_bp = Blueprint("auth", __name__)
 
     @auth_bp.route("/login")
@@ -47,6 +104,10 @@ def _make_minimal_app():
     def change_password():
         return "change password page"
 
+<<<<<<< HEAD
+=======
+    # ── customer blueprint ───────────────────────────────────────────
+>>>>>>> origin/aayushma
     customer_bp = Blueprint("customer", __name__)
 
     @customer_bp.route("/")
@@ -167,6 +228,10 @@ def _make_minimal_app():
     def chat_start(store_id):
         return f"chat started with store {store_id}"
 
+<<<<<<< HEAD
+=======
+    # ── seller blueprint ─────────────────────────────────────────────
+>>>>>>> origin/aayushma
     seller_bp = Blueprint("seller", __name__)
 
     @seller_bp.route("/setup", methods=["GET", "POST"])
@@ -263,6 +328,10 @@ def _make_minimal_app():
     def debug_upload():
         return "debug upload"
 
+<<<<<<< HEAD
+=======
+    # ── admin blueprint ──────────────────────────────────────────────
+>>>>>>> origin/aayushma
     admin_bp = Blueprint("admin", __name__)
 
     @admin_bp.route("/dashboard")
@@ -370,6 +439,10 @@ def _make_minimal_app():
     def support_reply():
         return "admin replied"
 
+<<<<<<< HEAD
+=======
+    # ── store blueprint (public) ─────────────────────────────────────
+>>>>>>> origin/aayushma
     store_bp = Blueprint("store", __name__)
 
     @store_bp.route("/<slug>")
@@ -396,6 +469,10 @@ def _make_minimal_app():
 
     return app
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/aayushma
 def _login(client, role, user_id=1):
     """Stamp the session as if a user has logged in."""
     with client.session_transaction() as sess:
@@ -403,6 +480,14 @@ def _login(client, role, user_id=1):
         sess["role"] = role
         sess["name"] = f"Test {role.capitalize()}"
 
+<<<<<<< HEAD
+=======
+
+# ══════════════════════════════════════════════════════════════════════
+# 1. AUTH.PY DECORATOR TESTS
+# ══════════════════════════════════════════════════════════════════════
+
+>>>>>>> origin/aayushma
 class AuthDotPyTests(unittest.TestCase):
     """Tests for login_required / guest_only / admin_required in app/auth.py."""
 
@@ -410,6 +495,11 @@ class AuthDotPyTests(unittest.TestCase):
         self.app = _make_minimal_app()
         self.client = self.app.test_client()
 
+<<<<<<< HEAD
+=======
+    # ── login_required ───────────────────────────────────────────────
+
+>>>>>>> origin/aayushma
     def test_guest_cannot_access_cart(self):
         r = self.client.get("/customer/cart")
         self.assertEqual(r.status_code, 302)
@@ -429,6 +519,11 @@ class AuthDotPyTests(unittest.TestCase):
         r = self.client.get("/customer/orders")
         self.assertEqual(r.status_code, 200)
 
+<<<<<<< HEAD
+=======
+    # ── guest_only ───────────────────────────────────────────────────
+
+>>>>>>> origin/aayushma
     def test_login_page_accessible_as_guest(self):
         r = self.client.get("/auth/login")
         self.assertEqual(r.status_code, 200)
@@ -437,6 +532,11 @@ class AuthDotPyTests(unittest.TestCase):
         r = self.client.get("/auth/register")
         self.assertEqual(r.status_code, 200)
 
+<<<<<<< HEAD
+=======
+    # ── admin_required (auth.py version) ────────────────────────────
+
+>>>>>>> origin/aayushma
     def test_guest_blocked_from_admin_dashboard(self):
         r = self.client.get("/admin/dashboard")
         self.assertEqual(r.status_code, 302)
@@ -454,6 +554,14 @@ class AuthDotPyTests(unittest.TestCase):
         self.assertEqual(r.status_code, 200)
         self.assertIn(b"admin dashboard", r.data)
 
+<<<<<<< HEAD
+=======
+
+# ══════════════════════════════════════════════════════════════════════
+# 2. AUTHCONTROL.PY DECORATOR TESTS
+# ══════════════════════════════════════════════════════════════════════
+
+>>>>>>> origin/aayushma
 class AuthControlDotPyTests(unittest.TestCase):
     """Tests for role_required / admin_required / seller_required /
     customer_required in app/authcontrol.py."""
@@ -462,6 +570,11 @@ class AuthControlDotPyTests(unittest.TestCase):
         self.app = _make_minimal_app()
         self.client = self.app.test_client()
 
+<<<<<<< HEAD
+=======
+    # ── role_required ────────────────────────────────────────────────
+
+>>>>>>> origin/aayushma
     def test_role_required_blocks_guest(self):
         r = self.client.get("/seller/dashboard")
         self.assertEqual(r.status_code, 302)
@@ -477,6 +590,11 @@ class AuthControlDotPyTests(unittest.TestCase):
         r = self.client.get("/seller/dashboard")
         self.assertEqual(r.status_code, 200)
 
+<<<<<<< HEAD
+=======
+    # ── seller_required ──────────────────────────────────────────────
+
+>>>>>>> origin/aayushma
     def test_seller_required_blocks_admin(self):
         _login(self.client, "admin")
         r = self.client.get("/seller/dashboard")
@@ -487,6 +605,11 @@ class AuthControlDotPyTests(unittest.TestCase):
         r = self.client.get("/seller/dashboard")
         self.assertEqual(r.status_code, 200)
 
+<<<<<<< HEAD
+=======
+    # ── admin_required (authcontrol.py version) ──────────────────────
+
+>>>>>>> origin/aayushma
     def test_admin_required_blocks_seller(self):
         _login(self.client, "seller")
         r = self.client.get("/admin/sellers")
@@ -497,6 +620,11 @@ class AuthControlDotPyTests(unittest.TestCase):
         r = self.client.get("/admin/sellers")
         self.assertEqual(r.status_code, 200)
 
+<<<<<<< HEAD
+=======
+    # ── customer_required ────────────────────────────────────────────
+
+>>>>>>> origin/aayushma
     def test_customer_required_blocks_seller_on_wishlist(self):
         """Wishlist uses login_required (any role), not customer_required.
         Seller should still be let through (login_required only)."""
@@ -508,6 +636,14 @@ class AuthControlDotPyTests(unittest.TestCase):
         r = self.client.get("/customer/wishlist")
         self.assertEqual(r.status_code, 302)
 
+<<<<<<< HEAD
+=======
+
+# ══════════════════════════════════════════════════════════════════════
+# 3. AUTH ROUTES (register / login / logout / etc.)
+# ══════════════════════════════════════════════════════════════════════
+
+>>>>>>> origin/aayushma
 class AuthRoutesTests(unittest.TestCase):
     def setUp(self):
         self.app = _make_minimal_app()
@@ -532,10 +668,22 @@ class AuthRoutesTests(unittest.TestCase):
     def test_logout_clears_session(self):
         _login(self.client, "customer")
         r = self.client.get("/auth/logout")
+<<<<<<< HEAD
         self.assertEqual(r.status_code, 200)  
         with self.client.session_transaction() as sess:
             self.assertNotIn("user_id", sess)
 
+=======
+        self.assertEqual(r.status_code, 200)  # our dummy returns 200
+        with self.client.session_transaction() as sess:
+            self.assertNotIn("user_id", sess)
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 4. CUSTOMER PUBLIC ROUTES (no login needed)
+# ══════════════════════════════════════════════════════════════════════
+
+>>>>>>> origin/aayushma
 class CustomerPublicTests(unittest.TestCase):
     def setUp(self):
         self.app = _make_minimal_app()
@@ -574,6 +722,14 @@ class CustomerPublicTests(unittest.TestCase):
         body = json.loads(r.data)
         self.assertIn("reply", body)
 
+<<<<<<< HEAD
+=======
+
+# ══════════════════════════════════════════════════════════════════════
+# 5. CUSTOMER AUTH-PROTECTED PAGES
+# ══════════════════════════════════════════════════════════════════════
+
+>>>>>>> origin/aayushma
 class CustomerAuthTests(unittest.TestCase):
     def setUp(self):
         self.app = _make_minimal_app()
@@ -631,6 +787,14 @@ class CustomerAuthTests(unittest.TestCase):
         r = self.client.get("/customer/chat/start/3")
         self.assertEqual(r.status_code, 200)
 
+<<<<<<< HEAD
+=======
+
+# ══════════════════════════════════════════════════════════════════════
+# 6. CART TESTS
+# ══════════════════════════════════════════════════════════════════════
+
+>>>>>>> origin/aayushma
 class CartTests(unittest.TestCase):
     def setUp(self):
         self.app = _make_minimal_app()
@@ -664,6 +828,14 @@ class CartTests(unittest.TestCase):
         r = self.client.get("/customer/cart/remove/1")
         self.assertEqual(r.status_code, 200)
 
+<<<<<<< HEAD
+=======
+
+# ══════════════════════════════════════════════════════════════════════
+# 7. WISHLIST TESTS
+# ══════════════════════════════════════════════════════════════════════
+
+>>>>>>> origin/aayushma
 class WishlistTests(unittest.TestCase):
     def setUp(self):
         self.app = _make_minimal_app()
@@ -687,6 +859,14 @@ class WishlistTests(unittest.TestCase):
         r = self.client.get("/customer/wishlist/toggle/10")
         self.assertEqual(r.status_code, 200)
 
+<<<<<<< HEAD
+=======
+
+# ══════════════════════════════════════════════════════════════════════
+# 8. CHECKOUT / PROMO TESTS
+# ══════════════════════════════════════════════════════════════════════
+
+>>>>>>> origin/aayushma
 class CheckoutTests(unittest.TestCase):
     def setUp(self):
         self.app = _make_minimal_app()
@@ -722,6 +902,14 @@ class CheckoutTests(unittest.TestCase):
         self.assertIn("discount", body)
         self.assertIn("message", body)
 
+<<<<<<< HEAD
+=======
+
+# ══════════════════════════════════════════════════════════════════════
+# 9. ORDER TESTS
+# ══════════════════════════════════════════════════════════════════════
+
+>>>>>>> origin/aayushma
 class OrderTests(unittest.TestCase):
     def setUp(self):
         self.app = _make_minimal_app()
@@ -754,6 +942,14 @@ class OrderTests(unittest.TestCase):
         r = self.client.get("/customer/payments")
         self.assertEqual(r.status_code, 200)
 
+<<<<<<< HEAD
+=======
+
+# ══════════════════════════════════════════════════════════════════════
+# 10. REVIEW TESTS
+# ══════════════════════════════════════════════════════════════════════
+
+>>>>>>> origin/aayushma
 class ReviewTests(unittest.TestCase):
     def setUp(self):
         self.app = _make_minimal_app()
@@ -771,6 +967,14 @@ class ReviewTests(unittest.TestCase):
                              data={"rating": "5", "title": "Great", "body": "Love it"})
         self.assertEqual(r.status_code, 200)
 
+<<<<<<< HEAD
+=======
+
+# ══════════════════════════════════════════════════════════════════════
+# 11. PROFILE TESTS
+# ══════════════════════════════════════════════════════════════════════
+
+>>>>>>> origin/aayushma
 class ProfileTests(unittest.TestCase):
     def setUp(self):
         self.app = _make_minimal_app()
@@ -794,6 +998,14 @@ class ProfileTests(unittest.TestCase):
         r = self.client.post("/customer/profile", data={"name": "New Name"})
         self.assertEqual(r.status_code, 200)
 
+<<<<<<< HEAD
+=======
+
+# ══════════════════════════════════════════════════════════════════════
+# 12. NOTIFICATION TESTS
+# ══════════════════════════════════════════════════════════════════════
+
+>>>>>>> origin/aayushma
 class NotificationTests(unittest.TestCase):
     def setUp(self):
         self.app = _make_minimal_app()
@@ -820,6 +1032,14 @@ class NotificationTests(unittest.TestCase):
         self.assertIn("count", body)
         self.assertIsInstance(body["count"], int)
 
+<<<<<<< HEAD
+=======
+
+# ══════════════════════════════════════════════════════════════════════
+# 13. SUPPORT CHATBOT TESTS
+# ══════════════════════════════════════════════════════════════════════
+
+>>>>>>> origin/aayushma
 class SupportTests(unittest.TestCase):
     def setUp(self):
         self.app = _make_minimal_app()
@@ -846,6 +1066,14 @@ class SupportTests(unittest.TestCase):
         r = self.client.post("/customer/support/chat", data={"message": ""})
         self.assertEqual(r.status_code, 200)
 
+<<<<<<< HEAD
+=======
+
+# ══════════════════════════════════════════════════════════════════════
+# 14. CUSTOMER-SELLER CHAT TESTS
+# ══════════════════════════════════════════════════════════════════════
+
+>>>>>>> origin/aayushma
 class ChatTests(unittest.TestCase):
     def setUp(self):
         self.app = _make_minimal_app()
@@ -883,6 +1111,14 @@ class ChatTests(unittest.TestCase):
         r = self.client.get("/customer/chat/start/2")
         self.assertEqual(r.status_code, 200)
 
+<<<<<<< HEAD
+=======
+
+# ══════════════════════════════════════════════════════════════════════
+# 15. PUBLIC STORE PAGES
+# ══════════════════════════════════════════════════════════════════════
+
+>>>>>>> origin/aayushma
 class StorePublicTests(unittest.TestCase):
     def setUp(self):
         self.app = _make_minimal_app()
@@ -905,6 +1141,14 @@ class StorePublicTests(unittest.TestCase):
         r = self.client.get("/store/chat/3")
         self.assertEqual(r.status_code, 200)
 
+<<<<<<< HEAD
+=======
+
+# ══════════════════════════════════════════════════════════════════════
+# 16. SELLER ACCESS CONTROL — every seller route requires seller role
+# ══════════════════════════════════════════════════════════════════════
+
+>>>>>>> origin/aayushma
 SELLER_ROUTES_GET = [
     "/seller/setup",
     "/seller/dashboard",
@@ -932,6 +1176,10 @@ SELLER_ROUTES_POST = [
     ("/seller/products/add",       {"name": "Prod", "price": "100"}),
 ]
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/aayushma
 class SellerAccessTests(unittest.TestCase):
     def setUp(self):
         self.app = _make_minimal_app()
@@ -953,6 +1201,11 @@ class SellerAccessTests(unittest.TestCase):
         self.assertEqual(r.status_code, 200,
                          f"Expected 200 for {method} {url}, got {r.status_code}")
 
+<<<<<<< HEAD
+=======
+    # — Guest is blocked ─────────────────────────────────────────────
+
+>>>>>>> origin/aayushma
     def test_guest_blocked_from_all_seller_get_routes(self):
         for url in SELLER_ROUTES_GET:
             with self.subTest(url=url):
@@ -963,6 +1216,11 @@ class SellerAccessTests(unittest.TestCase):
             with self.subTest(url=url):
                 self._assert_blocked(url, "POST", data)
 
+<<<<<<< HEAD
+=======
+    # — Customer is blocked ──────────────────────────────────────────
+
+>>>>>>> origin/aayushma
     def test_customer_blocked_from_all_seller_get_routes(self):
         _login(self.client, "customer")
         for url in SELLER_ROUTES_GET:
@@ -975,12 +1233,22 @@ class SellerAccessTests(unittest.TestCase):
             with self.subTest(url=url):
                 self._assert_blocked(url, "POST", data)
 
+<<<<<<< HEAD
+=======
+    # — Admin is blocked ─────────────────────────────────────────────
+
+>>>>>>> origin/aayushma
     def test_admin_blocked_from_all_seller_get_routes(self):
         _login(self.client, "admin")
         for url in SELLER_ROUTES_GET:
             with self.subTest(url=url):
                 self._assert_blocked(url)
 
+<<<<<<< HEAD
+=======
+    # — Seller is allowed ────────────────────────────────────────────
+
+>>>>>>> origin/aayushma
     def test_seller_allowed_on_all_get_routes(self):
         _login(self.client, "seller")
         for url in SELLER_ROUTES_GET:
@@ -993,6 +1261,14 @@ class SellerAccessTests(unittest.TestCase):
             with self.subTest(url=url):
                 self._assert_allowed(url, "POST", data)
 
+<<<<<<< HEAD
+=======
+
+# ══════════════════════════════════════════════════════════════════════
+# 17. SELLER FEATURE TESTS — response shape / content
+# ══════════════════════════════════════════════════════════════════════
+
+>>>>>>> origin/aayushma
 class SellerFeatureTests(unittest.TestCase):
     def setUp(self):
         self.app = _make_minimal_app()
@@ -1090,6 +1366,14 @@ class SellerFeatureTests(unittest.TestCase):
         r = self.client.get("/seller/categories")
         self.assertEqual(r.status_code, 200)
 
+<<<<<<< HEAD
+=======
+
+# ══════════════════════════════════════════════════════════════════════
+# 18. ADMIN ACCESS CONTROL — every admin route requires admin role
+# ══════════════════════════════════════════════════════════════════════
+
+>>>>>>> origin/aayushma
 ADMIN_ROUTES_GET = [
     "/admin/dashboard",
     "/admin/sellers",
@@ -1117,6 +1401,10 @@ ADMIN_ROUTES_POST = [
     ("/admin/support/reply",        {"ticket_id": "1", "reply": "Fixed"}),
 ]
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/aayushma
 class AdminAccessTests(unittest.TestCase):
     def setUp(self):
         self.app = _make_minimal_app()
@@ -1134,6 +1422,11 @@ class AdminAccessTests(unittest.TestCase):
         self.assertEqual(r.status_code, 200,
                          f"Expected 200 for {method} {url}, got {r.status_code}")
 
+<<<<<<< HEAD
+=======
+    # — Guest blocked ────────────────────────────────────────────────
+
+>>>>>>> origin/aayushma
     def test_guest_blocked_from_all_admin_get_routes(self):
         for url in ADMIN_ROUTES_GET:
             with self.subTest(url=url):
@@ -1144,18 +1437,33 @@ class AdminAccessTests(unittest.TestCase):
             with self.subTest(url=url):
                 self._assert_blocked(url, "POST", data)
 
+<<<<<<< HEAD
+=======
+    # — Customer blocked ─────────────────────────────────────────────
+
+>>>>>>> origin/aayushma
     def test_customer_blocked_from_all_admin_get_routes(self):
         _login(self.client, "customer")
         for url in ADMIN_ROUTES_GET:
             with self.subTest(url=url):
                 self._assert_blocked(url)
 
+<<<<<<< HEAD
+=======
+    # — Seller blocked ───────────────────────────────────────────────
+
+>>>>>>> origin/aayushma
     def test_seller_blocked_from_all_admin_get_routes(self):
         _login(self.client, "seller")
         for url in ADMIN_ROUTES_GET:
             with self.subTest(url=url):
                 self._assert_blocked(url)
 
+<<<<<<< HEAD
+=======
+    # — Admin allowed ────────────────────────────────────────────────
+
+>>>>>>> origin/aayushma
     def test_admin_allowed_on_all_get_routes(self):
         _login(self.client, "admin")
         for url in ADMIN_ROUTES_GET:
@@ -1168,6 +1476,14 @@ class AdminAccessTests(unittest.TestCase):
             with self.subTest(url=url):
                 self._assert_allowed(url, "POST", data)
 
+<<<<<<< HEAD
+=======
+
+# ══════════════════════════════════════════════════════════════════════
+# 19. ADMIN FEATURE TESTS — response shape / content
+# ══════════════════════════════════════════════════════════════════════
+
+>>>>>>> origin/aayushma
 class AdminFeatureTests(unittest.TestCase):
     def setUp(self):
         self.app = _make_minimal_app()
@@ -1267,6 +1583,14 @@ class AdminFeatureTests(unittest.TestCase):
                              data={"ticket_id": "2", "reply": "Issue resolved."})
         self.assertEqual(r.status_code, 200)
 
+<<<<<<< HEAD
+=======
+
+# ══════════════════════════════════════════════════════════════════════
+# 20. DEBUG UPLOAD ENDPOINT (unprotected — should stay GET + POST)
+# ══════════════════════════════════════════════════════════════════════
+
+>>>>>>> origin/aayushma
 class DebugUploadTests(unittest.TestCase):
     def setUp(self):
         self.app = _make_minimal_app()
@@ -1292,5 +1616,13 @@ class DebugUploadTests(unittest.TestCase):
                              content_type="multipart/form-data")
         self.assertEqual(r.status_code, 200)
 
+<<<<<<< HEAD
+=======
+
+# ══════════════════════════════════════════════════════════════════════
+# RUNNER
+# ══════════════════════════════════════════════════════════════════════
+
+>>>>>>> origin/aayushma
 if __name__ == "__main__":
     unittest.main(verbosity=2)
