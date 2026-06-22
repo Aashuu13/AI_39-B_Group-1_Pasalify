@@ -19,6 +19,7 @@ profile/customization, products, categories, inventory, orders,
 reviews, chat, and support tickets.
 """
 
+import uuid
 from flask import render_template, request, redirect, url_for, session, flash
 
 from app.controllers.base_controller import BaseController
@@ -39,7 +40,8 @@ class SellerController(BaseController):
         _save_file, _ok/_err/_warn/_info, _q/_run, _log, _notify,
         _current_user_id, _is_logged_in
     """
-# ── Private helpers (Encapsulation) ─────────────────────────────────────
+
+    # ── Private helpers (Encapsulation) ─────────────────────────────────────
 
     def _get_store(self) -> dict | None:
         """Return the current seller's store row, or None if they
@@ -105,12 +107,14 @@ class SellerController(BaseController):
         if request.method == 'POST':
             name   = request.form.get('name', '').strip()
             desc   = request.form.get('description', '').strip()
+            slug   = StoreModel.make_unique_slug(name)
             logo   = self._save_file(request.files.get('logo'), 'logos')
             banner = self._save_file(request.files.get('banner'), 'banners')
 
             sid = StoreModel.create({
                 'user_id':     self._current_user_id(),
                 'name':        name,
+                'slug':        slug,
                 'description': desc,
                 'logo':        logo,
                 'banner':      banner,
@@ -166,6 +170,7 @@ class SellerController(BaseController):
             StoreModel.update(store['id'], {
                 'name':        request.form.get('name', ''),
                 'description': request.form.get('description', ''),
+                'theme_color': request.form.get('theme_color', '#6C3FC8'),
                 'logo':        logo,
                 'banner':      banner,
             })
@@ -173,6 +178,22 @@ class SellerController(BaseController):
             return redirect(url_for('seller.store_profile'))
 
         return render_template('seller/store_profile.html', store=store)
+
+    def store_customize(self):
+        """Edit the storefront's look and feel: theme color and layout."""
+        store, redir = self._require_store()
+        if redir:
+            return redir
+
+        if request.method == 'POST':
+            StoreModel.update(store['id'], {
+                'theme_color':  request.form.get('theme_color', '#6C3FC8'),
+                'theme_layout': request.form.get('theme_layout', 'grid'),
+            })
+            self._ok('Store design saved!')
+            return redirect(url_for('seller.store_customize'))
+
+        return render_template('seller/store_customize.html', store=store)
 
     # ── Products ────────────────────────────────────────────────────────────
 

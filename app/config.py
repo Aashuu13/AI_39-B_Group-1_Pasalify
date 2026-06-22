@@ -19,7 +19,7 @@ class Config:
     """Flask reads every UPPERCASE attribute on this class as a
     config key via app.config.from_object(Config)."""
 
-   
+    # Used by Flask to sign session cookies and CSRF tokens
     SECRET_KEY         = os.environ.get('SECRET_KEY', 'pasalify-np-2026-secret')
 
     # Flask-WTF: enables CSRF protection on all forms
@@ -28,7 +28,7 @@ class Config:
     # MySQL connection settings (see app/db.py)
     MYSQL_HOST         = os.environ.get('MYSQL_HOST', 'localhost')
     MYSQL_USER         = os.environ.get('MYSQL_USER', 'root')
-    MYSQL_PASSWORD     = os.environ.get('MYSQL_PASSWORD', 'yubrajreule2453')
+    MYSQL_PASSWORD     = os.environ.get('MYSQL_PASSWORD', 'aashuNEXTdoor2007_')
     MYSQL_DB           = os.environ.get('MYSQL_DB', 'pasalify3_db')
     MYSQL_PORT         = int(os.environ.get('MYSQL_PORT', 3306))
 

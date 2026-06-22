@@ -18,6 +18,7 @@ from flask_wtf.csrf import CSRFProtect
 from app.config import Config
 import os
 
+# CSRFProtect is created once at module level, then bound to whichever
 # app instance create_app() builds via csrf.init_app(app).
 csrf = CSRFProtect()
 

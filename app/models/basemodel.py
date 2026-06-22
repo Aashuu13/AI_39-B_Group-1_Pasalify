@@ -27,14 +27,15 @@ class BaseModel(ABC):
     - Every child class INHERITS all the CRUD helpers below for free.
     """
 
-   
+    # ── Abstract property (every child MUST define this) ───────────────────
+
     @property
     @abstractmethod
     def table(self) -> str:
         """Each child model must specify its database table name."""
         pass
 
-   
+    # ── Shared internals ─────────────────────────────────────────────────
 
     @classmethod
     def _get_table(cls) -> str:

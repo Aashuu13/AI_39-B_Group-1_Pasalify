@@ -43,14 +43,18 @@ Context: store, products (that store's catalogue).
   <div class="page-subtitle">{{ products|length }} item(s) available</div>
 
   {% if products %}
-  <div class="row g-4">
+  <div class="row g-4 {% if store.theme_layout == 'list' %}row-cols-1{% elif store.theme_layout == 'masonry' %}row-cols-2{% else %}row-cols-2 row-cols-md-3{% endif %}">
     {% for p in products %}
-    <div class="col-6 col-md-4 col-lg-3">
+    <div class="col">
       <div class="product-card">
         {% if p.image_path %}
-        <img src="{{ url_for('static', filename=p.image_path) }}">
+        <img src="{{ url_for('static', filename=p.image_path) }}"
+             style="{% if store.theme_layout == 'list' %}height:120px{% else %}height:180px{% endif %}">
         {% else %}
-        <div class="product-no-img"><i class="bi bi-image"></i></div>
+        <div class="product-no-img"
+             style="{% if store.theme_layout == 'list' %}height:120px{% else %}height:180px{% endif %}">
+          <i class="bi bi-image"></i>
+        </div>
         {% endif %}
         <div class="p-body">
           <div class="p-name">{{ p.name }}</div>

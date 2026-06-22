@@ -1,8 +1,3 @@
-"""
-seller_controller_test.py — Yubraj's features:
-  Sprint 3: seller chat
-  Sprint 4: organize product (products, categories, inventory)
-"""
 import unittest
 from unittest.mock import patch, MagicMock
 from flask import Flask, Blueprint, session, get_flashed_messages
@@ -10,6 +5,13 @@ from flask import Flask, Blueprint, session, get_flashed_messages
 from app.controllers.seller_controller import SellerController
 
 
+# A reusable helper that builds a tiny Flask app for every test.
+# define the route names the controller redirects to
+# (seller.setup, seller.dashboard, seller.products, seller.inventory,
+# seller.orders, seller.store_profile, seller.store_customize,
+# seller.chats, seller.chat_detail, seller.support_tickets,
+# customer.order_detail) so that url_for() inside the controller can
+# build URLs successfully.
 def make_test_app():
     app = Flask(__name__)
     app.secret_key = "test-secret-key"
@@ -35,6 +37,11 @@ def make_test_app():
 
 
 def make_controller():
+    """
+    Build a SellerController whose DB-touching helpers (_q/_run/_log/
+    _notify/_save_file) are replaced with mocks, so tests exercise the
+    controller's own logic instead of hitting a real database or disk.
+    """
     controller = SellerController()
     controller._q = MagicMock(return_value=[])
     controller._run = MagicMock(return_value=1)
@@ -45,7 +52,148 @@ def make_controller():
 
 
 # =====================================================================
-#  SPRINT 4: ORGANIZE PRODUCT — Products CRUD
+#  STORE SETUP
+# =====================================================================
+class TestSetup(unittest.TestCase):
+    def setUp(self):
+        self.app = make_test_app()
+        self.controller = make_controller()
+
+    @patch("app.controllers.seller_controller.StoreModel")
+    def test_existing_store_redirects_straight_to_dashboard(self, mock_store_model):
+        mock_store_model.find_by_user.return_value = {"id": 1}
+        with self.app.test_request_context():
+            session["user_id"] = 1
+            response = self.controller.setup()
+            self.assertEqual(response.status_code, 302)
+            self.assertTrue(response.location.endswith("/dashboard"))
+
+    @patch("app.controllers.seller_controller.render_template")
+    @patch("app.controllers.seller_controller.StoreModel")
+    def test_get_shows_setup_form_when_no_store_yet(self, mock_store_model, mock_render):
+        mock_store_model.find_by_user.return_value = None
+        mock_render.return_value = "setup_page"
+        with self.app.test_request_context(method="GET"):
+            session["user_id"] = 1
+            result = self.controller.setup()
+            self.assertEqual(result, "setup_page")
+
+    @patch("app.controllers.seller_controller.StoreModel")
+    def test_post_creates_store_and_redirects_to_dashboard(self, mock_store_model):
+        mock_store_model.find_by_user.return_value = None
+        mock_store_model.make_unique_slug.return_value = "cool-shop"
+        mock_store_model.create.return_value = 5
+
+        with self.app.test_request_context(
+            method="POST", data={"name": "Cool Shop", "description": "Best shop"}
+        ):
+            session["user_id"] = 1
+            response = self.controller.setup()
+            mock_store_model.create.assert_called_once()
+            created = mock_store_model.create.call_args[0][0]
+            self.assertEqual(created["name"], "Cool Shop")
+            self.assertEqual(created["slug"], "cool-shop")
+            self.assertEqual(created["user_id"], 1)
+            self.assertEqual(response.status_code, 302)
+            self.assertTrue(response.location.endswith("/dashboard"))
+            flashes = get_flashed_messages(with_categories=True)
+            self.assertIn(("success", "Store created successfully!"), flashes)
+
+
+# =====================================================================
+#  DASHBOARD
+# =====================================================================
+class TestDashboard(unittest.TestCase):
+    def setUp(self):
+        self.app = make_test_app()
+        self.controller = make_controller()
+
+    @patch("app.controllers.seller_controller.StoreModel")
+    def test_redirects_to_setup_when_no_store(self, mock_store_model):
+        mock_store_model.find_by_user.return_value = None
+        with self.app.test_request_context():
+            session["user_id"] = 1
+            response = self.controller.dashboard()
+            self.assertEqual(response.status_code, 302)
+            self.assertTrue(response.location.endswith("/setup"))
+
+    @patch("app.controllers.seller_controller.render_template")
+    @patch("app.controllers.seller_controller.OrderModel")
+    @patch("app.controllers.seller_controller.ProductModel")
+    @patch("app.controllers.seller_controller.StoreModel")
+    def test_renders_dashboard_with_stats(
+        self, mock_store_model, mock_product_model, mock_order_model, mock_render
+    ):
+        store = {"id": 1, "name": "Cool Shop"}
+        mock_store_model.find_by_user.return_value = store
+        mock_store_model.stats.return_value = {
+            "total_sales": 1000, "total_orders": 5, "total_products": 3
+        }
+        mock_product_model.low_stock.return_value = []
+        mock_order_model.find_by_store.return_value = []
+        mock_order_model.monthly_revenue.return_value = []
+        self.controller._q.return_value = []
+        mock_render.return_value = "dashboard_page"
+
+        with self.app.test_request_context():
+            session["user_id"] = 1
+            result = self.controller.dashboard()
+            self.assertEqual(result, "dashboard_page")
+            _, kwargs = mock_render.call_args
+            self.assertEqual(kwargs["total_sales"], 1000)
+            self.assertEqual(kwargs["total_orders"], 5)
+            self.assertEqual(kwargs["total_products"], 3)
+
+
+# =====================================================================
+#  STORE PROFILE / CUSTOMIZE
+# =====================================================================
+class TestStoreProfile(unittest.TestCase):
+    def setUp(self):
+        self.app = make_test_app()
+        self.controller = make_controller()
+
+    @patch("app.controllers.seller_controller.StoreModel")
+    def test_post_updates_profile_and_keeps_old_logo_if_none_uploaded(self, mock_store_model):
+        store = {"id": 1, "logo": "uploads/logos/old.png", "banner": "uploads/banners/old.png"}
+        mock_store_model.find_by_user.return_value = store
+        self.controller._save_file.return_value = None  # no new file uploaded
+
+        with self.app.test_request_context(
+            method="POST", data={"name": "New Name", "description": "New desc"}
+        ):
+            session["user_id"] = 1
+            response = self.controller.store_profile()
+            mock_store_model.update.assert_called_once()
+            updated = mock_store_model.update.call_args[0][1]
+            self.assertEqual(updated["logo"], "uploads/logos/old.png")
+            self.assertEqual(updated["banner"], "uploads/banners/old.png")
+            self.assertEqual(response.status_code, 302)
+            flashes = get_flashed_messages(with_categories=True)
+            self.assertIn(("success", "Store profile updated!"), flashes)
+
+
+class TestStoreCustomize(unittest.TestCase):
+    def setUp(self):
+        self.app = make_test_app()
+        self.controller = make_controller()
+
+    @patch("app.controllers.seller_controller.StoreModel")
+    def test_post_saves_theme_settings(self, mock_store_model):
+        mock_store_model.find_by_user.return_value = {"id": 1}
+        with self.app.test_request_context(
+            method="POST", data={"theme_color": "#000000", "theme_layout": "list"}
+        ):
+            session["user_id"] = 1
+            response = self.controller.store_customize()
+            mock_store_model.update.assert_called_once_with(
+                1, {"theme_color": "#000000", "theme_layout": "list"}
+            )
+            self.assertEqual(response.status_code, 302)
+
+
+# =====================================================================
+#  PRODUCTS
 # =====================================================================
 class TestProducts(unittest.TestCase):
     def setUp(self):
@@ -64,10 +212,13 @@ class TestProducts(unittest.TestCase):
     @patch("app.controllers.seller_controller.CategoryModel")
     @patch("app.controllers.seller_controller.ProductModel")
     @patch("app.controllers.seller_controller.StoreModel")
-    def test_product_add_post_creates_product(self, mock_store_model, mock_product_model, mock_category_model):
+    def test_product_add_post_creates_product_and_images(
+        self, mock_store_model, mock_product_model, mock_category_model
+    ):
         mock_store_model.find_by_user.return_value = {"id": 1}
         mock_category_model.find_all.return_value = []
         mock_product_model.create.return_value = 10
+
         with self.app.test_request_context(
             method="POST",
             data={"name": "Cool Widget", "price": "100", "stock_qty": "5"},
@@ -87,7 +238,9 @@ class TestProducts(unittest.TestCase):
     @patch("app.controllers.seller_controller.CategoryModel")
     @patch("app.controllers.seller_controller.ProductModel")
     @patch("app.controllers.seller_controller.StoreModel")
-    def test_product_edit_missing_product_redirects(self, mock_store_model, mock_product_model, mock_category_model):
+    def test_product_edit_missing_product_redirects(
+        self, mock_store_model, mock_product_model, mock_category_model
+    ):
         mock_store_model.find_by_user.return_value = {"id": 1}
         mock_product_model.find_where.return_value = None
         with self.app.test_request_context():
@@ -101,10 +254,13 @@ class TestProducts(unittest.TestCase):
     @patch("app.controllers.seller_controller.CategoryModel")
     @patch("app.controllers.seller_controller.ProductModel")
     @patch("app.controllers.seller_controller.StoreModel")
-    def test_product_edit_post_updates_product(self, mock_store_model, mock_product_model, mock_category_model):
+    def test_product_edit_post_updates_product(
+        self, mock_store_model, mock_product_model, mock_category_model
+    ):
         mock_store_model.find_by_user.return_value = {"id": 1}
         mock_product_model.find_where.return_value = {"id": 7, "name": "Old Name"}
         mock_category_model.find_all.return_value = []
+
         with self.app.test_request_context(
             method="POST",
             data={"name": "New Name", "price": "150", "stock_qty": "3"},
@@ -132,7 +288,7 @@ class TestProducts(unittest.TestCase):
 
 
 # =====================================================================
-#  SPRINT 4: CATEGORIES (read-only)
+#  CATEGORIES (read-only for sellers)
 # =====================================================================
 class TestCategories(unittest.TestCase):
     def setUp(self):
@@ -153,7 +309,7 @@ class TestCategories(unittest.TestCase):
 
 
 # =====================================================================
-#  SPRINT 4: INVENTORY
+#  INVENTORY
 # =====================================================================
 class TestInventory(unittest.TestCase):
     def setUp(self):
@@ -177,7 +333,36 @@ class TestInventory(unittest.TestCase):
 
 
 # =====================================================================
-#  SPRINT 3: SELLER CHAT
+#  ORDERS
+# =====================================================================
+class TestOrders(unittest.TestCase):
+    def setUp(self):
+        self.app = make_test_app()
+        self.controller = make_controller()
+
+    @patch("app.controllers.seller_controller.OrderModel")
+    def test_order_update_with_valid_status_notifies_buyer(self, mock_order_model):
+        mock_order_model.find_by_id.return_value = {
+            "id": 1, "user_id": 2, "order_number": "ORD-1"
+        }
+        with self.app.test_request_context(method="POST", data={"status": "shipped"}):
+            response = self.controller.order_update(1)
+            mock_order_model.update.assert_called_once_with(1, {"status": "shipped"})
+            self.controller._notify.assert_called_once()
+            self.assertEqual(response.status_code, 302)
+            flashes = get_flashed_messages(with_categories=True)
+            self.assertIn(("success", "Order status updated."), flashes)
+
+    @patch("app.controllers.seller_controller.OrderModel")
+    def test_order_update_with_invalid_status_does_nothing(self, mock_order_model):
+        with self.app.test_request_context(method="POST", data={"status": "bogus"}):
+            response = self.controller.order_update(1)
+            mock_order_model.update.assert_not_called()
+            self.assertEqual(response.status_code, 302)
+
+
+# =====================================================================
+#  CHAT
 # =====================================================================
 class TestChat(unittest.TestCase):
     def setUp(self):
@@ -205,6 +390,45 @@ class TestChat(unittest.TestCase):
             )
             self.assertEqual(response.status_code, 302)
             self.assertTrue(response.location.endswith("/chats/5"))
+
+
+# =====================================================================
+#  SUPPORT TICKETS (seller-scoped)
+# =====================================================================
+class TestSupportTickets(unittest.TestCase):
+    def setUp(self):
+        self.app = make_test_app()
+        self.controller = make_controller()
+
+    @patch("app.controllers.seller_controller.StoreModel")
+    def test_support_reply_rejects_empty_message(self, mock_store_model):
+        mock_store_model.find_by_user.return_value = {"id": 1, "name": "Cool Shop"}
+        with self.app.test_request_context(
+            method="POST", data={"customer_id": "1", "message": ""}
+        ):
+            session["user_id"] = 1
+            response = self.controller.support_reply()
+            self.controller._run.assert_not_called()
+            self.assertEqual(response.status_code, 302)
+            flashes = get_flashed_messages(with_categories=True)
+            self.assertIn(("danger", "Reply cannot be empty."), flashes)
+
+    @patch("app.controllers.seller_controller.StoreModel")
+    def test_support_reply_creates_chat_and_sends_message(self, mock_store_model):
+        mock_store_model.find_by_user.return_value = {"id": 1, "name": "Cool Shop"}
+        self.controller._q.return_value = None  # no existing chat
+        self.controller._run.return_value = 88  # new chat id
+
+        with self.app.test_request_context(
+            method="POST", data={"customer_id": "2", "message": "We'll help!"}
+        ):
+            session["user_id"] = 1
+            response = self.controller.support_reply()
+            self.controller._notify.assert_called_once()
+            self.assertEqual(response.status_code, 302)
+            self.assertTrue(response.location.endswith("/chats/88"))
+            flashes = get_flashed_messages(with_categories=True)
+            self.assertIn(("success", "Message sent to customer."), flashes)
 
 
 if __name__ == "__main__":

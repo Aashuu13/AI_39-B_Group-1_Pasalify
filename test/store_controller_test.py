@@ -7,7 +7,8 @@ from app.controllers.store_controller import StoreController
 
 # A reusable helper that builds a tiny Flask app for every test.
 # define the route names the controller redirects to
-
+# (customer.home, customer.product_detail, auth.login, store.chat_view)
+# so that url_for() inside the controller can build URLs successfully.
 def make_test_app():
     app = Flask(__name__)
     app.secret_key = "test-secret-key"
@@ -146,7 +147,8 @@ class TestStartChat(unittest.TestCase):
 
 
 # =====================================================================
-
+#  CHAT VIEW
+# =====================================================================
 class TestChatView(unittest.TestCase):
     def setUp(self):
         self.app = make_test_app()
