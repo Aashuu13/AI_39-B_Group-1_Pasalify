@@ -40,7 +40,7 @@ class SellerController(BaseController):
         _current_user_id, _is_logged_in
     """
 
-    # ── Private helpers (Encapsulation) ─────────────────────────────────────
+  
 
     def _get_store(self) -> dict | None:
         """Return the current seller's store row, or None if they
@@ -95,8 +95,7 @@ class SellerController(BaseController):
                     (product_id, path, 1 if (i == 0 and first_is_primary) else 0)
                 )
 
-    # ── Setup ───────────────────────────────────────────────────────────────
-
+   
     def setup(self):
         """One-time wizard: create the store for a brand-new seller.
         Sellers who already have a store skip straight to the dashboard."""
@@ -123,7 +122,6 @@ class SellerController(BaseController):
 
         return render_template('seller/setup.html')
 
-    # ── Dashboard ───────────────────────────────────────────────────────────
 
     def dashboard(self):
         """Seller's home page: revenue/order/product totals, low-stock
@@ -152,7 +150,7 @@ class SellerController(BaseController):
                                monthly=monthly,
                                top_products=top_products)
 
-    # ── Store profile & customization ───────────────────────────────────────
+
 
     def store_profile(self):
         """Edit basic store info (name, description, logo, banner)."""
@@ -161,7 +159,7 @@ class SellerController(BaseController):
             return redir
 
         if request.method == 'POST':
-            # Keep the old logo/banner if no new file was chosen
+           
             logo   = self._save_file(request.files.get('logo'), 'logos')   or store['logo']
             banner = self._save_file(request.files.get('banner'), 'banners') or store['banner']
             StoreModel.update(store['id'], {
@@ -174,8 +172,6 @@ class SellerController(BaseController):
             return redirect(url_for('seller.store_profile'))
 
         return render_template('seller/store_profile.html', store=store)
-
-    # ── Products ────────────────────────────────────────────────────────────
 
     def products(self):
         """List every product this seller's store has (active or not)."""
@@ -279,7 +275,7 @@ class SellerController(BaseController):
         self._info('Product removed.')
         return redirect(url_for('seller.products'))
 
-    # ── Categories ──────────────────────────────────────────────────────────
+   
 
     def categories(self):
         """Read-only category browser for sellers (categories are
@@ -287,7 +283,7 @@ class SellerController(BaseController):
         cats = CategoryModel.find_all()
         return render_template('seller/categories.html', cats=cats)
 
-    # ── Inventory ───────────────────────────────────────────────────────────
+    
 
     def inventory(self):
         """Stock-focused product list, sorted lowest-stock-first so
@@ -314,7 +310,7 @@ class SellerController(BaseController):
         self._ok('Stock updated!')
         return redirect(url_for('seller.inventory'))
 
-    # ── Orders ──────────────────────────────────────────────────────────────
+
 
     def orders(self):
         """All orders that include at least one item from this store,
@@ -347,7 +343,6 @@ class SellerController(BaseController):
             self._ok('Order status updated.')
         return redirect(url_for('seller.orders'))
 
-    # ── Reviews ─────────────────────────────────────────────────────────────
 
     def reviews(self):
         """Every review left on any product from this store."""
@@ -363,7 +358,7 @@ class SellerController(BaseController):
         """, (store['id'],))
         return render_template('seller/reviews.html', reviews=revs, store=store)
 
-    # ── Chat (seller side of customer<->seller messaging) ──────────────────
+
 
     def chats(self):
         """List of this seller's conversations with customers, each with
@@ -420,7 +415,7 @@ class SellerController(BaseController):
         return render_template('seller/chat_detail.html', chat=chat,
                                msgs=msgs, customer=customer, store=store)
 
-    # ── Support tickets (customers asking the chatbot, escalated here) ─────
+ 
 
     def support_tickets(self):
         """
@@ -500,5 +495,5 @@ class SellerController(BaseController):
         return redirect(url_for('seller.chat_detail', cid=cid))
 
 
-# ── Singleton instance imported by app/controllers/__init__.py and routes ──
+
 seller_controller = SellerController()

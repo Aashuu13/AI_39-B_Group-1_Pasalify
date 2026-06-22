@@ -24,7 +24,7 @@ class Database:
     see dicts (or lists of dicts) coming back from these two methods.
     """
 
-    # ── Read ─────────────────────────────────────────────────────────────
+  
 
     @staticmethod
     def query(sql: str, args: tuple = (), one: bool = False):
@@ -38,7 +38,7 @@ class Database:
         """
         return _db.query(sql, args, one)
 
-    # ── Write ────────────────────────────────────────────────────────────
+   
 
     @staticmethod
     def execute(sql: str, args: tuple = ()) -> int:

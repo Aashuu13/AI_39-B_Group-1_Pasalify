@@ -35,8 +35,7 @@ class OrderModel(BaseModel):
     def table(self) -> str:
         return self.TABLE
 
-    # ── Lookups ─────────────────────────────────────────────────────────
-
+  
     @classmethod
     def find_by_user(cls, user_id: int) -> list[dict]:
         """All orders placed by one customer, newest first, with each
@@ -83,7 +82,6 @@ class OrderModel(BaseModel):
             LIMIT %s
         """, (limit,))
 
-    # ── Status transitions (Encapsulation) ───────────────────────────────
 
     @classmethod
     def cancel(cls, order_id: int) -> None:
@@ -106,7 +104,7 @@ class OrderModel(BaseModel):
         shipping/delivery status above."""
         cls.update(order_id, {'payment_status': 'paid'})
 
-    # ── Revenue stats ───────────────────────────────────────────────────
+
 
     @classmethod
     def monthly_revenue(cls, store_id: int | None = None, months: int = 6) -> list[dict]:

@@ -30,7 +30,6 @@ class StoreModel(BaseModel):
     def table(self) -> str:
         return self.TABLE
 
-    # ── Lookups ─────────────────────────────────────────────────────────
 
     @classmethod
     def find_by_user(cls, user_id: int) -> dict | None:
@@ -48,8 +47,7 @@ class StoreModel(BaseModel):
             ORDER BY s.created_at DESC
         """)
 
-    # ── Moderation ──────────────────────────────────────────────────────
-
+   
     @classmethod
     def approve(cls, store_id: int) -> None:
         """Admin approves a pending store."""
@@ -67,7 +65,7 @@ class StoreModel(BaseModel):
         rate = max(0, min(100, rate))
         cls.update(store_id, {'commission_rate': rate})
 
-    # ── Stats ───────────────────────────────────────────────────────────
+   
 
     @classmethod
     def stats(cls, store_id: int) -> dict:
